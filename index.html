@@ -4,18 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>Stoma Alert</title>
-<meta name="description" content="Stoma Alert — patient engagement, monitoring & workflow. Concept preview.">
-
-<!-- PWA -->
+<meta name="description" content="Stoma Alert — working prototype (test data only).">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0a8a8f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Stoma Alert">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,420 +23,409 @@
     --red:#c0492f; --red-soft:#fbece8;
     --display:"Bricolage Grotesque",sans-serif;
     --ui:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,sans-serif;
-    --safe-t:env(safe-area-inset-top,0px);
-    --safe-b:env(safe-area-inset-bottom,0px);
+    --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
-  body{
-    font-family:var(--ui); color:var(--ink); line-height:1.5;
-    background:var(--wash); -webkit-font-smoothing:antialiased;
-    overscroll-behavior:none; user-select:none;
-  }
-  .app{
-    position:fixed; inset:0; display:flex; flex-direction:column;
-    max-width:480px; margin:0 auto; background:var(--wash);
-    box-shadow:0 0 60px -20px rgba(14,22,32,.25);
-  }
+  body{font-family:var(--ui); color:var(--ink); line-height:1.5; background:var(--wash);
+    -webkit-font-smoothing:antialiased; overscroll-behavior:none;}
+  .app{position:fixed; inset:0; display:flex; flex-direction:column; max-width:480px; margin:0 auto;
+    background:var(--wash); box-shadow:0 0 60px -20px rgba(14,22,32,.25);}
 
-  /* top header */
-  .topbar{
-    flex:0 0 auto; padding:calc(var(--safe-t) + 12px) 18px 12px;
-    display:flex; align-items:center; gap:11px;
-    background:var(--paper); border-bottom:1px solid var(--line);
-  }
-  .topbar .mark{
-    width:30px; height:30px; border-radius:9px; flex:0 0 auto;
-    background:linear-gradient(150deg,var(--teal),var(--teal-deep));
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 5px 13px -6px rgba(10,138,143,.6);
-  }
+  .topbar{flex:0 0 auto; padding:calc(var(--safe-t) + 12px) 18px 12px; display:flex; align-items:center; gap:11px;
+    background:var(--paper); border-bottom:1px solid var(--line);}
+  .topbar .mark{width:30px;height:30px;border-radius:9px;flex:0 0 auto;
+    background:linear-gradient(150deg,var(--teal),var(--teal-deep));display:flex;align-items:center;justify-content:center;
+    box-shadow:0 5px 13px -6px rgba(10,138,143,.6);}
   .topbar .ttl{font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.02em;}
   .topbar .ttl b{color:var(--teal);}
-  .topbar .back{
-    width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--paper);
-    display:none;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer;
-  }
-  .topbar.sub .back{display:flex;} .topbar.sub .mark{display:none;}
-  .topbar .who{margin-left:auto; font-size:11px; font-weight:600; color:var(--mist);
-    border:1px solid var(--line); padding:5px 11px; border-radius:100px;}
+  .topbar .role{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-deep);
+    background:var(--teal-soft);padding:4px 9px;border-radius:100px;}
+  .topbar .logout{margin-left:auto;font-family:var(--ui);font-size:12px;font-weight:600;color:var(--mist);
+    background:none;border:1px solid var(--line);padding:6px 12px;border-radius:100px;cursor:pointer;}
 
-  /* views */
-  .views{flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch; position:relative;}
-  .view{display:none; padding:16px 16px 24px; animation:fade .25s ease;}
-  .view.on{display:block;}
-  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-  @media (prefers-reduced-motion:reduce){.view{animation:none;}}
+  .views{flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .view{display:none; padding:18px 16px 26px;} .view.on{display:block;}
+  .kic{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:4px;}
+  .h{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:-.02em;line-height:1.06;margin-bottom:14px;}
+  .ssub{font-size:12.5px;color:var(--mist);} .muted{color:var(--mist);}
 
-  .kic{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--teal); margin-bottom:3px;}
-  .h{font-family:var(--display); font-weight:700; font-size:23px; letter-spacing:-.02em; line-height:1.05; margin-bottom:14px;}
-  .h.sm{font-size:20px;}
-  .muted{color:var(--mist);} .ssub{font-size:12.5px; color:var(--mist);}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--teal);color:#fff;
+    font-family:var(--ui);font-weight:700;font-size:14.5px;border:none;border-radius:13px;padding:14px;width:100%;cursor:pointer;
+    box-shadow:0 10px 22px -12px rgba(10,138,143,.8);}
+  .btn:disabled{opacity:.55;}
+  .btn.ghost{background:var(--paper);color:var(--teal-deep);border:1.5px solid var(--teal-soft);box-shadow:none;}
+  .btn:active{transform:scale(.99);}
+  .input{width:100%;font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--paper);
+    border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;}
+  .input:focus{outline:none;border-color:var(--teal);}
+  label.fl{display:block;font-size:12px;font-weight:600;color:var(--slate);margin:2px 0 6px;}
 
-  /* tab bar */
-  .tabs{flex:0 0 auto; display:flex; justify-content:space-around; align-items:center;
-    padding:9px 6px calc(var(--safe-b) + 9px);
-    background:rgba(255,255,255,.92); backdrop-filter:blur(12px); border-top:1px solid var(--line);}
-  .tab{display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9.5px; font-weight:600; color:var(--mist);
+  /* auth */
+  .auth-wrap{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;justify-content:center;
+    padding:24px 22px calc(var(--safe-b) + 24px);}
+  .brandbig{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px;}
+  .brandbig .mark{width:44px;height:44px;border-radius:13px;background:linear-gradient(150deg,var(--teal),var(--teal-deep));
+    display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px -8px rgba(10,138,143,.6);}
+  .brandbig .name{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;}
+  .brandbig .name b{color:var(--teal);}
+  .auth-sub{text-align:center;font-size:13px;color:var(--mist);margin-bottom:24px;}
+  .seg-tabs{display:flex;background:var(--wash);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:18px;}
+  .seg-tabs button{flex:1;font-family:var(--ui);font-weight:700;font-size:13px;color:var(--mist);background:none;border:none;
+    padding:9px;border-radius:9px;cursor:pointer;}
+  .seg-tabs button.on{background:var(--paper);color:var(--teal-deep);box-shadow:0 2px 6px -3px rgba(0,0,0,.2);}
+  .roles{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+  .roles button{font-family:var(--ui);font-weight:700;font-size:13px;color:var(--slate);background:var(--paper);
+    border:1.5px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;}
+  .roles button.on{border-color:var(--teal);background:var(--teal-soft);color:var(--teal-deep);}
+  .err{font-size:12.5px;color:var(--red);background:var(--red-soft);border:1px solid rgba(192,73,47,.2);
+    border-radius:10px;padding:10px 12px;margin-bottom:12px;display:none;}
+  .err.show{display:block;}
+  .ok{font-size:12.5px;color:var(--green);background:var(--green-soft);border:1px solid rgba(47,158,107,.2);
+    border-radius:10px;padding:10px 12px;margin-bottom:12px;display:none;}
+  .ok.show{display:block;}
+
+  /* tabs */
+  .tabs{flex:0 0 auto;display:flex;justify-content:space-around;align-items:center;
+    padding:9px 6px calc(var(--safe-b) + 9px);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;font-weight:600;color:var(--mist);
     background:none;border:none;font-family:var(--ui);cursor:pointer;flex:1;padding:3px 0;}
-  .tab svg{width:22px; height:22px; stroke:var(--mist); fill:none; stroke-width:1.9;}
+  .tab svg{width:22px;height:22px;stroke:var(--mist);fill:none;stroke-width:1.9;}
   .tab.on{color:var(--teal);} .tab.on svg{stroke:var(--teal);}
 
-  /* cards */
-  .card{background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:15px; margin-bottom:11px;}
-  .row{display:flex; align-items:center; gap:11px;}
-  .pill{font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:100px; letter-spacing:.02em;}
-  .pill.g{background:var(--green-soft); color:var(--green);}
-  .pill.a{background:var(--amber-soft); color:var(--amber);}
-  .pill.r{background:var(--red-soft); color:var(--red);}
-  .btn{display:flex; align-items:center; justify-content:center; gap:7px; background:var(--teal); color:#fff;
-    font-family:var(--ui); font-weight:700; font-size:14px; border:none; border-radius:13px; padding:14px; width:100%;
-    box-shadow:0 10px 22px -12px rgba(10,138,143,.8); cursor:pointer;}
-  .btn svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;}
-  .btn.ghost{background:var(--paper); color:var(--teal-deep); border:1.5px solid var(--teal-soft); box-shadow:none;}
-  .btn:active{transform:scale(.985);}
-  .avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex:0 0 auto;}
+  /* check-in metric */
+  .metric{margin-bottom:18px;}
+  .metric .ml{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:600;margin-bottom:8px;}
+  .metric .ml .hint{font-size:11px;color:var(--mist);font-weight:500;}
+  .dots{display:flex;gap:7px;}
+  .dots .d{flex:1;height:30px;border-radius:9px;background:var(--wash);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--mist);cursor:pointer;}
+  .dots .d.sel{color:#fff;}
+  .dots .d.sel.g{background:var(--green);border-color:var(--green);}
+  .dots .d.sel.a{background:var(--amber);border-color:var(--amber);}
+  .dots .d.sel.r{background:var(--red);border-color:var(--red);}
 
-  /* HOME */
-  .greet{font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:-.02em;}
-  .daychip{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--teal-deep); background:var(--teal-soft); padding:5px 11px; border-radius:100px; margin-top:3px;}
-  .statuscard{background:linear-gradient(155deg,var(--teal),var(--teal-deep)); color:#fff; border:none; border-radius:20px; padding:18px; position:relative; overflow:hidden; margin-bottom:11px;}
-  .statuscard::after{content:""; position:absolute; right:-30px; top:-30px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.1);}
-  .statuscard .lab{font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; opacity:.85;}
-  .statuscard .big{font-family:var(--display); font-weight:700; font-size:23px; margin:4px 0 3px; letter-spacing:-.02em;}
-  .statuscard .smt{font-size:12.5px; opacity:.9;}
-  .quick{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .qa{background:var(--paper); border:1px solid var(--line); border-radius:15px; padding:14px; display:flex; flex-direction:column; gap:10px; text-align:left; font-family:var(--ui); cursor:pointer;}
-  .qa:active{transform:scale(.98);}
-  .qa .ic{width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;}
-  .qa .ic svg{width:18px;height:18px;fill:none;stroke-width:2;}
-  .qa .t{font-size:13px; font-weight:700;} .qa .d{font-size:10.5px; color:var(--mist);}
+  .greet{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;}
+  .statuscard{background:linear-gradient(155deg,var(--teal),var(--teal-deep));color:#fff;border-radius:20px;padding:18px;margin:12px 0;position:relative;overflow:hidden;}
+  .statuscard::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.1);}
+  .statuscard .lab{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.85;}
+  .statuscard .big{font-family:var(--display);font-weight:700;font-size:22px;margin:4px 0 3px;}
+  .statuscard .smt{font-size:12.5px;opacity:.92;}
 
-  /* capture */
-  .viewfinder{position:relative; border-radius:18px; overflow:hidden; aspect-ratio:1/1;
-    background:radial-gradient(circle at 50% 40%, #f6ddc8, #e8b896 70%, #d99f76);
-    display:flex; align-items:center; justify-content:center; margin-bottom:12px;}
-  .frameguide{position:absolute; inset:34px; border:2px dashed rgba(255,255,255,.8); border-radius:50%;}
-  .corner{position:absolute; width:22px; height:22px; border:3px solid #fff;}
-  .c1{top:14px;left:14px;border-right:0;border-bottom:0;border-radius:6px 0 0 0;}
-  .c2{top:14px;right:14px;border-left:0;border-bottom:0;border-radius:0 6px 0 0;}
-  .c3{bottom:14px;left:14px;border-right:0;border-top:0;border-radius:0 0 0 6px;}
-  .c4{bottom:14px;right:14px;border-left:0;border-top:0;border-radius:0 0 6px 0;}
-  .hint{position:absolute; bottom:16px; font-size:11px; font-weight:600; color:#fff; background:rgba(14,22,32,.45); padding:5px 12px; border-radius:100px; backdrop-filter:blur(4px);}
-  .thumbs{display:flex; gap:7px; margin-bottom:12px;}
-  .thumbs .th{flex:1; aspect-ratio:1; border-radius:10px; background:linear-gradient(135deg,#f0cdb4,#dba17a); border:1px solid rgba(0,0,0,.04);}
-  .thumbs .th.sel{outline:2px solid var(--teal); outline-offset:1px;}
-  .thumbs .th.add{background:var(--wash);border:1px dashed var(--line);}
-  .shutter{width:64px;height:64px;border-radius:50%;background:#fff;border:4px solid var(--teal);margin:14px auto 0;box-shadow:0 6px 16px -8px rgba(10,138,143,.7);cursor:pointer;}
-
-  /* check-in */
-  .metric{margin-bottom:14px;}
-  .metric:last-child{margin-bottom:0;}
-  .metric .ml{display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; margin-bottom:7px;}
-  .metric .ml .v{color:var(--teal-deep);}
-  .seg{display:flex; gap:5px;}
-  .seg .s{flex:1; height:10px; border-radius:100px; background:var(--line); cursor:pointer;}
-  .seg .s.on-g{background:var(--green);} .seg .s.on-a{background:var(--amber);} .seg .s.on-t{background:var(--teal);}
-
-  /* messaging */
-  .msg{max-width:82%; padding:11px 14px; border-radius:16px; font-size:13px; margin-bottom:9px; line-height:1.4;}
-  .msg.them{background:var(--paper); border:1px solid var(--line); border-bottom-left-radius:5px;}
-  .msg.me{background:var(--teal); color:#fff; margin-left:auto; border-bottom-right-radius:5px;}
-  .msg .img{height:80px; border-radius:9px; background:linear-gradient(135deg,#f0cdb4,#dba17a); margin-bottom:7px;}
-  .msgtime{font-size:9.5px; color:var(--mist); margin:-4px 0 12px;}
-  .msgtime.r{text-align:right;}
-  .composer{display:flex; align-items:center; gap:9px; background:var(--paper); border:1px solid var(--line); border-radius:100px; padding:12px 16px; font-size:13px; color:var(--mist); margin-top:6px;}
-
-  /* education */
-  .edu{border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-bottom:11px; background:var(--paper);}
-  .edu .ph{height:96px; position:relative;}
-  .edu .ph.t1{background:linear-gradient(135deg,#e6f4f4,#9bd0d2);}
-  .edu .ph.t2{background:linear-gradient(135deg,#e8f5ee,#9ed9b9);}
-  .edu .ph .tagv{position:absolute; top:10px; left:10px; font-size:9.5px; font-weight:700; color:var(--teal-deep); background:rgba(255,255,255,.9); padding:4px 9px; border-radius:100px;}
-  .edu .ph .play{position:absolute; right:10px; bottom:10px; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.92); display:flex; align-items:center; justify-content:center;}
-  .edu .bd{padding:12px 14px;}
-  .edu .bd .t{font-size:13.5px; font-weight:700; line-height:1.25; margin-bottom:4px;}
-  .edu .bd .m{font-size:10.5px; color:var(--mist); display:flex; gap:9px;}
-
-  /* supplies */
-  .prod{display:flex; gap:12px; align-items:center;}
-  .prod .box{width:54px;height:54px;border-radius:13px;background:var(--teal-soft);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
-  .prod .box svg{width:26px;height:26px;stroke:var(--teal-deep);fill:none;stroke-width:1.8;}
-  .stockbar{height:8px; border-radius:100px; background:var(--line); overflow:hidden; margin-top:10px;}
-  .stockbar i{display:block; height:100%; width:20%; background:var(--amber); border-radius:100px;}
-  .supplier{display:flex; align-items:center; gap:9px; font-size:11.5px; color:var(--slate); margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);}
-
-  /* progress */
-  .chart{height:120px; position:relative; margin:6px 0 4px;}
-  .ring{width:64px;height:64px;flex:0 0 auto;}
-  .legend{display:flex; gap:14px; font-size:10.5px; color:var(--mist); margin-top:6px;}
-  .legend b{color:var(--ink);}
-
-  /* disclaimer + install banner */
-  .disc{border-radius:14px; padding:14px 16px; background:var(--paper); border:1px solid var(--line); font-size:11.5px; color:var(--slate); line-height:1.5; margin-top:4px;}
-  .disc b{color:var(--ink);}
-  .ribbon{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);background:var(--amber-soft);padding:4px 10px;border-radius:100px;display:inline-block;margin-bottom:10px;}
-
-  .installbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 76px);
-    width:calc(100% - 32px);max-width:448px;background:var(--ink);color:#fff;border-radius:14px;
-    padding:12px 14px;display:none;align-items:center;gap:12px;z-index:50;box-shadow:0 18px 40px -18px rgba(0,0,0,.5);}
-  .installbar.show{display:flex;}
-  .installbar .it{font-size:12px;line-height:1.35;flex:1;}
-  .installbar .it b{font-weight:700;}
-  .installbar button{font-family:var(--ui);font-weight:700;font-size:12px;border:none;border-radius:9px;padding:9px 13px;cursor:pointer;}
-  .installbar .go{background:var(--teal);color:#fff;}
-  .installbar .x{background:transparent;color:#8b9aa8;padding:9px 4px;}
+  /* history / caseload rows */
+  .entry{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+  .entry .top{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .entry .nm{font-weight:700;font-size:14px;} .entry .when{font-size:11.5px;color:var(--mist);margin-left:auto;}
+  .entry .chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:100px;background:var(--wash);color:var(--slate);border:1px solid var(--line);}
+  .chip b{font-weight:800;}
+  .flagdot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+  .flagdot.g{background:var(--green);} .flagdot.a{background:var(--amber);} .flagdot.r{background:var(--red);}
+  .entry .note{font-size:12.5px;color:var(--slate);margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);}
+  .empty{text-align:center;color:var(--mist);font-size:13px;padding:40px 20px;}
+  .counts{display:flex;gap:9px;margin-bottom:14px;}
+  .counts .c{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;}
+  .counts .c .n{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;}
+  .counts .c .l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mist);margin-top:4px;}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 80px);z-index:60;
+    background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:11px 18px;border-radius:100px;
+    box-shadow:0 14px 30px -14px rgba(0,0,0,.5);opacity:0;transition:opacity .2s;pointer-events:none;}
+  .toast.show{opacity:1;}
+  .ribbon{text-align:center;font-size:10.5px;color:var(--amber);background:var(--amber-soft);padding:5px;font-weight:700;letter-spacing:.04em;}
 </style>
 </head>
 <body>
 <div class="app">
+  <div class="ribbon">PROTOTYPE · test data only · not for real patients</div>
 
-  <!-- Top bar -->
-  <header class="topbar" id="topbar">
-    <button class="back" id="backBtn" aria-label="Back">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#46586b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-    </button>
-    <span class="mark">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.6-9.2-9.4C1.2 8 3 4.5 6.4 4.5c2 0 3.4 1.2 4.2 2.6.8-1.4 2.2-2.6 4.2-2.6 3.4 0 5.2 3.5 3.6 7.1C19 16.4 12 21 12 21Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="1.6" fill="#fff"/></svg>
-    </span>
-    <span class="ttl" id="topTitle">Stoma <b>Alert</b></span>
-    <span class="who">Concept preview</span>
+  <!-- AUTH -->
+  <div class="auth-wrap" id="authWrap">
+    <div class="brandbig">
+      <span class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.6-9.2-9.4C1.2 8 3 4.5 6.4 4.5c2 0 3.4 1.2 4.2 2.6.8-1.4 2.2-2.6 4.2-2.6 3.4 0 5.2 3.5 3.6 7.1C19 16.4 12 21 12 21Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="1.6" fill="#fff"/></svg></span>
+      <span class="name">Stoma <b>Alert</b></span>
+    </div>
+    <div class="auth-sub">Sign in to your account</div>
+
+    <div class="seg-tabs">
+      <button id="tabSignin" class="on">Sign in</button>
+      <button id="tabSignup">Create account</button>
+    </div>
+
+    <div class="err" id="authErr"></div>
+    <div class="ok" id="authOk"></div>
+
+    <div id="signupOnly" style="display:none">
+      <label class="fl">Your name</label>
+      <input class="input" id="suName" placeholder="e.g. Margaret Hill" autocomplete="name">
+      <label class="fl">I am a…</label>
+      <div class="roles">
+        <button id="rolePatient" class="on" data-role="patient">🧑‍🦱 Patient</button>
+        <button id="roleNurse" data-role="nurse">🩺 Stoma nurse</button>
+      </div>
+    </div>
+
+    <label class="fl">Email</label>
+    <input class="input" id="email" type="email" placeholder="you@example.com" autocomplete="email">
+    <label class="fl">Password</label>
+    <input class="input" id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+
+    <button class="btn" id="authBtn">Sign in</button>
+    <p class="ssub" style="text-align:center;margin-top:14px">Test accounts only — use any email &amp; password you'll remember.</p>
+  </div>
+
+  <!-- APP (hidden until logged in) -->
+  <header class="topbar" id="topbar" style="display:none">
+    <span class="mark"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.6-9.2-9.4C1.2 8 3 4.5 6.4 4.5c2 0 3.4 1.2 4.2 2.6.8-1.4 2.2-2.6 4.2-2.6 3.4 0 5.2 3.5 3.6 7.1C19 16.4 12 21 12 21Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="1.6" fill="#fff"/></svg></span>
+    <span class="ttl">Stoma <b>Alert</b></span>
+    <span class="role" id="roleBadge" style="display:none">Nurse</span>
+    <button class="logout" id="logoutBtn">Sign out</button>
   </header>
 
-  <!-- Views -->
-  <div class="views" id="views">
-
-    <!-- HOME -->
-    <section class="view on" data-view="home">
-      <div class="row" style="justify-content:space-between; margin-bottom:14px">
-        <div>
-          <div class="greet">Good morning, Margaret</div>
-          <span class="daychip">● Day 24 since surgery</span>
-        </div>
-        <div class="avatar" style="background:var(--amber)">M</div>
-      </div>
+  <div class="views" id="views" style="display:none">
+    <!-- PATIENT: HOME -->
+    <section class="view" data-view="home">
+      <div class="greet" id="greet">Hello</div>
       <div class="statuscard">
-        <div class="lab">Today's check-in</div>
-        <div class="big">You're on track 🌿</div>
-        <div class="smt">Last log looked settled. A 60-second check-in keeps your nurse in the loop.</div>
+        <div class="lab">Today</div>
+        <div class="big" id="homeStatus">Ready for your check-in</div>
+        <div class="smt">A 60-second check-in keeps your care team in the loop.</div>
       </div>
-      <div class="quick">
-        <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#077277"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
-        <button class="qa" data-go="messages"><span class="ic" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" stroke="#2f9e6b"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg></span><div><div class="t">Message nurse</div><div class="d">Sarah · usually &lt;4h</div></div></button>
-        <button class="qa" data-go="learn"><span class="ic" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" stroke="#c98a17"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span><div><div class="t">Learn</div><div class="d">Peristomal skin</div></div></button>
-        <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#077277"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">1 box left</div></div></button>
-      </div>
-      <div class="disc" style="margin-top:14px"><b>Non-diagnostic.</b> Stoma Alert organises and shares your information with your care team. It does not diagnose — clinical decisions stay with your nurse or doctor.</div>
+      <button class="btn" id="startCheckin">Start today's check-in</button>
     </section>
 
-    <!-- CAPTURE (sub-view) -->
-    <section class="view" data-view="capture" data-parent="home" data-title="Stoma diary">
-      <div class="kic">Image capture</div>
-      <div class="h sm">Add today's photo</div>
-      <div class="viewfinder">
-        <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
-        <div class="frameguide"></div>
-        <div class="hint">Line up inside the circle</div>
-      </div>
-      <div class="thumbs">
-        <div class="th sel"></div><div class="th"></div><div class="th"></div><div class="th"></div><div class="th add"></div>
-      </div>
-      <div class="card" style="background:var(--teal-soft); border-color:rgba(10,138,143,.18); margin-bottom:0">
-        <div class="row" style="gap:9px">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#077277" stroke-width="1.9" style="flex:0 0 auto"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
-          <div style="font-size:11.5px; color:var(--slate); line-height:1.4"><b style="color:var(--teal-deep)">No notable change</b> vs last week. Shared with your nurse for review.</div>
-        </div>
-      </div>
-      <div class="shutter"></div>
-    </section>
-
-    <!-- CHECK-IN -->
+    <!-- PATIENT: CHECK-IN -->
     <section class="view" data-view="checkin">
-      <div class="kic">Daily check-in · 60 sec</div>
-      <div class="h sm">How are things today?</div>
-      <div class="card">
-        <div class="metric"><div class="ml"><span>Output</span><span class="v">Normal</span></div><div class="seg"><span class="s on-g"></span><span class="s on-g"></span><span class="s on-g"></span><span class="s"></span><span class="s"></span></div></div>
-        <div class="metric"><div class="ml"><span>Skin around stoma</span><span class="v">Slight redness</span></div><div class="seg"><span class="s on-a"></span><span class="s on-a"></span><span class="s on-a"></span><span class="s on-a"></span><span class="s"></span></div></div>
-        <div class="metric"><div class="ml"><span>Comfort</span><span class="v">Good</span></div><div class="seg"><span class="s on-t"></span><span class="s on-t"></span><span class="s on-t"></span><span class="s on-t"></span><span class="s"></span></div></div>
-        <div class="metric"><div class="ml"><span>Mood &amp; confidence</span><span class="v">Settled</span></div><div class="seg"><span class="s on-g"></span><span class="s on-g"></span><span class="s on-g"></span><span class="s on-g"></span><span class="s"></span></div></div>
-      </div>
-      <div class="card" style="display:flex;gap:9px;align-items:center">
-        <span style="font-size:18px">📷</span>
-        <div style="font-size:11.5px;color:var(--slate)">Add today's photo to this check-in <span class="muted">(optional)</span></div>
-      </div>
-      <button class="btn">Share with care team <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="kic">Daily check-in</div>
+      <div class="h">How are things today?</div>
+      <div class="card" id="metrics"></div>
+      <label class="fl">Anything to add for your nurse? (optional)</label>
+      <textarea class="input" id="note" rows="2" placeholder="e.g. skin a little sore this morning"></textarea>
+      <button class="btn" id="submitCheckin">Share with care team</button>
     </section>
 
-    <!-- MESSAGES -->
-    <section class="view" data-view="messages">
-      <div class="card" style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
-        <div class="avatar" style="background:var(--teal)">S</div>
-        <div><div style="font-weight:700;font-size:14px">Sarah Whitfield</div><div class="ssub">Stoma Care Nurse · Online</div></div>
-      </div>
-      <div class="msg them">Morning Margaret — thanks for yesterday's photo. The redness looks mild. How's the skin feeling today?</div>
-      <div class="msgtime">Sarah · 08:12</div>
-      <div class="msg me"><div class="img"></div>A little sore but better than the weekend. Sending today's photo.</div>
-      <div class="msgtime r">You · 09:02</div>
-      <div class="msg them">That's reassuring. Keep using the barrier ring and check in tomorrow. I've flagged you as settled — no appointment needed. 👍</div>
-      <div class="msgtime">Sarah · 09:08</div>
-      <div class="composer"><span>Message Sarah…</span><span style="margin-left:auto">📎</span></div>
+    <!-- PATIENT: HISTORY -->
+    <section class="view" data-view="history">
+      <div class="kic">Your diary</div>
+      <div class="h">Past check-ins</div>
+      <div id="historyList"></div>
     </section>
 
-    <!-- LEARN -->
-    <section class="view" data-view="learn">
-      <div class="kic">Education · for you</div>
-      <div class="h sm">Living well, week by week</div>
-      <div class="edu">
-        <div class="ph t1"><span class="tagv">Skin care</span><span class="play"><svg width="13" height="13" viewBox="0 0 24 24" fill="#077277"><path d="M7 5l12 7-12 7z"/></svg></span></div>
-        <div class="bd"><div class="t">Caring for the skin around your stoma</div><div class="m"><span>▶ 4 min video</span><span>· Recommended</span></div></div>
-      </div>
-      <div class="edu">
-        <div class="ph t2"><span class="tagv" style="color:#2f9e6b">Diet</span></div>
-        <div class="bd"><div class="t">Eating in your first 6 weeks</div><div class="m"><span>📖 5 min read</span><span>· Day 24 of your journey</span></div></div>
-      </div>
-      <div class="card" style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:17px">🎯</span>
-        <div style="font-size:11.5px;color:var(--slate)"><b style="color:var(--ink)">3 of 8</b> starter guides completed</div>
-      </div>
+    <!-- NURSE: CASELOAD -->
+    <section class="view" data-view="caseload">
+      <div class="kic">Caseload</div>
+      <div class="h">Patient check-ins</div>
+      <div class="counts" id="counts"></div>
+      <div id="caseloadList"></div>
+      <button class="btn ghost" id="refreshCaseload">Refresh</button>
     </section>
-
-    <!-- SUPPLIES (sub-view) -->
-    <section class="view" data-view="supplies" data-parent="home" data-title="Your supplies">
-      <div class="kic">Product support</div>
-      <div class="h sm">Your supplies</div>
-      <div class="card">
-        <div class="prod">
-          <span class="box"><svg viewBox="0 0 24 24"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/><path d="M4 7l8 4 8-4M12 11v10" stroke-linejoin="round"/></svg></span>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:13.5px">Drainable pouch · 60mm</div>
-            <div class="ssub">Your current appliance</div>
-          </div>
-          <span class="pill a">Low</span>
-        </div>
-        <div class="stockbar"><i></i></div>
-        <div class="ssub" style="margin-top:6px">≈ 1 box left · about 4 days</div>
-      </div>
-      <button class="btn">Reorder now <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <div class="card" style="margin-top:11px">
-        <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Having a problem?</div>
-        <div class="ssub" style="margin-bottom:10px">Leaks, sore skin or fitting — get product help.</div>
-        <button class="btn ghost">Product support chat</button>
-        <div class="supplier"><span style="font-size:15px">🚚</span> Delivered by <b style="color:var(--ink)">&nbsp;your chosen DAC supplier</b></div>
-      </div>
-    </section>
-
-    <!-- PROGRESS -->
-    <section class="view" data-view="progress">
-      <div class="kic">Outcome tracking</div>
-      <div class="h sm">Your progress</div>
-      <div class="card">
-        <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Confidence &amp; quality of life</div><span class="pill g">↑ Improving</span></div>
-        <div class="chart">
-          <svg viewBox="0 0 240 120" width="100%" height="120" preserveAspectRatio="none">
-            <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9e6b" stop-opacity=".22"/><stop offset="1" stop-color="#2f9e6b" stop-opacity="0"/></linearGradient></defs>
-            <path d="M0 92 L48 84 L96 70 L144 52 L192 34 L240 20 L240 120 L0 120 Z" fill="url(#fill)"/>
-            <path d="M0 92 L48 84 L96 70 L144 52 L192 34 L240 20" fill="none" stroke="#2f9e6b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="240" cy="20" r="4.5" fill="#2f9e6b" stroke="#fff" stroke-width="2"/>
-          </svg>
-        </div>
-        <div class="legend"><span><b>Week 4</b> of recovery</span><span style="margin-left:auto">vs <b style="color:#2f9e6b">+38%</b> on week 1</span></div>
-      </div>
-      <div class="card" style="display:flex;align-items:center;gap:14px">
-        <svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#e2e9ef" stroke-width="4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="#0a8a8f" stroke-width="4" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="14" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#1a2733">86%</text></svg>
-        <div><div style="font-size:13px;font-weight:700">Check-in streak</div><div class="ssub">24 of 28 days logged · shared with your care team</div></div>
-      </div>
-      <div class="disc" style="margin-top:4px"><b>Heads up — this is a concept preview.</b> Data shown is illustrative. The shipping product covers diary, check-ins, messaging, education, supplies &amp; outcome tracking; the AI clinical layer comes later, after DTAC &amp; clinical-safety sign-off.</div>
-    </section>
-
   </div>
 
-  <!-- Tab bar -->
-  <nav class="tabs" id="tabs">
+  <nav class="tabs" id="patientTabs" style="display:none">
     <button class="tab on" data-view="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8H4z" stroke-linejoin="round"/></svg>Home</button>
     <button class="tab" data-view="checkin"><svg viewBox="0 0 24 24"><path d="M8 4h8v4H8zM6 8h12v12H6z" stroke-linejoin="round"/></svg>Check-in</button>
-    <button class="tab" data-view="messages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
-    <button class="tab" data-view="learn"><svg viewBox="0 0 24 24"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg>Learn</button>
-    <button class="tab" data-view="progress"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Progress</button>
+    <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Diary</button>
   </nav>
 
-  <!-- Install hint -->
-  <div class="installbar" id="installbar">
-    <div class="it" id="installText"><b>Add to your home screen</b><br>Opens full-screen, like a real app.</div>
-    <button class="go" id="installGo">Install</button>
-    <button class="x" id="installX">Later</button>
-  </div>
-
+  <div class="toast" id="toast"></div>
 </div>
 
-<script>
-  const views = document.getElementById('views');
-  const tabs = [...document.querySelectorAll('.tab')];
-  const topbar = document.getElementById('topbar');
-  const topTitle = document.getElementById('topTitle');
-  const backBtn = document.getElementById('backBtn');
-  const TAB_VIEWS = tabs.map(t => t.dataset.view);
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-  function show(name){
-    const sec = document.querySelector(`.view[data-view="${name}"]`);
-    if(!sec) return;
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
-    sec.classList.add('on');
-    views.scrollTop = 0;
+const SUPABASE_URL = 'https://yevndoekwgahvvskiplt.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9hPnsA1CJh3BQ_v09rIkBw_O2Vrrgps';
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const isTab = TAB_VIEWS.includes(name);
-    // highlight the owning tab (sub-views light up their parent's tab if it is one)
-    const highlight = isTab ? name : (sec.dataset.parent || 'home');
-    tabs.forEach(t => t.classList.toggle('on', t.dataset.view === highlight));
+const $ = s => document.querySelector(s);
+const METRICS = [
+  { key:'output',  label:'Output',            hint:'1 very loose · 5 normal' },
+  { key:'skin',    label:'Skin around stoma', hint:'1 sore/red · 5 healthy' },
+  { key:'comfort', label:'Comfort',           hint:'1 poor · 5 great' },
+  { key:'mood',    label:'Mood & confidence', hint:'1 low · 5 confident' },
+];
+const colourFor = v => v <= 2 ? 'r' : (v === 3 ? 'a' : 'g');
+let current = {};   // current check-in values
+let mode = 'signin';
+let signupRole = 'patient';
 
-    // sub-view: show back button + custom title
-    if(sec.dataset.parent){
-      topbar.classList.add('sub');
-      topTitle.innerHTML = sec.dataset.title || 'Stoma <b>Alert</b>';
+// ---------- toast / messages ----------
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+function showErr(m){ const e=$('#authErr'); e.textContent=m; e.classList.add('show'); $('#authOk').classList.remove('show'); }
+function showOk(m){ const e=$('#authOk'); e.textContent=m; e.classList.add('show'); $('#authErr').classList.remove('show'); }
+function clearMsg(){ $('#authErr').classList.remove('show'); $('#authOk').classList.remove('show'); }
+
+// ---------- auth UI ----------
+$('#tabSignin').onclick = () => setMode('signin');
+$('#tabSignup').onclick = () => setMode('signup');
+function setMode(m){
+  mode = m; clearMsg();
+  $('#tabSignin').classList.toggle('on', m==='signin');
+  $('#tabSignup').classList.toggle('on', m==='signup');
+  $('#signupOnly').style.display = m==='signup' ? 'block' : 'none';
+  $('#authBtn').textContent = m==='signup' ? 'Create account' : 'Sign in';
+  $('#authWrap').querySelector('.auth-sub').textContent = m==='signup' ? 'Create a test account' : 'Sign in to your account';
+}
+$('#rolePatient').onclick = () => setRole('patient');
+$('#roleNurse').onclick   = () => setRole('nurse');
+function setRole(r){ signupRole=r; $('#rolePatient').classList.toggle('on',r==='patient'); $('#roleNurse').classList.toggle('on',r==='nurse'); }
+
+$('#authBtn').onclick = async () => {
+  clearMsg();
+  const email = $('#email').value.trim();
+  const password = $('#password').value;
+  if(!email || !password){ showErr('Please enter an email and password.'); return; }
+  $('#authBtn').disabled = true;
+  try {
+    if(mode==='signup'){
+      const name = $('#suName').value.trim() || email.split('@')[0];
+      const { data, error } = await sb.auth.signUp({
+        email, password,
+        options:{ data:{ full_name:name, role:signupRole } }
+      });
+      if(error) throw error;
+      if(!data.session){
+        showOk('Account created. If email confirmation is on, check your inbox — or ask to switch it off. Then sign in.');
+        setMode('signin');
+      } else {
+        await boot();
+      }
     } else {
-      topbar.classList.remove('sub');
-      topTitle.innerHTML = 'Stoma <b>Alert</b>';
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      await boot();
     }
+  } catch(e){
+    showErr(e.message || 'Something went wrong.');
+  } finally {
+    $('#authBtn').disabled = false;
   }
+};
 
-  tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.view)));
-  document.querySelectorAll('[data-go]').forEach(el =>
-    el.addEventListener('click', () => show(el.dataset.go)));
-  backBtn.addEventListener('click', () => {
-    const cur = document.querySelector('.view.on');
-    show(cur?.dataset.parent || 'home');
+$('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+// ---------- patient tabs ----------
+document.querySelectorAll('#patientTabs .tab').forEach(t =>
+  t.onclick = () => showView(t.dataset.view));
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  const sec = document.querySelector(`.view[data-view="${name}"]`); if(sec) sec.classList.add('on');
+  document.querySelectorAll('#patientTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.view===name));
+  $('#views').scrollTop = 0;
+  if(name==='history') loadHistory();
+  if(name==='checkin') renderMetrics();
+}
+$('#startCheckin').onclick = () => showView('checkin');
+
+// ---------- check-in ----------
+function renderMetrics(){
+  current = {};
+  $('#metrics').innerHTML = METRICS.map(m => `
+    <div class="metric" data-key="${m.key}">
+      <div class="ml"><span>${m.label}</span><span class="hint">${m.hint}</span></div>
+      <div class="dots">${[1,2,3,4,5].map(v=>`<div class="d" data-v="${v}">${v}</div>`).join('')}</div>
+    </div>`).join('');
+  $('#note').value = '';
+  $('#metrics').querySelectorAll('.metric').forEach(row => {
+    const key = row.dataset.key;
+    row.querySelectorAll('.d').forEach(d => d.onclick = () => {
+      const v = +d.dataset.v; current[key] = v;
+      const cls = colourFor(v);
+      row.querySelectorAll('.d').forEach(x => { x.className = 'd'; });
+      row.querySelectorAll('.d').forEach(x => { if(+x.dataset.v <= v) x.classList.add('sel', cls); });
+    });
   });
+}
+$('#submitCheckin').onclick = async () => {
+  for(const m of METRICS){ if(!current[m.key]){ toast('Please rate '+m.label.toLowerCase()); return; } }
+  const u = (await sb.auth.getUser()).data.user;
+  $('#submitCheckin').disabled = true;
+  const { error } = await sb.from('check_ins').insert({
+    user_id: u.id,
+    patient_name: u.user_metadata?.full_name || u.email,
+    patient_email: u.email,
+    output: current.output, skin: current.skin, comfort: current.comfort, mood: current.mood,
+    note: $('#note').value.trim() || null,
+  });
+  $('#submitCheckin').disabled = false;
+  if(error){ toast('Error: '+error.message); return; }
+  toast('Shared with your care team ✓');
+  $('#homeStatus').textContent = 'Check-in shared — thank you';
+  showView('history');
+};
 
-  // ---- PWA install ----
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', () =>
-      navigator.serviceWorker.register('sw.js').catch(()=>{}));
+// ---------- history ----------
+function rowHtml(r, withName){
+  const worst = Math.min(r.output, r.skin, r.comfort, r.mood);
+  const c = colourFor(worst);
+  const when = new Date(r.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const chip = (lab,v)=>`<span class="chip">${lab} <b>${v}</b></span>`;
+  return `<div class="entry">
+    <div class="top"><span class="flagdot ${c}"></span>
+      ${withName?`<span class="nm">${esc(r.patient_name||r.patient_email||'Patient')}</span>`:`<span class="nm">Check-in</span>`}
+      <span class="when">${when}</span></div>
+    <div class="chips">${chip('Output',r.output)}${chip('Skin',r.skin)}${chip('Comfort',r.comfort)}${chip('Mood',r.mood)}</div>
+    ${r.note?`<div class="note">${esc(r.note)}</div>`:''}
+  </div>`;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function loadHistory(){
+  $('#historyList').innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(50);
+  if(error){ $('#historyList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  $('#historyList').innerHTML = data.length ? data.map(r=>rowHtml(r,false)).join('')
+    : '<div class="empty">No check-ins yet. Tap “Check-in” to add your first.</div>';
+}
+
+// ---------- nurse caseload ----------
+async function loadCaseload(){
+  $('#caseloadList').innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(100);
+  if(error){ $('#caseloadList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  // counts by worst-metric flag, latest per patient
+  const latest = {};
+  data.forEach(r => { if(!latest[r.patient_email]) latest[r.patient_email] = r; });
+  let g=0,a=0,red=0;
+  Object.values(latest).forEach(r=>{ const w=Math.min(r.output,r.skin,r.comfort,r.mood); const c=colourFor(w); if(c==='g')g++;else if(c==='a')a++;else red++; });
+  $('#counts').innerHTML = `
+    <div class="c"><div class="n" style="color:var(--red)">${red}</div><div class="l">For review</div></div>
+    <div class="c"><div class="n" style="color:var(--amber)">${a}</div><div class="l">Watch</div></div>
+    <div class="c"><div class="n" style="color:var(--green)">${g}</div><div class="l">Settled</div></div>`;
+  $('#caseloadList').innerHTML = data.length ? data.map(r=>rowHtml(r,true)).join('')
+    : '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>';
+}
+$('#refreshCaseload').onclick = loadCaseload;
+
+// ---------- boot / routing ----------
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){ showAuth(); return; }
+  const u = session.user;
+  const role = u.user_metadata?.role || 'patient';
+  $('#authWrap').style.display = 'none';
+  $('#topbar').style.display = 'flex';
+  $('#views').style.display = 'block';
+  if(role === 'nurse'){
+    $('#roleBadge').style.display = 'inline-block';
+    $('#patientTabs').style.display = 'none';
+    showView('caseload');
+    loadCaseload();
+  } else {
+    $('#patientTabs').style.display = 'flex';
+    $('#greet').textContent = 'Hello, ' + (u.user_metadata?.full_name || u.email.split('@')[0]);
+    showView('home');
   }
+}
+function showAuth(){
+  $('#authWrap').style.display='flex';
+  $('#topbar').style.display='none'; $('#views').style.display='none';
+  $('#patientTabs').style.display='none';
+}
+boot();
 
-  const bar = document.getElementById('installbar');
-  const txt = document.getElementById('installText');
-  const go = document.getElementById('installGo');
-  const x = document.getElementById('installX');
-  let deferred = null;
-  const dismissed = () => localStorage.getItem('sa_install_dismissed') === '1';
-  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-
-  // Android / desktp Chrome: real install prompt
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferred = e;
-    if(!dismissed() && !standalone) bar.classList.add('show');
-  });
-  go.addEventListener('click', async () => {
-    if(deferred){ deferred.prompt(); await deferred.userChoice; deferred = null; bar.classList.remove('show'); }
-  });
-  x.addEventListener('click', () => { bar.classList.remove('show'); localStorage.setItem('sa_install_dismissed','1'); });
-
-  // iOS: no prompt API — show manual instructions
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if(isIOS && !standalone && !dismissed()){
-    go.style.display = 'none';
-    txt.innerHTML = '<b>Add to Home Screen</b><br>Tap the Share button, then “Add to Home Screen”.';
-    setTimeout(() => bar.classList.add('show'), 1200);
-  }
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 </script>
 </body>
 </html>

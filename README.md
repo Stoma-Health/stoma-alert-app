@@ -1,36 +1,24 @@
-# Stoma Alert — installable PWA (concept preview)
+# Stoma Alert — working prototype (test data only)
 
-Full-screen, installable mobile preview of the Stoma Alert patient app. Seven working
-screens (Home, Check-in, Messages, Learn, Supplies, Capture, Progress) with bottom-tab
-navigation, an app-shell service worker (works offline once loaded), web manifest and icons.
+A real, installable app wired to Supabase. **Not for real patients** — test data only,
+no clinical/compliance layer.
 
-**Status:** concept preview / non-diagnostic. Looks shippable; not wired to live data.
-Static site — no build step.
+- `index.html` — the working app (login + check-ins + nurse caseload), talks to Supabase
+  directly from the browser. No build step.
+- `preview.html` — the original non-functional concept mock-up (kept for reference).
+- `supabase/migrations/0001_init.sql` — database schema + security rules.
+- `manifest.webmanifest`, `sw.js`, `icons/` — PWA bits (installable, offline shell).
 
-## Get it onto your GitHub + Vercel
+## One-time Supabase setup
+1. **Run the schema:** Supabase → SQL Editor → paste `supabase/migrations/0001_init.sql` → Run.
+2. **Allow instant test signups:** Supabase → Authentication → Sign In/Providers → Email →
+   turn **OFF "Confirm email"** (so test accounts work without an email round-trip).
 
-**1. Create the repo (your GitHub)**
-- New repo, e.g. `stoma-alert-app`
-- Upload the contents of this folder to the repo **root** (everything except `_extras/`).
-  Either drag-drop in the GitHub web UI, or `git init && git add . && git commit && git push`.
+## Use it
+- Create a **Patient** account → do a daily check-in (it saves to the database) → see it in “Diary”.
+- Create a **Nurse** account (different email) → see everyone's check-ins in the caseload,
+  flagged by their lowest score.
 
-**2. Deploy on Vercel (your account)**
-- Vercel → **Add New… → Project** → import the new repo
-- **Root Directory → `./`** (the app sits at the repo root)
-- **Framework Preset → Other** (static site; leave build/output blank)
-- Deploy → your install link is the deployment URL (e.g. `stoma-alert.vercel.app`)
-
-`vercel.json` already sets the service-worker cache header and the manifest content-type,
-so installability works out of the box. To install on a phone: open the URL →
-Share → **Add to Home Screen**.
-
-## Files
-- `index.html` — the app (single file, vanilla JS tab nav)
-- `manifest.webmanifest` — PWA manifest (scoped to `/` = served at the domain root)
-- `sw.js` — app-shell service worker
-- `icons/` — 192 / 512 / maskable / apple-touch-icon
-- `vercel.json` — SW cache + manifest content-type headers
-- `.vercelignore` — keeps `_extras/` out of the deploy
-- `_extras/` — **not deployed**: the mobile architecture brief (HTML + PDF) and the QR card
-
-> Keep all on-screen copy inside the non-diagnostic frame.
+## Deploy
+Static site, no build — drag-drop the folder to Vercel, or connect Git. Config (Supabase URL +
+publishable key) is embedded in `index.html`; the publishable key is safe to ship publicly (RLS-protected).
