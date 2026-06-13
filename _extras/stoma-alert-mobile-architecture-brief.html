@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stoma Alert — Mobile Architecture Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a2733; --slate:#46586b; --mist:#6b7d8f; --line:#e2e9ef;
+    --paper:#fff; --wash:#f4f7fa; --teal:#0a8a8f; --teal-deep:#077277; --teal-soft:#e6f4f4;
+    --green:#2f9e6b; --green-soft:#e8f5ee; --amber:#c98a17; --amber-soft:#fbf2df;
+    --red:#c0492f; --red-soft:#fbece8;
+    --display:"Bricolage Grotesque",sans-serif; --ui:"Hanken Grotesk",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--ui); color:var(--ink); line-height:1.5; background:#e8eef3;}
+  .page{max-width:880px; margin:0 auto; background:var(--paper); padding:54px 60px 48px;}
+  @page{size:A4; margin:14mm;}
+
+  .brand{display:flex; align-items:center; gap:11px; margin-bottom:30px;}
+  .brand .mark{width:36px; height:36px; border-radius:11px; background:linear-gradient(150deg,var(--teal),var(--teal-deep));
+    display:flex; align-items:center; justify-content:center;}
+  .brand .name{font-family:var(--display); font-weight:700; font-size:17px; letter-spacing:-.02em;}
+  .brand .name b{color:var(--teal);}
+  .brand .tag{margin-left:auto; font-size:11px; color:var(--mist); font-weight:600; border:1px solid var(--line);
+    padding:5px 12px; border-radius:100px;}
+
+  .eyebrow{font-size:11.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--teal); margin-bottom:12px;}
+  h1{font-family:var(--display); font-weight:700; letter-spacing:-.025em; line-height:1.05; font-size:33px; margin-bottom:12px;}
+  .lede{font-size:14.5px; color:var(--slate); max-width:680px; margin-bottom:8px;}
+  .lede b{color:var(--ink); font-weight:600;}
+
+  h2{font-family:var(--display); font-weight:700; font-size:18px; letter-spacing:-.02em; margin:30px 0 12px;
+     padding-bottom:7px; border-bottom:2px solid var(--teal-soft);}
+  h2 .n{color:var(--teal); font-size:14px; margin-right:8px;}
+
+  p{font-size:13px; color:var(--slate); margin-bottom:10px;}
+  p b, li b{color:var(--ink); font-weight:600;}
+  ul{margin:0 0 10px; padding-left:0; list-style:none;}
+  li{font-size:13px; color:var(--slate); margin-bottom:7px; padding-left:20px; position:relative;}
+  li::before{content:""; position:absolute; left:4px; top:7px; width:6px; height:6px; border-radius:50%; background:var(--teal);}
+
+  /* architecture diagram */
+  .arch{display:flex; flex-direction:column; align-items:center; gap:0; margin:8px 0 6px;}
+  .node{border-radius:14px; padding:13px 18px; text-align:center; width:100%; max-width:430px; border:1px solid var(--line);}
+  .node .nt{font-family:var(--display); font-weight:700; font-size:14px; letter-spacing:-.01em;}
+  .node .nd{font-size:11px; color:var(--mist); margin-top:2px;}
+  .node.core{background:var(--teal-soft); border-color:rgba(10,138,143,.25);}
+  .node.core .nt{color:var(--teal-deep);}
+  .node.shell{background:var(--paper);}
+  .node.cloud{background:var(--wash);}
+  .node.health{background:var(--green-soft); border-color:rgba(47,158,107,.25);}
+  .node.health .nt{color:var(--green);}
+  .conn{width:2px; height:18px; background:var(--line); position:relative;}
+  .conn::after{content:""; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    border-left:5px solid transparent; border-right:5px solid transparent; border-top:6px solid var(--mist);}
+  .arch .lbl{font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--mist); margin:6px 0;}
+
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:4px;}
+  .box{border:1px solid var(--line); border-radius:14px; padding:15px 16px;}
+  .box.amber{background:var(--amber-soft); border-color:rgba(201,138,23,.25);}
+  .box h3{font-family:var(--display); font-weight:700; font-size:13.5px; margin-bottom:8px; letter-spacing:-.01em;}
+  .box.amber h3{color:var(--amber);}
+
+  .callout{background:var(--red-soft); border:1px solid rgba(192,73,47,.2); border-radius:14px; padding:15px 18px; margin:14px 0;}
+  .callout h3{font-family:var(--display); font-weight:700; font-size:14px; color:var(--red); margin-bottom:7px;}
+  .callout p{margin-bottom:6px; font-size:12.5px;}
+
+  table{width:100%; border-collapse:collapse; margin:6px 0 10px; font-size:12px;}
+  th{text-align:left; font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--mist);
+     padding:0 10px 8px; border-bottom:1px solid var(--line);}
+  td{padding:9px 10px; border-bottom:1px solid var(--line); color:var(--slate); vertical-align:top;}
+  td b{color:var(--ink);}
+  .phase-now{color:var(--teal-deep); font-weight:700;}
+  .phase-next{color:var(--mist); font-weight:600;}
+
+  .foot{margin-top:26px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--mist); line-height:1.5;}
+  .foot b{color:var(--slate);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brand">
+    <span class="mark"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.6-9.2-9.4C1.2 8 3 4.5 6.4 4.5c2 0 3.4 1.2 4.2 2.6.8-1.4 2.2-2.6 4.2-2.6 3.4 0 5.2 3.5 3.6 7.1C19 16.4 12 21 12 21Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="1.6" fill="#fff"/></svg></span>
+    <span class="name">Stoma <b>Alert</b></span>
+    <span class="tag">Technical brief · mobile architecture</span>
+  </div>
+
+  <div class="eyebrow">How we build the mobile product</div>
+  <h1>PWA core + a thin native iOS shell</h1>
+  <p class="lede">The lowest-cost route to a real mobile product that still reaches <b>Apple Health</b> and future wearables — without committing to a full native build before the value is proven. This is the standard pattern for NHS-facing digital health (Huma, Ada and peers ship this way).</p>
+
+  <h2><span class="n">01</span>Recommended architecture</h2>
+  <div class="arch">
+    <div class="node core"><div class="nt">Progressive Web App (PWA) — the core platform</div><div class="nd">Patient diary · image capture · daily check-ins · messaging · questionnaires · alerts · nurse portal</div></div>
+    <div class="conn"></div>
+    <div class="node cloud"><div class="nt">Cloud API &amp; secure data store</div><div class="nd">One backend serves web, PWA and the native shell — single source of truth</div></div>
+    <div class="conn"></div>
+    <div class="lbl">iOS only</div>
+    <div class="node shell"><div class="nt">Thin native iOS shell</div><div class="nd">Hosts the same web UI + owns the bridge to Apple Health, reliable push &amp; background sync</div></div>
+    <div class="conn"></div>
+    <div class="node health"><div class="nt">Apple Health (HealthKit)</div><div class="nd">Read with explicit patient consent — steps, weight, heart rate, sleep, hydration, nutrition</div></div>
+  </div>
+  <p style="margin-top:6px"><b>One iOS app, not two.</b> The native shell wraps the existing web UI <i>and</i> contains the HealthKit module — the patient sees a single icon. Android and desktop users get the plain PWA. This keeps one codebase for all the product features and confines native work to the few things only native can do.</p>
+
+  <h2><span class="n">02</span>Why each piece earns its place</h2>
+  <div class="two">
+    <div class="box">
+      <h3>PWA for the core</h3>
+      <ul>
+        <li>One codebase, instant updates, no app-store gate on every change</li>
+        <li>Installable to the home screen from a link — looks like an app</li>
+        <li>Carries every feature: diary, check-ins, messaging, education, supplies, outcomes</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Native only where it's forced</h3>
+      <ul>
+        <li><b>Apple Health is walled off from the web</b> — a PWA cannot read it. Native is the <i>only</i> way in.</li>
+        <li>On iOS, PWAs have weak push, no real background sync, and can be evicted — the shell fixes all three.</li>
+        <li>Future wearable / device integrations land here too.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2><span class="n">03</span>What Apple Health unlocks (with consent)</h2>
+  <p>Steps &amp; activity · weight · heart rate · blood pressure (from connected devices) · sleep · hydration · nutrition · mobility. These can be correlated with the signals that matter most in stoma care — <b>dehydration risk (especially high-output ileostomy)</b>, post-surgical recovery trajectory, and overall wellbeing — to surface patients who may need attention sooner.</p>
+
+  <div class="callout">
+    <h3>⚠ The real cost driver isn't the app — it's the regulatory line</h3>
+    <p>The architecture above is cheap and well-trodden. The budget and timeline live in <b>where you draw the clinical line.</b> Today's product <b>displays and organises</b> data for a nurse to review — non-diagnostic, lower exposure. The moment the product starts to <b>interpret</b> data ("these readings suggest dehydration risk"), it likely becomes <b>Software as a Medical Device</b>: UKCA / UK MDR, plus NHS <b>DTAC</b> and clinical-safety standards <b>DCB0129 / DCB0160</b>. Decide which side of that line each feature sits on <i>before</i> building it.</p>
+  </div>
+
+  <h2><span class="n">04</span>Sequencing — value first, regulation later</h2>
+  <table>
+    <thead><tr><th style="width:30%">Stage</th><th style="width:24%">Build</th><th>What it delivers</th></tr></thead>
+    <tbody>
+      <tr><td class="phase-now">Now · shipping</td><td><b>PWA core</b></td><td>Engagement &amp; workflow: diary, check-ins, messaging, education, supplies, outcome tracking, nurse portal. Non-diagnostic.</td></tr>
+      <tr><td class="phase-now">Next · when HealthKit / wearables are needed</td><td><b>Thin native iOS shell</b></td><td>Apple Health read access, reliable push &amp; background sync. Small, contained native effort.</td></tr>
+      <tr><td class="phase-next">Later · once adoption is proven</td><td><b>Regulated clinical layer</b></td><td>AI-assisted change detection &amp; decision support, taken through DTAC / DCB0129 / UK MDR.</td></tr>
+    </tbody>
+  </table>
+  <p>The installable PWA preview is already live — it <b>is</b> stage one of this plan, not a throwaway. Try it on a phone: <b>jsbrown88.github.io/stoma-alert-site/app/</b></p>
+
+  <div class="foot">
+    <b>Recommendation.</b> For an NHS-facing product, build a PWA + thin native HealthKit wrapper rather than a fully native app. It minimises development cost while still giving Apple Health access and a path to wearables — and it keeps the regulated clinical layer cleanly separable until the value is proven.<br><br>
+    Stoma Alert · mobile architecture brief · 13 June 2026 · Illustrative — not the live build. Does not provide medical diagnoses; clinical decisions remain with qualified healthcare professionals.
+  </div>
+
+</div>
+</body>
+</html>
