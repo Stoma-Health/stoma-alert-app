@@ -215,6 +215,8 @@
   .sup-open:active{transform:scale(.99);}
   @keyframes supPulse{0%,100%{box-shadow:0 0 0 0 rgba(10,138,143,0);} 50%{box-shadow:0 0 0 6px rgba(10,138,143,.16);}}
   .sup-open.attn{animation:supPulse 1.5s ease-in-out 2;}
+  .sup-advice{display:none;margin-top:9px;text-align:center;font-size:12.5px;font-weight:600;color:var(--green);text-decoration:none;}
+  .sup-advice:active{opacity:.7;}
 
   /* outcome tracking */
   .chart{height:120px;position:relative;margin:8px 0 4px;}
@@ -397,6 +399,7 @@
         <div class="ssub" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
         <div class="suppliers" id="supplierPicker"></div>
         <a id="supplierOpen" class="sup-open attn" target="_blank" rel="noopener noreferrer" style="display:none">Open website ↗</a>
+        <a id="supplierAdvice" class="sup-advice" target="_blank" rel="noopener noreferrer">Advice &amp; support ↗</a>
       </div>
       <div class="card">
         <div class="prod">
@@ -744,14 +747,24 @@ const REORDER_ITEM = 'Drainable pouch · 60mm';
 const SUPPLIERS = ['Fittleworth','Coloplast Charter','SecuriCare','Amcare','Bullen','Respond','Salts Healthcare','Medilink','Other'];
 const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering page
   'Fittleworth':'https://www.fittleworth.com/order-online/',
-  'Coloplast Charter':'https://www.coloplastcharter.co.uk/products/stoma/',
-  'SecuriCare':'https://www.securicaremedical.co.uk/our-service/supplies-ordering-service',
-  'Amcare':'https://www.amcarebyconvatec.com/for-customers/my-amcare/prescription-services/',
+  'Coloplast Charter':'https://www.coloplastcharter.co.uk/products-and-samples/',
+  'SecuriCare':'https://www.securicaremedical.co.uk/advice-and-support/stoma-care',
+  'Amcare':'https://www.amcarebyconvatec.com/for-customers/',
   'Bullen':'https://www.bullens.com/bullens-products/',
-  'Respond':'https://www.respond.co.uk/home-delivery/order-online/place-order/',
+  'Respond':'https://www.respond.co.uk/prescription-service/existing-customers/',
   'Salts Healthcare':'https://www.salts.co.uk/products',
-  'Medilink':'https://www.saltsmedilink.co.uk/home-delivery',
+  'Medilink':'https://www.saltsmedilink.co.uk/place-order',
   'Other':null,
+};
+const SUPPLIER_CTA = {   // per-supplier button text override (default: "Browse <name> products ↗")
+  'SecuriCare':'SecuriCare advice & support ↗',
+  'Amcare':'Amcare customer area ↗',
+  'Respond':'Order with Respond ↗',
+  'Medilink':'Order with Medilink ↗',
+};
+const SUPPLIER_ADVICE = {   // optional secondary "advice & support" link for suppliers that have both
+  'Bullen':'https://www.bullens.com/advice-and-support/',
+  'Medilink':'https://www.saltsmedilink.co.uk/support-and-advice/ostomy',
 };
 let mySupplier = null;
 function renderSuppliers(){
@@ -760,8 +773,11 @@ function renderSuppliers(){
   $('#supplierPicker').querySelectorAll('.sup').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
   $('#supplierLine').textContent = mySupplier || 'your chosen DAC supplier';
   const a = $('#supplierOpen'), url = SUPPLIER_URL[mySupplier];
-  if(mySupplier && url){ a.href = url; a.textContent = `Browse ${mySupplier} products ↗`; a.style.display = 'flex'; }
+  if(mySupplier && url){ a.href = url; a.textContent = SUPPLIER_CTA[mySupplier] || `Browse ${mySupplier} products ↗`; a.style.display = 'flex'; }
   else { a.style.display = 'none'; a.removeAttribute('href'); }
+  const av = $('#supplierAdvice'), adv = SUPPLIER_ADVICE[mySupplier];
+  if(mySupplier && adv){ av.href = adv; av.textContent = `${mySupplier} advice & support ↗`; av.style.display = 'block'; }
+  else { av.style.display = 'none'; av.removeAttribute('href'); }
 }
 async function chooseSupplier(name){
   mySupplier = name;
