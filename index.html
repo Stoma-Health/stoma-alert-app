@@ -57,6 +57,8 @@
   .btn:disabled{opacity:.55;}
   .btn.ghost{background:var(--paper);color:var(--teal-deep);border:1.5px solid var(--teal-soft);box-shadow:none;}
   .btn:active{transform:scale(.99);}
+  .btn svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;}
+  .btn.ghost svg{stroke:var(--teal-deep);}
   .input{width:100%;font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--paper);
     border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;}
   .input:focus{outline:none;border-color:var(--teal);}
@@ -112,6 +114,76 @@
   .statuscard .lab{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.85;}
   .statuscard .big{font-family:var(--display);font-weight:700;font-size:22px;margin:4px 0 3px;}
   .statuscard .smt{font-size:12.5px;opacity:.92;}
+
+  /* shared bits ported from showcase */
+  .row{display:flex;align-items:center;gap:11px;}
+  .avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex:0 0 auto;}
+  .daychip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--teal-deep);background:var(--teal-soft);padding:5px 11px;border-radius:100px;margin-top:4px;}
+  .pill{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:100px;letter-spacing:.02em;}
+  .pill.g{background:var(--green-soft);color:var(--green);}
+  .pill.a{background:var(--amber-soft);color:var(--amber);}
+  .pill.r{background:var(--red-soft);color:var(--red);}
+  .pill.t{background:var(--teal-soft);color:var(--teal-deep);}
+
+  /* home quick actions */
+  .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
+  .qa{background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px;display:flex;flex-direction:column;gap:10px;text-align:left;cursor:pointer;font-family:var(--ui);}
+  .qa:active{transform:scale(.99);}
+  .qa .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .qa .ic svg{width:18px;height:18px;fill:none;stroke-width:2;}
+  .qa .t{font-size:13px;font-weight:700;color:var(--ink);} .qa .d{font-size:10.5px;color:var(--mist);}
+
+  /* image capture */
+  .viewfinder{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:1/1;
+    background:radial-gradient(circle at 50% 40%, #f6ddc8, #e8b896 70%, #d99f76);
+    display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+  .viewfinder .frameguide{position:absolute;inset:38px;border:2px dashed rgba(255,255,255,.8);border-radius:50%;}
+  .viewfinder .corner{position:absolute;width:24px;height:24px;border:3px solid #fff;}
+  .viewfinder .c1{top:16px;left:16px;border-right:0;border-bottom:0;border-radius:6px 0 0 0;}
+  .viewfinder .c2{top:16px;right:16px;border-left:0;border-bottom:0;border-radius:0 6px 0 0;}
+  .viewfinder .c3{bottom:16px;left:16px;border-right:0;border-top:0;border-radius:0 0 0 6px;}
+  .viewfinder .c4{bottom:16px;right:16px;border-left:0;border-top:0;border-radius:0 0 6px 0;}
+  .viewfinder .hint{position:absolute;bottom:18px;font-size:11px;font-weight:600;color:#fff;background:rgba(14,22,32,.45);padding:5px 12px;border-radius:100px;backdrop-filter:blur(4px);}
+  .thumbs{display:flex;gap:8px;margin-bottom:12px;}
+  .thumbs .th{flex:1;aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#f0cdb4,#dba17a);border:1px solid rgba(0,0,0,.04);}
+  .thumbs .th.sel{outline:2px solid var(--teal);outline-offset:1px;}
+  .shutter{width:62px;height:62px;border-radius:50%;background:#fff;border:4px solid var(--teal);margin:4px auto 0;box-shadow:0 6px 16px -8px rgba(10,138,143,.7);cursor:pointer;}
+  .shutter:active{transform:scale(.94);}
+
+  /* messaging */
+  .msgthread{background:var(--wash);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;}
+  .msg{max-width:84%;padding:10px 13px;border-radius:16px;font-size:12.5px;margin-bottom:9px;line-height:1.4;}
+  .msg.them{background:var(--paper);border:1px solid var(--line);border-bottom-left-radius:5px;}
+  .msg.me{background:var(--teal);color:#fff;margin-left:auto;border-bottom-right-radius:5px;}
+  .msg .img{height:78px;border-radius:9px;background:linear-gradient(135deg,#f0cdb4,#dba17a);margin-bottom:7px;}
+  .msgtime{font-size:9.5px;color:var(--mist);margin:-4px 0 11px;}
+  .msgtime.r{text-align:right;}
+  .composer{display:flex;align-items:center;gap:9px;background:var(--paper);border:1px solid var(--line);border-radius:100px;padding:11px 15px;font-size:13px;color:var(--mist);cursor:pointer;}
+
+  /* education */
+  .edu{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:11px;background:var(--paper);}
+  .edu .ph{height:92px;position:relative;}
+  .edu .ph.t1{background:linear-gradient(135deg,#e6f4f4,#9bd0d2);}
+  .edu .ph.t2{background:linear-gradient(135deg,#e8f5ee,#9ed9b9);}
+  .edu .ph .tagv{position:absolute;top:10px;left:10px;font-size:9.5px;font-weight:700;color:var(--teal-deep);background:rgba(255,255,255,.9);padding:4px 9px;border-radius:100px;}
+  .edu .ph .play{position:absolute;right:10px;bottom:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;}
+  .edu .bd{padding:12px 14px;}
+  .edu .bd .t{font-size:13.5px;font-weight:700;line-height:1.25;margin-bottom:4px;}
+  .edu .bd .m{font-size:10.5px;color:var(--mist);display:flex;gap:9px;}
+
+  /* product support */
+  .prod{display:flex;gap:12px;align-items:center;}
+  .prod .box{width:54px;height:54px;border-radius:13px;background:var(--teal-soft);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .prod .box svg{width:26px;height:26px;stroke:var(--teal-deep);fill:none;stroke-width:1.8;}
+  .stockbar{height:7px;border-radius:100px;background:var(--line);overflow:hidden;margin-top:10px;}
+  .stockbar i{display:block;height:100%;width:20%;background:var(--amber);border-radius:100px;}
+  .supplier{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--slate);margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);}
+
+  /* outcome tracking */
+  .chart{height:120px;position:relative;margin:8px 0 4px;}
+  .ring{width:66px;height:66px;flex:0 0 auto;}
+  .legend{display:flex;gap:14px;font-size:10.5px;color:var(--mist);margin-top:8px;}
+  .legend b{color:var(--ink);}
 
   /* history / caseload rows */
   .entry{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
@@ -185,13 +257,26 @@
   <div class="views" id="views" style="display:none">
     <!-- PATIENT: HOME -->
     <section class="view" data-view="home">
-      <div class="greet" id="greet">Hello</div>
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="greet" id="greet">Hello</div>
+          <span class="daychip">● Your recovery journey</span>
+        </div>
+        <div class="avatar" id="homeAvatar" style="background:var(--amber)">M</div>
+      </div>
       <div class="statuscard">
-        <div class="lab">Today</div>
+        <div class="lab">Today's check-in</div>
         <div class="big" id="homeStatus">Ready for your check-in</div>
         <div class="smt">A 60-second check-in keeps your care team in the loop.</div>
       </div>
-      <button class="btn" id="startCheckin">Start today's check-in</button>
+      <button class="btn" id="startCheckin">Start today's check-in
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="quick" style="margin-top:12px">
+        <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#077277"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
+        <button class="qa" data-go="messages"><span class="ic" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" stroke="#2f9e6b"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg></span><div><div class="t">Message nurse</div><div class="d">Sarah · usually &lt;4h</div></div></button>
+        <button class="qa" data-go="learn"><span class="ic" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" stroke="#c98a17"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span><div><div class="t">Learn</div><div class="d">Peristomal skin</div></div></button>
+        <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#077277"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
+      </div>
     </section>
 
     <!-- PATIENT: CHECK-IN -->
@@ -201,14 +286,120 @@
       <div class="card" id="metrics"></div>
       <label class="fl">Anything to add for your nurse? (optional)</label>
       <textarea class="input" id="note" rows="2" placeholder="e.g. skin a little sore this morning"></textarea>
-      <button class="btn" id="submitCheckin">Share with care team</button>
+      <button class="btn" id="submitCheckin">Share with care team
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </section>
 
-    <!-- PATIENT: HISTORY -->
+    <!-- PATIENT: DIARY / HISTORY -->
     <section class="view" data-view="history">
       <div class="kic">Your diary</div>
       <div class="h">Past check-ins</div>
       <div id="historyList"></div>
+    </section>
+
+    <!-- PATIENT: CAPTURE (designed) -->
+    <section class="view" data-view="capture">
+      <div class="kic">Image capture</div>
+      <div class="h">Stoma diary</div>
+      <div class="viewfinder">
+        <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
+        <div class="frameguide"></div>
+        <div class="hint">Line up inside the circle</div>
+      </div>
+      <div class="thumbs">
+        <div class="th sel"></div><div class="th"></div><div class="th"></div><div class="th"></div>
+        <div class="th" style="background:var(--wash);border:1px dashed var(--line)"></div>
+      </div>
+      <div class="card" style="background:var(--teal-soft);border-color:rgba(10,138,143,.18)">
+        <div class="row" style="gap:9px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#077277" stroke-width="1.9" style="flex:0 0 auto"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
+          <div style="font-size:11.5px;color:var(--slate);line-height:1.4"><b style="color:var(--teal-deep)">No notable change</b> vs last week. Shared with your nurse for review.</div>
+        </div>
+      </div>
+      <div class="shutter" id="shutterBtn"></div>
+    </section>
+
+    <!-- PATIENT: MESSAGES (designed) -->
+    <section class="view" data-view="messages">
+      <div class="card" style="display:flex;align-items:center;gap:11px;margin-bottom:12px">
+        <div class="avatar" style="background:var(--teal)">S</div>
+        <div><div style="font-weight:700;font-size:14px">Sarah Whitfield</div><div class="ssub">Stoma Care Nurse · Online</div></div>
+      </div>
+      <div class="msgthread">
+        <div class="msg them">Morning — thanks for yesterday's photo. The redness looks mild. How's the skin feeling today?</div>
+        <div class="msgtime">Sarah · 08:12</div>
+        <div class="msg me"><div class="img"></div>A little sore but better than the weekend. Sending today's photo.</div>
+        <div class="msgtime r">You · 09:02</div>
+        <div class="msg them">That's reassuring. Keep using the barrier ring and check in tomorrow. I've flagged you as settled — no appointment needed. 👍</div>
+        <div class="msgtime">Sarah · 09:08</div>
+      </div>
+      <div class="composer" id="composer"><span>Message Sarah…</span><span style="margin-left:auto">📎</span></div>
+    </section>
+
+    <!-- PATIENT: LEARN (designed) -->
+    <section class="view" data-view="learn">
+      <div class="kic">Education · for you</div>
+      <div class="h">Living well, week by week</div>
+      <div class="edu">
+        <div class="ph t1"><span class="tagv">Skin care</span><span class="play"><svg width="12" height="12" viewBox="0 0 24 24" fill="#077277"><path d="M7 5l12 7-12 7z"/></svg></span></div>
+        <div class="bd"><div class="t">Caring for the skin around your stoma</div><div class="m"><span>▶ 4 min video</span><span>· Recommended</span></div></div>
+      </div>
+      <div class="edu">
+        <div class="ph t2"><span class="tagv" style="color:#2f9e6b">Diet</span></div>
+        <div class="bd"><div class="t">Eating in your first 6 weeks</div><div class="m"><span>📖 5 min read</span><span>· Early recovery</span></div></div>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:17px">🎯</span>
+        <div style="font-size:11.5px;color:var(--slate)"><b style="color:var(--ink)">3 of 8</b> starter guides completed</div>
+      </div>
+    </section>
+
+    <!-- PATIENT: SUPPLIES (designed) -->
+    <section class="view" data-view="supplies">
+      <div class="kic">Product support</div>
+      <div class="h">Your supplies</div>
+      <div class="card">
+        <div class="prod">
+          <span class="box"><svg viewBox="0 0 24 24"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/><path d="M4 7l8 4 8-4M12 11v10" stroke-linejoin="round"/></svg></span>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13.5px">Drainable pouch · 60mm</div>
+            <div class="ssub">Your current appliance</div>
+          </div>
+          <span class="pill a">Low</span>
+        </div>
+        <div class="stockbar"><i></i></div>
+        <div class="ssub" style="margin-top:7px">≈ 1 box left · about 4 days</div>
+      </div>
+      <button class="btn" id="reorderBtn">Reorder now
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="card" style="margin-top:12px">
+        <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Having a problem?</div>
+        <div class="ssub" style="margin-bottom:11px">Leaks, sore skin or fitting — get product help.</div>
+        <button class="btn ghost" id="supportChatBtn">Product support chat</button>
+        <div class="supplier"><span style="font-size:15px">🚚</span> Delivered by <b style="color:var(--ink)">&nbsp;your chosen DAC supplier</b></div>
+      </div>
+    </section>
+
+    <!-- PATIENT: PROGRESS (designed) -->
+    <section class="view" data-view="progress">
+      <div class="kic">Outcome tracking</div>
+      <div class="h">Your progress</div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Confidence &amp; quality of life</div><span class="pill g">↑ Improving</span></div>
+        <div class="chart">
+          <svg viewBox="0 0 240 120" width="100%" height="120" preserveAspectRatio="none">
+            <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9e6b" stop-opacity=".22"/><stop offset="1" stop-color="#2f9e6b" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0 92 L48 84 L96 70 L144 52 L192 34 L240 20 L240 120 L0 120 Z" fill="url(#fill)"/>
+            <path d="M0 92 L48 84 L96 70 L144 52 L192 34 L240 20" fill="none" stroke="#2f9e6b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="240" cy="20" r="4.5" fill="#2f9e6b" stroke="#fff" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="legend"><span><b>Week 4</b> of recovery</span><span style="margin-left:auto">vs <b style="color:#2f9e6b">+38%</b> on week 1</span></div>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:14px">
+        <svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#e2e9ef" stroke-width="4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="#0a8a8f" stroke-width="4" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="14" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#1a2733">86%</text></svg>
+        <div><div style="font-size:13px;font-weight:700">Check-in streak</div><div class="ssub">24 of 28 days logged · shared with your care team</div></div>
+      </div>
     </section>
 
     <!-- NURSE: CASELOAD -->
@@ -224,7 +415,9 @@
   <nav class="tabs" id="patientTabs" style="display:none">
     <button class="tab on" data-view="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8H4z" stroke-linejoin="round"/></svg>Home</button>
     <button class="tab" data-view="checkin"><svg viewBox="0 0 24 24"><path d="M8 4h8v4H8zM6 8h12v12H6z" stroke-linejoin="round"/></svg>Check-in</button>
-    <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Diary</button>
+    <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3"/></svg>Diary</button>
+    <button class="tab" data-view="messages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
+    <button class="tab" data-view="progress"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Progress</button>
   </nav>
 
   <div class="toast" id="toast"></div>
@@ -317,6 +510,15 @@ function showView(name){
   if(name==='checkin') renderMetrics();
 }
 $('#startCheckin').onclick = () => showView('checkin');
+
+// quick-action cards on Home → jump to designed screens
+document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView(el.dataset.go));
+
+// designed-screen demo actions (no backend)
+$('#shutterBtn').onclick     = () => toast('Photo added to your diary ✓');
+$('#reorderBtn').onclick     = () => toast('Reorder placed — demo ✓');
+$('#supportChatBtn').onclick = () => toast('Opening product support… (demo)');
+$('#composer').onclick       = () => toast('Secure messaging — demo only');
 
 // ---------- check-in ----------
 function renderMetrics(){
@@ -414,7 +616,9 @@ async function boot(){
     loadCaseload();
   } else {
     $('#patientTabs').style.display = 'flex';
-    $('#greet').textContent = 'Hello, ' + (u.user_metadata?.full_name || u.email.split('@')[0]);
+    const nm = u.user_metadata?.full_name || u.email.split('@')[0];
+    $('#greet').textContent = 'Hello, ' + nm;
+    $('#homeAvatar').textContent = (nm[0]||'?').toUpperCase();
     showView('home');
   }
 }
