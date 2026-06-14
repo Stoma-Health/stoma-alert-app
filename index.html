@@ -378,6 +378,8 @@
         <button class="btn ghost" id="supportChatBtn">Product support chat</button>
         <div class="supplier"><span style="font-size:15px">🚚</span> Delivered by <b style="color:var(--ink)">&nbsp;your chosen DAC supplier</b></div>
       </div>
+      <div class="kic" style="margin-top:18px">Recent requests</div>
+      <div id="reorderList"></div>
     </section>
 
     <!-- PATIENT: PROGRESS (designed) -->
@@ -502,6 +504,7 @@ function showView(name){
   if(name==='history') loadHistory();
   if(name==='checkin') renderMetrics();
   if(name==='progress') loadProgress();
+  if(name==='supplies') loadSupplies();
 }
 $('#startCheckin').onclick = () => showView('checkin');
 
@@ -510,7 +513,6 @@ document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView
 
 // designed-screen demo actions (no backend)
 $('#shutterBtn').onclick     = () => toast('Photo added to your diary ✓');
-$('#reorderBtn').onclick     = () => toast('Reorder placed — demo ✓');
 $('#supportChatBtn').onclick = () => toast('Opening product support… (demo)');
 $('#composer').onclick       = () => toast('Secure messaging — demo only');
 
@@ -631,6 +633,45 @@ async function loadProgress(){
   $('#streakRing').innerHTML = ringSvg(pct);
   $('#streakText').textContent = `${logged} of last 28 days logged · shared with your care team`;
 }
+
+// ---------- supplies / reorders (live) ----------
+const REORDER_ITEM = 'Drainable pouch · 60mm';
+function reorderRow(r){
+  const when = new Date(r.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const map = { requested:['t','Requested'], processing:['a','Processing'], shipped:['g','Shipped'], delivered:['g','Delivered'] };
+  const s = map[r.status] || ['t', r.status || 'Requested'];
+  return `<div class="entry"><div class="top">
+      <span class="flagdot ${s[0]==='t'?'a':s[0]}"></span>
+      <span class="nm">${esc(r.item||REORDER_ITEM)}</span>
+      <span class="when">${when}</span></div>
+    <span class="pill ${s[0]}">${s[1]}</span></div>`;
+}
+async function loadSupplies(){
+  $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Loading…</div>';
+  const { data, error } = await sb.from('reorders').select('*').order('created_at',{ascending:false}).limit(10);
+  if(error){
+    $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Reorder history unavailable — run the reorders table setup.</div>';
+    return;
+  }
+  $('#reorderList').innerHTML = data.length ? data.map(reorderRow).join('')
+    : '<div class="empty" style="padding:22px 8px">No requests yet. Tap “Reorder now” to place one.</div>';
+}
+$('#reorderBtn').onclick = async () => {
+  const u = (await sb.auth.getUser()).data.user;
+  if(!u){ toast('Please sign in'); return; }
+  $('#reorderBtn').disabled = true;
+  const { error } = await sb.from('reorders').insert({
+    user_id: u.id,
+    patient_name: u.user_metadata?.full_name || u.email,
+    patient_email: u.email,
+    item: REORDER_ITEM,
+    status: 'requested',
+  });
+  $('#reorderBtn').disabled = false;
+  if(error){ toast('Error: ' + error.message); return; }
+  toast('Reorder placed ✓');
+  loadSupplies();
+};
 
 // ---------- nurse caseload ----------
 async function loadCaseload(){
