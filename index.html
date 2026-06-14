@@ -385,20 +385,13 @@
       <div class="kic">Outcome tracking</div>
       <div class="h">Your progress</div>
       <div class="card">
-        <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Confidence &amp; quality of life</div><span class="pill g">↑ Improving</span></div>
-        <div class="chart">
-          <svg viewBox="0 0 240 120" width="100%" height="120" preserveAspectRatio="none">
-            <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9e6b" stop-opacity=".22"/><stop offset="1" stop-color="#2f9e6b" stop-opacity="0"/></linearGradient></defs>
-            <path d="M0 92 L48 84 L96 70 L144 52 L192 34 L240 20 L240 120 L0 120 Z" fill="url(#fill)"/>
-            <path d="M0 92 L48 84 L96 70 L144 52 L192 34 L240 20" fill="none" stroke="#2f9e6b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="240" cy="20" r="4.5" fill="#2f9e6b" stroke="#fff" stroke-width="2"/>
-          </svg>
-        </div>
-        <div class="legend"><span><b>Week 4</b> of recovery</span><span style="margin-left:auto">vs <b style="color:#2f9e6b">+38%</b> on week 1</span></div>
+        <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Confidence &amp; quality of life</div><span class="pill t" id="qolPill">Building…</span></div>
+        <div class="chart" id="qolChart"></div>
+        <div class="legend" id="qolLegend"><span class="muted">Loading your trend…</span></div>
       </div>
       <div class="card" style="display:flex;align-items:center;gap:14px">
-        <svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#e2e9ef" stroke-width="4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="#0a8a8f" stroke-width="4" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="14" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#1a2733">86%</text></svg>
-        <div><div style="font-size:13px;font-weight:700">Check-in streak</div><div class="ssub">24 of 28 days logged · shared with your care team</div></div>
+        <div id="streakRing" style="flex:0 0 auto"></div>
+        <div><div style="font-size:13px;font-weight:700">Check-in streak</div><div class="ssub" id="streakText">Loading…</div></div>
       </div>
     </section>
 
@@ -508,6 +501,7 @@ function showView(name){
   $('#views').scrollTop = 0;
   if(name==='history') loadHistory();
   if(name==='checkin') renderMetrics();
+  if(name==='progress') loadProgress();
 }
 $('#startCheckin').onclick = () => showView('checkin');
 
@@ -579,6 +573,63 @@ async function loadHistory(){
   if(error){ $('#historyList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
   $('#historyList').innerHTML = data.length ? data.map(r=>rowHtml(r,false)).join('')
     : '<div class="empty">No check-ins yet. Tap “Check-in” to add your first.</div>';
+}
+
+// ---------- progress / outcome tracking (live) ----------
+const wellbeing = r => Math.round((((r.output + r.skin + r.comfort + r.mood) / 4) - 1) / 4 * 100); // 0–100
+
+function trendSvg(scores){
+  const W = 240, H = 120, padX = 6, padY = 12;
+  let pts = scores.map((v, i) => v);
+  if(pts.length === 1) pts = [pts[0], pts[0]];           // flat segment for a single point
+  const m = pts.length;
+  const x = i => padX + (W - 2 * padX) * (m === 1 ? 0 : i / (m - 1));
+  const y = v => padY + (H - 2 * padY) * (1 - v / 100);
+  const P = pts.map((v, i) => [x(i), y(v)]);
+  const line = P.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = `M${P[0][0].toFixed(1)} ${H} ` + P.map(p => 'L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ') + ` L${P[m-1][0].toFixed(1)} ${H} Z`;
+  const last = P[m-1];
+  return `<svg viewBox="0 0 240 120" width="100%" height="120" preserveAspectRatio="none">
+    <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f9e6b" stop-opacity=".22"/><stop offset="1" stop-color="#2f9e6b" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#fill)"/>
+    <path d="${line}" fill="none" stroke="#2f9e6b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="#2f9e6b" stroke="#fff" stroke-width="2"/>
+  </svg>`;
+}
+function ringSvg(pct){
+  const circ = 97.4, off = (circ * (1 - pct / 100)).toFixed(1);
+  return `<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#e2e9ef" stroke-width="4"/>
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#0a8a8f" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 18 18)"/>
+    <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#1a2733">${pct}%</text></svg>`;
+}
+async function loadProgress(){
+  $('#qolChart').innerHTML = ''; $('#qolLegend').innerHTML = '<span class="muted">Loading your trend…</span>';
+  $('#streakText').textContent = 'Loading…'; $('#streakRing').innerHTML = ringSvg(0);
+  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:true}).limit(60);
+  if(error){ $('#qolLegend').innerHTML = `<span class="muted">${error.message}</span>`; return; }
+  if(!data.length){
+    $('#qolChart').innerHTML = '<div class="empty" style="padding:24px 8px">No check-ins yet — submit a few and your wellbeing trend appears here.</div>';
+    $('#qolLegend').innerHTML = ''; $('#qolPill').textContent = '—'; $('#qolPill').className = 'pill t';
+    $('#streakText').textContent = 'No check-ins logged yet'; $('#streakRing').innerHTML = ringSvg(0);
+    return;
+  }
+  // wellbeing trend (last 10 check-ins, oldest→newest)
+  const recent = data.slice(-10);
+  const scores = recent.map(wellbeing);
+  $('#qolChart').innerHTML = trendSvg(scores);
+  const first = scores[0], last = scores[scores.length-1], diff = last - first;
+  const pill = diff > 3 ? ['↑ Improving','g'] : (diff < -3 ? ['↓ Easing','a'] : ['→ Steady','t']);
+  $('#qolPill').textContent = pill[0]; $('#qolPill').className = 'pill ' + pill[1];
+  $('#qolLegend').innerHTML =
+    `<span><b>${last}%</b> wellbeing index</span>` +
+    `<span style="margin-left:auto">${data.length} check-in${data.length>1?'s':''}` +
+    (scores.length>1 ? ` · <b style="color:${diff>=0?'#2f9e6b':'var(--amber)'}">${diff>=0?'+':''}${diff}%</b> vs first` : '') + `</span>`;
+  // adherence streak: distinct days logged in the last 28
+  const cutoff = Date.now() - 28*864e5, days = new Set();
+  data.forEach(r => { const t = new Date(r.created_at); if(t.getTime() >= cutoff) days.add(t.toISOString().slice(0,10)); });
+  const logged = days.size, pct = Math.min(100, Math.round(logged/28*100));
+  $('#streakRing').innerHTML = ringSvg(pct);
+  $('#streakText').textContent = `${logged} of last 28 days logged · shared with your care team`;
 }
 
 // ---------- nurse caseload ----------
