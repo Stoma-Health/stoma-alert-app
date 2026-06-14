@@ -386,6 +386,7 @@
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your supplier</div>
         <div class="ssub" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
         <div class="suppliers" id="supplierPicker"></div>
+        <a id="supplierOpen" class="btn ghost" target="_blank" rel="noopener noreferrer" style="display:none;margin-top:12px;text-decoration:none">Open website ↗</a>
       </div>
       <div class="card">
         <div class="prod">
@@ -696,12 +697,26 @@ async function loadProgress(){
 // ---------- supplies / reorders (live) ----------
 const REORDER_ITEM = 'Drainable pouch · 60mm';
 const SUPPLIERS = ['Fittleworth','Coloplast Charter','SecuriCare','Amcare','Bullen','Respond','NuCare','Medilink','Other'];
+const SUPPLIER_URL = {
+  'Fittleworth':'https://www.fittleworth.com/',
+  'Coloplast Charter':'https://www.coloplastcharter.co.uk/',
+  'SecuriCare':'https://www.securicaremedical.co.uk/',
+  'Amcare':'https://www.amcarebyconvatec.com/',
+  'Bullen':'https://www.bullens.com/',
+  'Respond':'https://www.respond.co.uk/',
+  'NuCare':'https://www.nucare.co.uk/',
+  'Medilink':'https://www.saltsmedilink.co.uk/',
+  'Other':null,
+};
 let mySupplier = null;
 function renderSuppliers(){
   $('#supplierPicker').innerHTML = SUPPLIERS.map(s =>
     `<button class="sup ${s===mySupplier?'on':''}" data-sup="${esc(s)}">${esc(s)}</button>`).join('');
   $('#supplierPicker').querySelectorAll('.sup').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
   $('#supplierLine').textContent = mySupplier || 'your chosen DAC supplier';
+  const a = $('#supplierOpen'), url = SUPPLIER_URL[mySupplier];
+  if(mySupplier && url){ a.href = url; a.textContent = `Open ${mySupplier} website ↗`; a.style.display = 'flex'; }
+  else { a.style.display = 'none'; a.removeAttribute('href'); }
 }
 async function chooseSupplier(name){
   mySupplier = name;
