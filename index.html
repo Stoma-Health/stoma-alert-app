@@ -6,7 +6,7 @@
 <title>Stoma Alert</title>
 <meta name="description" content="Stoma Alert — working prototype (test data only).">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0a8a8f">
+<meta name="theme-color" content="#20305c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stoma Alert">
@@ -18,8 +18,8 @@
 <style>
   :root{
     --ink:#1a2733; --slate:#46586b; --mist:#6b7d8f; --line:#e2e9ef;
-    --paper:#fff; --wash:#f4f7fa; --teal:#0a8a8f; --teal-deep:#077277; --teal-soft:#e6f4f4;
-    --green:#2f9e6b; --green-soft:#e8f5ee; --amber:#c98a17; --amber-soft:#fbf2df;
+    --paper:#fff; --wash:#f4f6fa; --teal:#20305c; --teal-deep:#172446; --teal-soft:#e9ecf5;
+    --green:#4f9d7b; --green-soft:#e8f3ed; --amber:#c98a17; --amber-soft:#fbf2df;
     --red:#c0492f; --red-soft:#fbece8;
     --display:"Bricolage Grotesque",sans-serif;
     --ui:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,sans-serif;
@@ -46,8 +46,8 @@
 
   .views{flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch;}
   .view{display:none; padding:18px 16px 26px;} .view.on{display:block;}
-  .kic{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:4px;}
-  .h{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:-.02em;line-height:1.06;margin-bottom:14px;}
+  .kic{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:4px;}
+  .h{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:-.02em;line-height:1.06;margin-bottom:14px;color:var(--teal);}
   .ssub{font-size:12.5px;color:var(--mist);} .muted{color:var(--mist);}
 
   .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;}
@@ -108,7 +108,7 @@
   .dots .d.sel.a{background:var(--amber);border-color:var(--amber);}
   .dots .d.sel.r{background:var(--red);border-color:var(--red);}
 
-  .greet{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;}
+  .greet{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;color:var(--teal);}
   .statuscard{background:linear-gradient(155deg,var(--teal),var(--teal-deep));color:#fff;border-radius:20px;padding:18px;margin:12px 0;position:relative;overflow:hidden;}
   .statuscard::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.1);}
   .statuscard .lab{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.85;}
