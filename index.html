@@ -159,6 +159,17 @@
   .msgtime{font-size:9.5px;color:var(--mist);margin:-4px 0 11px;}
   .msgtime.r{text-align:right;}
   .composer{display:flex;align-items:center;gap:9px;background:var(--paper);border:1px solid var(--line);border-radius:100px;padding:11px 15px;font-size:13px;color:var(--mist);cursor:pointer;}
+  .composer-input{display:flex;gap:8px;align-items:center;}
+  .send{flex:0 0 auto;width:46px;height:46px;border-radius:50%;background:var(--teal);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 22px -12px rgba(10,138,143,.8);}
+  .send svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.2;}
+  .send:active{transform:scale(.95);}
+  .msg .sender{display:block;font-size:9.5px;font-weight:700;letter-spacing:.02em;margin-bottom:3px;opacity:.7;}
+  .msgthread{max-height:50vh;overflow-y:auto;}
+  .thread-item{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer;}
+  .thread-item:active{transform:scale(.99);}
+  .thread-item .nm{font-weight:700;font-size:14px;}
+  .thread-item .when{font-size:11px;color:var(--mist);}
+  .thread-item .pv{font-size:12px;color:var(--mist);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* education */
   .edu{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:11px;background:var(--paper);}
@@ -325,15 +336,11 @@
         <div class="avatar" style="background:var(--teal)">S</div>
         <div><div style="font-weight:700;font-size:14px">Sarah Whitfield</div><div class="ssub">Stoma Care Nurse · Online</div></div>
       </div>
-      <div class="msgthread">
-        <div class="msg them">Morning — thanks for yesterday's photo. The redness looks mild. How's the skin feeling today?</div>
-        <div class="msgtime">Sarah · 08:12</div>
-        <div class="msg me"><div class="img"></div>A little sore but better than the weekend. Sending today's photo.</div>
-        <div class="msgtime r">You · 09:02</div>
-        <div class="msg them">That's reassuring. Keep using the barrier ring and check in tomorrow. I've flagged you as settled — no appointment needed. 👍</div>
-        <div class="msgtime">Sarah · 09:08</div>
+      <div class="msgthread" id="msgThread"><div class="empty">Loading…</div></div>
+      <div class="composer-input">
+        <input class="input" id="msgInput" placeholder="Message your care team…" style="margin-bottom:0" autocomplete="off">
+        <button class="send" id="msgSend" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
-      <div class="composer" id="composer"><span>Message Sarah…</span><span style="margin-left:auto">📎</span></div>
     </section>
 
     <!-- PATIENT: LEARN (designed) -->
@@ -397,6 +404,21 @@
       </div>
     </section>
 
+    <!-- NURSE: MESSAGES -->
+    <section class="view" data-view="nmessages">
+      <div class="kic">Messages</div>
+      <div class="h" id="nmsgHeading">Patient conversations</div>
+      <div id="threadListWrap"><div id="threadList"></div></div>
+      <div id="threadPanelWrap" style="display:none">
+        <button class="btn ghost" id="backToThreads" style="margin-bottom:12px;width:auto;padding:9px 14px">← All conversations</button>
+        <div class="msgthread" id="nmsgThread"></div>
+        <div class="composer-input">
+          <input class="input" id="nmsgInput" placeholder="Reply to patient…" style="margin-bottom:0" autocomplete="off">
+          <button class="send" id="nmsgSend" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+    </section>
+
     <!-- NURSE: CASELOAD -->
     <section class="view" data-view="caseload">
       <div class="kic">Caseload</div>
@@ -413,6 +435,11 @@
     <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3"/></svg>Diary</button>
     <button class="tab" data-view="messages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
     <button class="tab" data-view="progress"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Progress</button>
+  </nav>
+
+  <nav class="tabs" id="nurseTabs" style="display:none">
+    <button class="tab on" data-nview="caseload"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>Caseload</button>
+    <button class="tab" data-nview="nmessages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
   </nav>
 
   <div class="toast" id="toast"></div>
@@ -436,6 +463,9 @@ const colourFor = v => v <= 2 ? 'r' : (v === 3 ? 'a' : 'g');
 let current = {};   // current check-in values
 let mode = 'signin';
 let signupRole = 'patient';
+let myUid = null, myRole = 'patient', myName = '';   // session identity
+let curThread = null, msgChannel = null;             // messaging state
+const seenMsg = new Set();                           // de-dupe realtime vs reload
 
 // ---------- toast / messages ----------
 let toastT;
@@ -500,13 +530,20 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   const sec = document.querySelector(`.view[data-view="${name}"]`); if(sec) sec.classList.add('on');
   document.querySelectorAll('#patientTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.view===name));
+  document.querySelectorAll('#nurseTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.nview===name));
+  // leaving a thread? drop the realtime channel
+  if(name!=='messages' && name!=='nmessages' && msgChannel){ sb.removeChannel(msgChannel); msgChannel=null; }
   $('#views').scrollTop = 0;
   if(name==='history') loadHistory();
   if(name==='checkin') renderMetrics();
   if(name==='progress') loadProgress();
   if(name==='supplies') loadSupplies();
+  if(name==='messages') openPatientMessages();
+  if(name==='caseload') loadCaseload();
+  if(name==='nmessages') loadThreadList();
 }
 $('#startCheckin').onclick = () => showView('checkin');
+document.querySelectorAll('#nurseTabs .tab').forEach(t => t.onclick = () => showView(t.dataset.nview));
 
 // quick-action cards on Home → jump to designed screens
 document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView(el.dataset.go));
@@ -514,7 +551,6 @@ document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView
 // designed-screen demo actions (no backend)
 $('#shutterBtn').onclick     = () => toast('Photo added to your diary ✓');
 $('#supportChatBtn').onclick = () => toast('Opening product support… (demo)');
-$('#composer').onclick       = () => toast('Secure messaging — demo only');
 
 // ---------- check-in ----------
 function renderMetrics(){
@@ -673,6 +709,87 @@ $('#reorderBtn').onclick = async () => {
   loadSupplies();
 };
 
+// ---------- messaging (live, two-way, realtime) ----------
+function msgBubble(r){
+  const mine = r.sender_id === myUid;
+  const when = new Date(r.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const who = mine ? 'You' : (r.sender_name || (r.sender_role==='nurse' ? 'Care team' : 'Patient'));
+  return `<div class="msg ${mine?'me':'them'}"><span class="sender">${esc(who)}</span>${esc(r.body)}</div><div class="msgtime ${mine?'r':''}">${when}</div>`;
+}
+function renderThread(containerId, rows){
+  seenMsg.clear(); rows.forEach(r=>seenMsg.add(r.id));
+  const el = $('#'+containerId);
+  el.innerHTML = rows.length ? rows.map(msgBubble).join('') : '<div class="empty">No messages yet — say hello 👋</div>';
+  el.scrollTop = el.scrollHeight;
+}
+function appendBubble(containerId, r){
+  const el = $('#'+containerId);
+  const empty = el.querySelector('.empty'); if(empty) el.innerHTML = '';
+  el.insertAdjacentHTML('beforeend', msgBubble(r));
+  el.scrollTop = el.scrollHeight;
+}
+function subscribeThread(threadUser, containerId){
+  if(msgChannel){ sb.removeChannel(msgChannel); msgChannel = null; }
+  msgChannel = sb.channel('thread-'+threadUser)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages', filter:`thread_user=eq.${threadUser}` },
+      payload => { const r = payload.new; if(!seenMsg.has(r.id)){ seenMsg.add(r.id); appendBubble(containerId, r); } })
+    .subscribe();
+}
+async function loadThread(threadUser, containerId){
+  const { data, error } = await sb.from('messages').select('*').eq('thread_user', threadUser).order('created_at',{ascending:true}).limit(200);
+  if(error){ $('#'+containerId).innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  renderThread(containerId, data || []);
+}
+async function sendMsg(threadUser, inputId, containerId){
+  if(!threadUser) return;
+  const inp = $('#'+inputId), body = inp.value.trim(); if(!body) return;
+  inp.value = '';
+  const { error } = await sb.from('messages').insert({ thread_user:threadUser, sender_id:myUid, sender_role:myRole, sender_name:myName, body });
+  if(error){ toast('Error: '+error.message); inp.value = body; return; }
+  await loadThread(threadUser, containerId);   // realtime echo de-duped by seenMsg rebuild
+}
+
+// patient side — thread is keyed to the patient's own uid
+async function openPatientMessages(){
+  await loadThread(myUid, 'msgThread');
+  subscribeThread(myUid, 'msgThread');
+}
+$('#msgSend').onclick = () => sendMsg(myUid, 'msgInput', 'msgThread');
+$('#msgInput').addEventListener('keydown', e => { if(e.key==='Enter') $('#msgSend').click(); });
+
+// nurse side — list of conversations → open one to reply
+async function loadThreadList(){
+  $('#threadPanelWrap').style.display = 'none'; $('#threadListWrap').style.display = 'block';
+  $('#nmsgHeading').textContent = 'Patient conversations';
+  if(msgChannel){ sb.removeChannel(msgChannel); msgChannel = null; }
+  $('#threadList').innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.from('messages').select('*').order('created_at',{ascending:false}).limit(300);
+  if(error){ $('#threadList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  if(!data.length){ $('#threadList').innerHTML = '<div class="empty">No conversations yet — patient messages appear here.</div>'; return; }
+  const threads = {};
+  data.forEach(r => {
+    if(!threads[r.thread_user]) threads[r.thread_user] = { latest:r, name:null };
+    if(!threads[r.thread_user].name && r.sender_role==='patient') threads[r.thread_user].name = r.sender_name;
+  });
+  $('#threadList').innerHTML = Object.entries(threads).map(([tu,t]) => {
+    const when = new Date(t.latest.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    const nm = t.name || 'Patient';
+    const pv = (t.latest.sender_role==='nurse' ? 'You: ' : '') + t.latest.body;
+    return `<div class="thread-item" data-thread="${tu}" data-name="${esc(nm)}"><div class="row" style="justify-content:space-between"><span class="nm">${esc(nm)}</span><span class="when">${when}</span></div><div class="pv">${esc(pv)}</div></div>`;
+  }).join('');
+  $('#threadList').querySelectorAll('.thread-item').forEach(el => el.onclick = () => openNurseThread(el.dataset.thread, el.dataset.name));
+}
+async function openNurseThread(threadUser, name){
+  curThread = threadUser;
+  $('#threadListWrap').style.display = 'none'; $('#threadPanelWrap').style.display = 'block';
+  $('#nmsgHeading').textContent = name || 'Patient';
+  await loadThread(threadUser, 'nmsgThread');
+  subscribeThread(threadUser, 'nmsgThread');
+}
+$('#backToThreads').onclick = () => loadThreadList();
+$('#nmsgSend').onclick = () => sendMsg(curThread, 'nmsgInput', 'nmsgThread');
+$('#nmsgInput').addEventListener('keydown', e => { if(e.key==='Enter') $('#nmsgSend').click(); });
+
 // ---------- nurse caseload ----------
 async function loadCaseload(){
   $('#caseloadList').innerHTML = '<div class="empty">Loading…</div>';
@@ -697,20 +814,22 @@ async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
   if(!session){ showAuth(); return; }
   const u = session.user;
-  const role = u.user_metadata?.role || 'patient';
+  myUid = u.id;
+  myRole = u.user_metadata?.role || 'patient';
+  myName = u.user_metadata?.full_name || u.email.split('@')[0];
   $('#authWrap').style.display = 'none';
   $('#topbar').style.display = 'flex';
   $('#views').style.display = 'block';
-  if(role === 'nurse'){
+  if(myRole === 'nurse'){
     $('#roleBadge').style.display = 'inline-block';
     $('#patientTabs').style.display = 'none';
+    $('#nurseTabs').style.display = 'flex';
     showView('caseload');
-    loadCaseload();
   } else {
     $('#patientTabs').style.display = 'flex';
-    const nm = u.user_metadata?.full_name || u.email.split('@')[0];
-    $('#greet').textContent = 'Hello, ' + nm;
-    $('#homeAvatar').textContent = (nm[0]||'?').toUpperCase();
+    $('#nurseTabs').style.display = 'none';
+    $('#greet').textContent = 'Hello, ' + myName;
+    $('#homeAvatar').textContent = (myName[0]||'?').toUpperCase();
     showView('home');
   }
 }
