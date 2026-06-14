@@ -181,6 +181,16 @@
   .edu .bd{padding:12px 14px;}
   .edu .bd .t{font-size:13.5px;font-weight:700;line-height:1.25;margin-bottom:4px;}
   .edu .bd .m{font-size:10.5px;color:var(--mist);display:flex;gap:9px;}
+  .edu .ph.t3{background:linear-gradient(135deg,#fbf2df,#f0d79b);}
+  .edu .ph.t4{background:linear-gradient(135deg,#e6f0fb,#a9c8ee);}
+  .edu .ph.t5{background:linear-gradient(135deg,#f6e9f4,#dcb6d6);}
+  .edu .ph.t6{background:linear-gradient(135deg,#e9f5f0,#a9dcc6);}
+  .edu{cursor:pointer;} .edu:active{transform:scale(.995);}
+  .donetag{position:absolute;right:10px;top:10px;font-size:9.5px;font-weight:700;color:var(--green);background:rgba(255,255,255,.92);padding:4px 9px;border-radius:100px;}
+  .guidebody h4{font-family:var(--display);font-size:15px;letter-spacing:-.01em;margin:15px 0 6px;} .guidebody h4:first-child{margin-top:0;}
+  .guidebody p{font-size:13px;color:var(--slate);margin-bottom:10px;}
+  .guidebody ul{margin:0 0 10px 18px;} .guidebody li{font-size:13px;color:var(--slate);margin-bottom:5px;}
+  .guidebody .nb{font-size:12px;color:var(--teal-deep);background:var(--teal-soft);border:1px solid rgba(10,138,143,.18);border-radius:10px;padding:10px 12px;margin-top:4px;}
 
   /* product support */
   .prod{display:flex;gap:12px;align-items:center;}
@@ -343,22 +353,25 @@
       </div>
     </section>
 
-    <!-- PATIENT: LEARN (designed) -->
+    <!-- PATIENT: LEARN (live library) -->
     <section class="view" data-view="learn">
       <div class="kic">Education · for you</div>
       <div class="h">Living well, week by week</div>
-      <div class="edu">
-        <div class="ph t1"><span class="tagv">Skin care</span><span class="play"><svg width="12" height="12" viewBox="0 0 24 24" fill="#077277"><path d="M7 5l12 7-12 7z"/></svg></span></div>
-        <div class="bd"><div class="t">Caring for the skin around your stoma</div><div class="m"><span>▶ 4 min video</span><span>· Recommended</span></div></div>
-      </div>
-      <div class="edu">
-        <div class="ph t2"><span class="tagv" style="color:#2f9e6b">Diet</span></div>
-        <div class="bd"><div class="t">Eating in your first 6 weeks</div><div class="m"><span>📖 5 min read</span><span>· Early recovery</span></div></div>
-      </div>
       <div class="card" style="display:flex;align-items:center;gap:10px">
         <span style="font-size:17px">🎯</span>
-        <div style="font-size:11.5px;color:var(--slate)"><b style="color:var(--ink)">3 of 8</b> starter guides completed</div>
+        <div style="font-size:11.5px;color:var(--slate)"><b style="color:var(--ink)" id="guideCount">0 of 0</b> guides completed</div>
       </div>
+      <div id="guideList"></div>
+    </section>
+
+    <!-- PATIENT: GUIDE READER -->
+    <section class="view" data-view="guide">
+      <button class="btn ghost" id="guideBack" style="margin-bottom:14px;width:auto;padding:9px 14px">← Learn</button>
+      <div class="kic" id="guideCat"></div>
+      <div class="h" id="guideTitle" style="margin-bottom:6px"></div>
+      <div class="ssub" id="guideMeta" style="margin-bottom:14px"></div>
+      <div class="card guidebody" id="guideBody"></div>
+      <button class="btn" id="guideDoneBtn">Mark as complete</button>
     </section>
 
     <!-- PATIENT: SUPPLIES (designed) -->
@@ -538,6 +551,7 @@ function showView(name){
   if(name==='checkin') renderMetrics();
   if(name==='progress') loadProgress();
   if(name==='supplies') loadSupplies();
+  if(name==='learn') loadLearn();
   if(name==='messages') openPatientMessages();
   if(name==='caseload') loadCaseload();
   if(name==='nmessages') loadThreadList();
@@ -707,6 +721,92 @@ $('#reorderBtn').onclick = async () => {
   if(error){ toast('Error: ' + error.message); return; }
   toast('Reorder placed ✓');
   loadSupplies();
+};
+
+// ---------- education library (content in-app, completion in Supabase) ----------
+const GUIDES = [
+  { id:'skin-care', cat:'Skin care', theme:'t1', icon:'▶', minutes:4, type:'video', note:'Recommended',
+    body:`<h4>Why skin care matters</h4><p>Healthy skin around your stoma (the peristomal skin) is the foundation of a comfortable, leak-free routine. A little daily care prevents most soreness before it starts.</p>
+    <h4>A simple daily routine</h4><ul><li>Gently clean the skin with warm water and a soft cloth — no soaps, wipes or creams that leave a residue.</li><li>Pat completely dry before applying a new appliance; moisture stops it sticking.</li><li>Measure your stoma every week or two in the early period — it changes size as swelling settles.</li><li>Cut or mould the baseplate to fit snugly, with no skin exposed and no pressure on the stoma.</li></ul>
+    <div class="nb">Speak to your stoma nurse if the skin stays red, sore, weepy or itchy for more than a day or two — early help keeps small issues small.</div>`},
+  { id:'diet', cat:'Diet & hydration', theme:'t2', icon:'📖', minutes:5, type:'read', note:'Early recovery',
+    body:`<h4>Eating in your first weeks</h4><p>There's no single "stoma diet". The aim early on is to reintroduce foods gradually and notice how your body responds.</p>
+    <h4>Helpful habits</h4><ul><li>Eat smaller meals more often, and chew well.</li><li>Add new foods one at a time so you can spot what suits you.</li><li>Stay well hydrated — especially with an ileostomy, where fluids and salts are lost more easily.</li></ul>
+    <h4>Settling output</h4><p>Foods like ripe banana, white rice, oats and smooth peanut butter can help thicken output; very fibrous or fizzy foods may loosen it.</p>
+    <div class="nb">Speak to your stoma nurse or a dietitian if you have ongoing high output, cramping or blockages.</div>`},
+  { id:'appliance', cat:'Appliance & fitting', theme:'t3', icon:'📖', minutes:4, type:'read', note:'Confidence',
+    body:`<h4>A secure, comfortable fit</h4><p>The right fit is the single biggest factor in confidence — it prevents leaks and protects your skin.</p>
+    <h4>Getting it right</h4><ul><li>Warm the baseplate slightly in your hands so it moulds to your body.</li><li>Smooth from the centre outwards, then hold your hand over it for a minute — warmth helps it seal.</li><li>Empty a drainable pouch when it's about a third full to avoid dragging.</li><li>Consider a barrier ring or paste if you have dips or creases around the stoma.</li></ul>
+    <div class="nb">If you're getting repeated leaks, your stoma nurse can reassess your template and product choice — it's usually an easy fix.</div>`},
+  { id:'activity', cat:'Activity & lifestyle', theme:'t4', icon:'📖', minutes:6, type:'read', note:'Getting back to it',
+    body:`<h4>Returning to activity</h4><p>Most people return to the activities they love. Build up gradually and let comfort be your guide.</p>
+    <h4>Moving well</h4><ul><li>Start with gentle walking and increase as your energy returns.</li><li>Avoid heavy lifting in the early weeks while your abdomen heals — ask when it's safe to progress.</li><li>Support wear or high-waisted clothing can add confidence for sport and swimming.</li></ul>
+    <div class="nb">Ask your stoma nurse before resuming heavy lifting or contact sport, particularly within the first weeks after surgery.</div>`},
+  { id:'wellbeing', cat:'Emotional wellbeing', theme:'t5', icon:'📖', minutes:5, type:'read', note:'You’re not alone',
+    body:`<h4>Adjusting takes time</h4><p>A stoma is a big change, and a mix of feelings — relief, frustration, low days — is completely normal. Your confidence grows with your routine.</p>
+    <h4>Things that help</h4><ul><li>Connect with others — stoma communities and charities are a great source of practical reassurance.</li><li>Let trusted people in; sharing how you feel lightens it.</li><li>Mark small wins — a leak-free week, a first swim, a meal out.</li></ul>
+    <div class="nb">If low mood, anxiety or sleep problems persist, please talk to your stoma nurse or GP — support is available and effective.</div>`},
+  { id:'travel', cat:'Travel', theme:'t6', icon:'📖', minutes:5, type:'read', note:'Go further',
+    body:`<h4>Travelling with confidence</h4><p>A stoma needn't hold back your travel plans — a little preparation is all it takes.</p>
+    <h4>Pack smart</h4><ul><li>Take roughly twice the supplies you think you'll need, split across bags.</li><li>Keep a day's supplies in your hand luggage, and ask about a travel certificate for security.</li><li>In hot climates, store appliances out of direct heat and stay extra hydrated.</li></ul>
+    <div class="nb">Your stoma nurse can provide a travel certificate and tips for longer trips or different climates.</div>`},
+];
+let guideDone = new Set();
+let curGuide = null;
+
+async function loadGuideProgress(){
+  const { data, error } = await sb.from('guide_progress').select('guide_id');
+  guideDone = error ? new Set() : new Set((data||[]).map(r => r.guide_id));
+}
+async function loadLearn(){
+  $('#guideList').innerHTML = '<div class="empty" style="padding:22px 8px">Loading…</div>';
+  await loadGuideProgress();
+  $('#guideCount').textContent = `${guideDone.size} of ${GUIDES.length}`;
+  $('#guideList').innerHTML = GUIDES.map(g => {
+    const done = guideDone.has(g.id);
+    return `<div class="edu" data-guide="${g.id}">
+      <div class="ph ${g.theme}"><span class="tagv">${g.cat}</span>
+        ${g.type==='video' ? '<span class="play"><svg width="12" height="12" viewBox="0 0 24 24" fill="#077277"><path d="M7 5l12 7-12 7z"/></svg></span>' : ''}
+        ${done ? '<span class="donetag">✓ Done</span>' : ''}</div>
+      <div class="bd"><div class="t">${GUIDE_TITLES[g.id]}</div>
+        <div class="m"><span>${g.icon} ${g.minutes} min ${g.type}</span><span>· ${done ? 'Completed' : g.note}</span></div></div>
+    </div>`;
+  }).join('');
+  $('#guideList').querySelectorAll('.edu').forEach(el => el.onclick = () => openGuide(el.dataset.guide));
+}
+const GUIDE_TITLES = {'skin-care':'Caring for the skin around your stoma','diet':'Eating well in your first weeks','appliance':'Getting a secure, comfortable fit','activity':'Returning to activity & exercise','wellbeing':'Adjusting — looking after your head, too','travel':'Travelling with confidence'};
+function openGuide(id){
+  const g = GUIDES.find(x => x.id === id); if(!g) return;
+  curGuide = id;
+  $('#guideCat').textContent = g.cat;
+  $('#guideTitle').textContent = GUIDE_TITLES[id];
+  $('#guideMeta').textContent = `${g.minutes} min ${g.type}`;
+  $('#guideBody').innerHTML = g.body;
+  setGuideBtn(guideDone.has(id));
+  showView('guide');
+}
+function setGuideBtn(done){
+  const b = $('#guideDoneBtn');
+  b.classList.toggle('ghost', done);
+  b.textContent = done ? '✓ Completed' : 'Mark as complete';
+}
+$('#guideBack').onclick = () => showView('learn');
+$('#guideDoneBtn').onclick = async () => {
+  if(!curGuide) return;
+  const done = guideDone.has(curGuide);
+  $('#guideDoneBtn').disabled = true;
+  if(done){
+    const { error } = await sb.from('guide_progress').delete().eq('guide_id', curGuide);
+    if(!error){ guideDone.delete(curGuide); toast('Marked as not done'); }
+    else toast('Error: '+error.message);
+  } else {
+    const u = (await sb.auth.getUser()).data.user;
+    const { error } = await sb.from('guide_progress').insert({ user_id:u.id, guide_id:curGuide });
+    if(!error){ guideDone.add(curGuide); toast('Nice — guide completed ✓'); }
+    else toast('Error: '+error.message);
+  }
+  $('#guideDoneBtn').disabled = false;
+  setGuideBtn(guideDone.has(curGuide));
 };
 
 // ---------- messaging (live, two-way, realtime) ----------
