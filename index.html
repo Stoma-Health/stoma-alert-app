@@ -258,6 +258,40 @@
   .cl-last{font-size:12px;color:var(--slate);flex:1;min-width:0;line-height:1.35;}
   .cl-trend{flex:0 0 auto;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:3px;}
   .cl-trend.up{color:var(--green);} .cl-trend.down{color:var(--red);} .cl-trend.flat{color:var(--amber);}
+  .cl-row{cursor:pointer;transition:border-color .12s,box-shadow .12s;} .cl-row:active{box-shadow:0 2px 10px -4px rgba(0,0,0,.18);}
+  /* nurse patient detail — scoring behind a flag */
+  .pd-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .pd-name{font-family:var(--display);font-weight:700;font-size:18px;color:var(--teal);letter-spacing:-.01em;}
+  .pd-sub{font-size:11.5px;color:var(--mist);margin-top:2px;}
+  .pd-note{margin-top:12px;padding-top:11px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--slate);font-style:italic;}
+  .mrow{display:flex;align-items:center;gap:10px;margin-bottom:10px;} .mrow:last-child{margin-bottom:0;}
+  .ml{font-size:12.5px;font-weight:600;color:var(--slate);width:62px;flex:0 0 auto;}
+  .mtrack{flex:1;height:9px;background:var(--wash);border-radius:5px;overflow:hidden;}
+  .mtrack span{display:block;height:100%;border-radius:5px;}
+  .mv{font-size:12px;font-weight:700;flex:0 0 auto;width:32px;text-align:right;}
+  /* nurse reports & audit */
+  .rep-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;}
+  .rep-h{font-size:12px;font-weight:700;color:var(--teal);margin-bottom:11px;letter-spacing:-.01em;}
+  .rep-bar{display:flex;height:14px;border-radius:100px;overflow:hidden;background:var(--wash);}
+  .rep-bar span{display:block;height:100%;}
+  .rep-bar .r{background:var(--red);} .rep-bar .a{background:var(--amber);} .rep-bar .g{background:var(--green);}
+  .rep-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
+  .rep-legend .lg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--slate);font-weight:600;}
+  .rep-legend .sw{width:9px;height:9px;border-radius:50%;}
+  .rep-legend .sw.r{background:var(--red);} .rep-legend .sw.a{background:var(--amber);} .rep-legend .sw.g{background:var(--green);}
+  .rep-spark{display:flex;align-items:flex-end;gap:7px;height:84px;}
+  .rep-spark .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end;}
+  .rep-spark .bar{width:100%;max-width:30px;background:var(--teal-soft);border-radius:6px 6px 0 0;min-height:3px;position:relative;}
+  .rep-spark .bar b{position:absolute;top:-15px;left:0;right:0;text-align:center;font-size:10px;font-weight:700;color:var(--slate);}
+  .rep-spark .dy{font-size:9.5px;color:var(--mist);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .rep-table .rr{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12.5px;}
+  .rep-table .rr:last-child{border-bottom:none;}
+  .rep-table .rr .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;}
+  .rep-table .rr .dot.r{background:var(--red);} .rep-table .rr .dot.a{background:var(--amber);} .rep-table .rr .dot.g{background:var(--green);}
+  .rep-table .rr .nm{font-weight:700;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rep-table .rr .mt{color:var(--mist);font-size:11px;flex:0 0 auto;}
+  .rep-table .rr .tr{flex:0 0 auto;font-weight:700;font-size:11px;}
+  .rep-table .rr .tr.up{color:var(--green);} .rep-table .rr .tr.down{color:var(--red);} .rep-table .rr .tr.flat{color:var(--amber);}
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--safe-b) + 80px);z-index:60;
     background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:11px 18px;border-radius:100px;
     box-shadow:0 14px 30px -14px rgba(0,0,0,.5);opacity:0;transition:opacity .2s;pointer-events:none;}
@@ -517,6 +551,37 @@
       <div id="caseloadList"></div>
       <button class="btn ghost" id="refreshCaseload">Refresh</button>
     </section>
+
+    <!-- NURSE: REPORTS & AUDIT -->
+    <section class="view" data-view="reports">
+      <div class="kic">Nurse portal</div>
+      <div class="h">Reports &amp; audit</div>
+      <div class="cl-intro">A summary of caseload activity — <b>for monitoring and record-keeping, not diagnosis.</b></div>
+      <div class="counts" id="repTop"></div>
+      <div class="rep-card">
+        <div class="rep-h">Caseload status</div>
+        <div class="rep-bar" id="repBar"></div>
+        <div class="rep-legend" id="repLegend"></div>
+      </div>
+      <div class="rep-card">
+        <div class="rep-h">Check-ins · last 7 days</div>
+        <div class="rep-spark" id="repSpark"></div>
+      </div>
+      <div class="rep-card">
+        <div class="rep-h">Per-patient summary</div>
+        <div class="rep-table" id="repTable"></div>
+      </div>
+      <button class="btn" id="exportCsv">⤓ Export check-ins (CSV)</button>
+      <button class="btn ghost" id="refreshReports">Refresh</button>
+      <p class="ssub" style="text-align:center;margin-top:12px">Every submission is timestamped. Export keeps a record for audit and handover. Non-diagnostic.</p>
+    </section>
+
+    <!-- NURSE: PATIENT DETAIL (scoring behind a caseload flag) -->
+    <section class="view" data-view="ndetail">
+      <button class="btn ghost" id="ndetailBack" style="width:auto;padding:9px 14px;margin-bottom:14px">← Caseload</button>
+      <div id="ndetailBody"></div>
+      <p class="ssub" style="text-align:center;margin-top:10px">Patient-reported scores, shown for review — not a diagnosis.</p>
+    </section>
   </div>
 
   <nav class="tabs" id="patientTabs" style="display:none">
@@ -530,6 +595,7 @@
   <nav class="tabs" id="nurseTabs" style="display:none">
     <button class="tab on" data-nview="caseload"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>Caseload</button>
     <button class="tab" data-nview="nmessages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
+    <button class="tab" data-nview="reports"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3-4 3 2.5L19 7" stroke-linejoin="round"/></svg>Reports</button>
   </nav>
 
   <div class="toast" id="toast"></div>
@@ -632,10 +698,12 @@ function showView(name){
   if(name==='learn') loadLearn();
   if(name==='messages') openPatientMessages();
   if(name==='caseload') loadCaseload();
+  if(name==='reports') loadReports();
   if(name==='nmessages') loadThreadList();
 }
 $('#startCheckin').onclick = () => showView('checkin');
 document.querySelectorAll('#nurseTabs .tab').forEach(t => t.onclick = () => showView(t.dataset.nview));
+$('#ndetailBack').onclick = () => showView('caseload');
 
 // quick-action cards on Home → jump to designed screens
 document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView(el.dataset.go));
@@ -1057,6 +1125,7 @@ $('#nmsgSend').onclick = () => sendMsg(curThread, 'nmsgInput', 'nmsgThread');
 $('#nmsgInput').addEventListener('keydown', e => { if(e.key==='Enter') $('#nmsgSend').click(); });
 
 // ---------- nurse caseload (portal view) ----------
+let casePatients = {};
 function initials(name){ const p = String(name||'?').trim().split(/\s+/); return ((p[0]?.[0]||'?') + (p[1]?.[0]||'')).toUpperCase(); }
 function relTime(iso){ const d = (Date.now() - new Date(iso)) / 86400000; if(d < 1) return 'today'; const n = Math.floor(d); return n + 'd ago'; }
 const wbScore = r => ((((r.output + r.skin + r.comfort + r.mood) / 4) - 1) / 4) * 100;
@@ -1086,7 +1155,7 @@ function caseRow(p){
   const pill = c==='r' ? 'For review' : c==='a' ? 'Watch' : 'Settled';
   const day = Math.max(1, Math.floor((new Date(r.created_at) - new Date(p.first)) / 86400000) + 1);
   const t = p.trend;
-  return `<div class="cl-row ${c}">
+  return `<div class="cl-row ${c}" data-key="${esc(p.key)}">
     <div class="cl-av ${c}">${esc(initials(p.name))}</div>
     <div class="cl-main">
       <div class="cl-head"><span class="cl-name">${esc(p.name)}</span><span class="cl-pill ${c}">${pill}</span></div>
@@ -1100,10 +1169,13 @@ async function loadCaseload(){
   if(error){ $('#caseloadList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
   const groups = {};
   data.forEach(r => { const k = r.patient_email || r.patient_name || '?'; (groups[k] = groups[k] || []).push(r); });
+  casePatients = {};
   const pts = Object.entries(groups).map(([k, rows]) => {
     rows.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
     const first = rows.reduce((m,r) => new Date(r.created_at) < new Date(m) ? r.created_at : m, rows[0].created_at);
-    return { name: rows[0].patient_name || rows[0].patient_email || 'Patient', latest: rows[0], count: rows.length, first, trend: caseTrend(rows) };
+    const name = rows[0].patient_name || rows[0].patient_email || 'Patient';
+    casePatients[k] = { key:k, name, rows };
+    return { key:k, name, latest: rows[0], count: rows.length, first, trend: caseTrend(rows) };
   });
   pts.sort((a,b) => caseRank(a) - caseRank(b) || (new Date(b.latest.created_at) - new Date(a.latest.created_at)));
   let red=0,a=0,g=0; pts.forEach(p => { const rk = caseRank(p); if(rk===0)red++; else if(rk===1)a++; else g++; });
@@ -1113,8 +1185,84 @@ async function loadCaseload(){
     <div class="c"><div class="n" style="color:var(--green)">${g}</div><div class="l">Settled</div></div>`;
   $('#caseloadList').innerHTML = pts.length ? pts.map(caseRow).join('')
     : '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>';
+  $('#caseloadList').querySelectorAll('.cl-row').forEach(el => el.onclick = () => openPatientDetail(el.dataset.key));
+}
+// nurse → tap a caseload patient → see the scoring data behind the flag
+function metricBar(label, v){
+  const c = colourFor(v), col = c==='r' ? 'var(--red)' : c==='a' ? 'var(--amber)' : 'var(--green)';
+  return `<div class="mrow"><span class="ml">${label}</span><div class="mtrack"><span style="width:${v/5*100}%;background:${col}"></span></div><span class="mv" style="color:${col}">${v}/5</span></div>`;
+}
+function openPatientDetail(key){
+  const p = casePatients[key]; if(!p) return;
+  const r = p.rows[0], c = colourFor(Math.min(r.output,r.skin,r.comfort,r.mood));
+  const pill = c==='r' ? 'For review' : c==='a' ? 'Watch' : 'Settled';
+  const when = new Date(r.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  $('#ndetailBody').innerHTML = `
+    <div class="pd-head">
+      <div class="cl-av ${c}" style="width:44px;height:44px;font-size:15px">${esc(initials(p.name))}</div>
+      <div><div class="pd-name">${esc(p.name)}</div><div class="pd-sub">${p.rows.length} check-in${p.rows.length>1?'s':''} · latest ${relTime(r.created_at)}</div></div>
+      <span class="cl-pill ${c}" style="margin-left:auto">${pill}</span>
+    </div>
+    <div class="rep-card">
+      <div class="rep-h">Latest check-in · ${when}</div>
+      ${metricBar('Output', r.output)}${metricBar('Skin', r.skin)}${metricBar('Comfort', r.comfort)}${metricBar('Mood', r.mood)}
+      ${r.note ? `<div class="pd-note">“${esc(r.note)}”</div>` : ''}
+    </div>
+    <div class="rep-h" style="margin:2px 2px 8px">Check-in history</div>
+    <div>${p.rows.map(x => rowHtml(x, false)).join('')}</div>`;
+  showView('ndetail');
 }
 $('#refreshCaseload').onclick = loadCaseload;
+
+// ---------- nurse reports & audit ----------
+let reportRows = [];
+async function loadReports(){
+  $('#repTable').innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(500);
+  if(error){ $('#repTable').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  reportRows = data;
+  const groups = {};
+  data.forEach(r => { const k = r.patient_email || r.patient_name || '?'; (groups[k] = groups[k] || []).push(r); });
+  const pts = Object.entries(groups).map(([k, rows]) => {
+    rows.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    return { name: rows[0].patient_name || rows[0].patient_email || 'Patient', latest: rows[0], count: rows.length, trend: caseTrend(rows) };
+  });
+  let red=0,a=0,g=0; pts.forEach(p => { const rk = caseRank(p); if(rk===0)red++; else if(rk===1)a++; else g++; });
+  const wk = data.filter(r => (Date.now() - new Date(r.created_at)) < 7*86400000).length;
+  $('#repTop').innerHTML = `
+    <div class="c"><div class="n" style="color:var(--teal)">${pts.length}</div><div class="l">Patients</div></div>
+    <div class="c"><div class="n" style="color:var(--teal)">${data.length}</div><div class="l">Check-ins</div></div>
+    <div class="c"><div class="n" style="color:var(--teal)">${wk}</div><div class="l">This week</div></div>`;
+  const tot = Math.max(1, red+a+g);
+  $('#repBar').innerHTML = `<span class="r" style="width:${red/tot*100}%"></span><span class="a" style="width:${a/tot*100}%"></span><span class="g" style="width:${g/tot*100}%"></span>`;
+  $('#repLegend').innerHTML = `
+    <span class="lg"><span class="sw r"></span>${red} For review</span>
+    <span class="lg"><span class="sw a"></span>${a} Watch</span>
+    <span class="lg"><span class="sw g"></span>${g} Settled</span>`;
+  const days = []; const now = new Date();
+  for(let i=6;i>=0;i--){ const d = new Date(now); d.setHours(0,0,0,0); d.setDate(d.getDate()-i); days.push({ d, n:0 }); }
+  data.forEach(r => { const t = new Date(r.created_at); t.setHours(0,0,0,0); const b = days.find(x => x.d.getTime()===t.getTime()); if(b) b.n++; });
+  const mx = Math.max(1, ...days.map(x => x.n));
+  $('#repSpark').innerHTML = days.map(x => `<div class="col"><div class="bar" style="height:${Math.round(x.n/mx*100)}%">${x.n?`<b>${x.n}</b>`:''}</div><div class="dy">${x.d.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2)}</div></div>`).join('');
+  pts.sort((p,q) => caseRank(p) - caseRank(q) || q.count - p.count);
+  $('#repTable').innerHTML = pts.length ? pts.map(p => {
+    const c = colourFor(Math.min(p.latest.output,p.latest.skin,p.latest.comfort,p.latest.mood)), t = p.trend;
+    return `<div class="rr"><span class="dot ${c}"></span><span class="nm">${esc(p.name)}</span><span class="mt">${p.count} check-in${p.count>1?'s':''} · ${relTime(p.latest.created_at)}</span><span class="tr ${t.dir}">${t.ar} ${t.lbl}</span></div>`;
+  }).join('') : '<div class="empty">No check-ins yet.</div>';
+}
+function exportCsv(){
+  if(!reportRows.length){ toast('Nothing to export yet'); return; }
+  const cols = ['created_at','patient_name','patient_email','output','skin','comfort','mood','note'];
+  const cell = v => `"${String(v??'').replace(/"/g,'""')}"`;
+  const lines = [cols.join(',')].concat(reportRows.map(r => cols.map(c => cell(r[c])).join(',')));
+  const blob = new Blob([lines.join('\n')], { type:'text/csv' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = `stoma-alert-checkins-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('CSV exported ✓');
+}
+$('#refreshReports').onclick = loadReports;
+$('#exportCsv').onclick = exportCsv;
 
 // ---------- boot / routing ----------
 async function boot(){
