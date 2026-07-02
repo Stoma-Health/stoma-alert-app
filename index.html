@@ -482,7 +482,11 @@
           <li>Hold the phone square-on and <b>fill the frame</b></li>
           <li><b>No zoom</b> — move closer instead</li>
           <li>Line the stoma up inside the circle</li>
+          <li>If you have it, lay your <b>colour card</b> flat around the stoma</li>
         </ul>
+        <button class="btn ghost" id="capGetCard" style="margin-top:11px;width:auto;padding:8px 14px;font-size:12.5px">
+          <svg viewBox="0 0 24 24" style="width:15px;height:15px"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/></svg>
+          Get your colour reference card</button>
       </div>
       <div class="viewfinder" id="capViewfinder">
         <video id="capVideo" playsinline muted autoplay style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0"></video>
@@ -711,6 +715,18 @@
         <button class="btn danger" id="pmDelete">Delete photo</button>
       </div>
       <button class="btn ghost" id="pmClose" style="margin-top:9px">Close</button>
+    </div>
+  </div>
+  <div id="cardModal" class="pmodal">
+    <div class="pmbox">
+      <div class="kic">Colour reference card</div>
+      <div class="h" style="font-size:19px;margin-bottom:8px">Print this once</div>
+      <div id="cardArt" style="background:var(--wash);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px"></div>
+      <p style="font-size:12.5px;color:var(--slate);line-height:1.55;margin-bottom:6px">Print it, cut out the centre circle, then lay the card flat around your stoma so it shows through the hole. Photographing it beside your stoma lets the app keep the colours steady from one week to the next, whatever the lighting.</p>
+      <p style="font-size:11px;color:var(--mist);line-height:1.5;margin-bottom:12px">Keep the same card each time. Plain paper is fine — you don't need special printing.</p>
+      <button class="btn" id="cardPrint">Print / save as PDF
+        <svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v6H8z" stroke-linejoin="round"/></svg></button>
+      <button class="btn ghost" id="cardClose" style="margin-top:9px">Close</button>
     </div>
   </div>
   <div class="toast" id="toast"></div>
@@ -1278,6 +1294,51 @@ function openPhoto(r, url, canEdit){
 function closePhoto(){ $('#photoModal').classList.remove('on'); $('#pmImg').removeAttribute('src'); pmCurrent = null; }
 $('#pmClose').onclick = closePhoto;
 $('#photoModal').onclick = (e) => { if(e.target === $('#photoModal')) closePhoto(); };
+
+// ---------- colour reference card (printable) ----------
+// A physical target the patient prints once and lays around the stoma so every
+// photo carries the same colour anchors: greys for white-balance/exposure and a
+// perfusion scale (pink→red→dusky→purple) for the clinically relevant hue.
+function buildCardSVG(){
+  const S = 30, checkerCell = 7;
+  const skinTop = ['#f2d3bb','#e7c0a4','#d9ab8b','#c89778','#b58164','#9c6a4f'];
+  const skinBot = ['#f7e6d8','#ecd0c0','#dcb6a2','#c99e88','#b3866f','#9a6f59'];
+  const greysL  = ['#ffffff','#dcdcdc','#b4b4b4','#808080','#4a4a4a','#161616'];
+  const redsR   = ['#f6bdbd','#ef9a9a','#e26d6d','#cf4a4a','#a83246','#6f2b44'];
+  const rect = (x,y,c) => `<rect x="${x}" y="${y}" width="${S}" height="${S}" rx="4" fill="${c}" stroke="#c9d2dc" stroke-width="1"/>`;
+  const rowH = (arr,x0,y) => arr.map((c,i)=>rect(x0+i*(S+6),y,c)).join('');
+  const colV = (arr,x,y0) => arr.map((c,i)=>rect(x,y0+i*(S+6),c)).join('');
+  const checker = (x,y) => { let s=''; for(let i=0;i<3;i++)for(let j=0;j<3;j++) if((i+j)%2===0) s+=`<rect x="${x+i*checkerCell}" y="${y+j*checkerCell}" width="${checkerCell}" height="${checkerCell}" fill="#172446"/>`; return s; };
+  const topX = (400 - (6*S+5*6))/2;   // centre the 6-wide strips
+  return `<svg viewBox="0 0 400 424" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Hanken Grotesk, sans-serif">
+    <rect x="0" y="0" width="400" height="424" fill="#ffffff"/>
+    ${checker(14,14)}${checker(365,14)}${checker(14,352)}${checker(365,352)}
+    ${rowH(skinTop, topX, 46)}
+    ${rowH(skinBot, topX, 322)}
+    ${colV(greysL, 44, 92)}
+    ${colV(redsR, 326, 92)}
+    <circle cx="200" cy="200" r="64" fill="#ffffff" stroke="#8a94a3" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <circle cx="200" cy="200" r="70" fill="none" stroke="#8a94a3" stroke-width="1"/>
+    <text x="200" y="196" text-anchor="middle" font-size="15" fill="#8a94a3" font-weight="600">stoma here</text>
+    <text x="200" y="215" text-anchor="middle" font-size="10.5" fill="#a9b2bd">cut along dashed line</text>
+    <text x="200" y="410" text-anchor="middle" font-size="13" fill="#20305c" font-weight="700" letter-spacing="0.5">STOMA ALERT &#183; colour card</text>
+  </svg>`;
+}
+function openCard(){ $('#cardArt').innerHTML = buildCardSVG(); $('#cardModal').classList.add('on'); }
+function closeCard(){ $('#cardModal').classList.remove('on'); }
+function printCard(){
+  const w = window.open('', '_blank');
+  if(!w){ toast('Allow pop-ups to print the card'); return; }
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Stoma Alert colour card</title>
+    <style>@page{margin:14mm} html,body{margin:0} body{display:flex;align-items:center;justify-content:center;min-height:100vh}
+    svg{width:150mm;height:auto}</style></head><body>${buildCardSVG()}
+    <script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body></html>`);
+  w.document.close();
+}
+$('#capGetCard').onclick = openCard;
+$('#cardPrint').onclick = printCard;
+$('#cardClose').onclick = closeCard;
+$('#cardModal').onclick = (e) => { if(e.target === $('#cardModal')) closeCard(); };
 $('#pmSaveNote').onclick = async () => {
   if(!pmCurrent) return;
   $('#pmSaveNote').disabled = true;
