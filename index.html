@@ -475,6 +475,7 @@
         </ul>
       </div>
       <div class="viewfinder" id="capViewfinder">
+        <video id="capVideo" playsinline muted autoplay style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
         <img id="capPreview" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
         <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
         <div class="frameguide" id="capGuide"></div>
@@ -821,7 +822,7 @@ function showView(name){
   $('#views').scrollTop = 0;
   if(name==='history') loadHistory();
   if(name==='checkin') renderInterview();
-  if(name==='capture'){ capReset(); loadPhotoDiary(); }
+  if(name==='capture'){ capEnter(); loadPhotoDiary(); } else { capStopCamera(); }
   if(name==='profile') loadProfile();
   if(name==='progress') loadProgress();
   if(name==='supplies') loadSupplies();
@@ -840,7 +841,7 @@ $('#ndetailBack').onclick = () => showView('caseload');
 document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView(el.dataset.go));
 
 // designed-screen demo actions (no backend)
-$('#shutterBtn').onclick     = () => $('#photoInput').click();
+$('#shutterBtn').onclick     = () => { if(capMode === 'live' && capStream) captureFromVideo(); else $('#photoInput').click(); };
 $('#supportChatBtn').onclick = () => showView('support');
 
 // ---------- check-in (self-interview) ----------
@@ -1051,6 +1052,7 @@ const CAP_MAX = 1600;        // max stored image dimension (px)
 const CAP_ANALYSIS = 512;    // downscaled dimension for quality analysis
 const CAP_THRESH = { blur:70, dark:55, bright:205, glare:0.06 };  // tunable after real-photo testing
 let capBlob = null, capMetrics = null, capObjUrl = null;
+let capStream = null, capMode = 'file';   // 'live' once getUserMedia succeeds
 
 function capReset(){
   capBlob = null; capMetrics = null;
@@ -1109,36 +1111,68 @@ function toJpegBlob(img, max, quality){
   return new Promise(res => drawScaled(img, max).toBlob(res, 'image/jpeg', quality));
 }
 
+// shared: analyse + preview + review panel from any image/canvas source
+async function processCaptured(src){
+  try { capMetrics = analyseQuality(src); }
+  catch(err){ capMetrics = { brightness:0, glare:0, sharpness:0 }; }
+  const v = qualityVerdict(capMetrics);
+  capBlob = await toJpegBlob(src, CAP_MAX, 0.85);
+  capStopCamera();                                   // freeze on the captured shot
+  if(capObjUrl){ URL.revokeObjectURL(capObjUrl); }
+  capObjUrl = URL.createObjectURL(capBlob);
+  $('#capPreview').src = capObjUrl; $('#capPreview').style.display = 'block';
+  $('#capGuide').style.display = 'none'; $('#capHint').style.display = 'none';
+  const badge = $('#capBadge'); badge.className = 'qbadge ' + v.worst; badge.textContent = v.label; badge.style.display = 'block';
+  $('#capActions').style.display = 'none';
+  $('#capReview').style.display = 'block';
+  const chips = `<div class="qmetrics">
+    <span class="ivflag">Sharpness ${capMetrics.sharpness}</span>
+    <span class="ivflag">Brightness ${capMetrics.brightness}</span>
+    <span class="ivflag">Glare ${(capMetrics.glare*100).toFixed(1)}%</span></div>`;
+  const warns = v.warn.length
+    ? v.warn.map(w => `<div class="qwarn ${w.cls}">${esc(w.t)}</div>`).join('')
+    : `<div class="qwarn g">Clear, well-lit and in focus — good to share.</div>`;
+  $('#capQuality').innerHTML = `<div style="font-weight:700;font-size:13px;margin-bottom:8px">Photo quality</div>${warns}${chips}`;
+}
+// live camera path (getUserMedia) — lets the circle overlay a real feed
+async function capStartCamera(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ capMode = 'file'; capHintFallback(); return; }
+  try {
+    capStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' } }, audio:false });
+    const v = $('#capVideo'); v.srcObject = capStream; v.style.display = 'block';
+    await v.play().catch(() => {});
+    capMode = 'live';
+    $('#capHint').style.display = ''; $('#capHint').textContent = 'Line the stoma up inside the circle';
+  } catch(err){
+    capStream = null; capMode = 'file'; capHintFallback();
+  }
+}
+function capHintFallback(){ $('#capHint').style.display = ''; $('#capHint').textContent = 'Tap the shutter to open your camera'; }
+function capStopCamera(){
+  if(capStream){ capStream.getTracks().forEach(t => t.stop()); capStream = null; }
+  const v = $('#capVideo'); if(v){ v.srcObject = null; v.style.display = 'none'; }
+}
+function captureFromVideo(){
+  const v = $('#capVideo'), w = v.videoWidth, h = v.videoHeight;
+  if(!w || !h){ toast('Camera still starting — try again'); return; }
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').drawImage(v, 0, 0, w, h);
+  processCaptured(c);
+}
+// entering the Capture view: reset UI + try to start the live camera
+async function capEnter(){ capReset(); await capStartCamera(); }
+
 $('#photoInput').onchange = (e) => {
   const file = e.target.files && e.target.files[0];
   e.target.value = '';           // allow re-selecting the same file
   if(!file) return;
-  if(capObjUrl){ URL.revokeObjectURL(capObjUrl); }
-  capObjUrl = URL.createObjectURL(file);
+  const url = URL.createObjectURL(file);
   const img = new Image();
-  img.onload = async () => {
-    try { capMetrics = analyseQuality(img); }
-    catch(err){ capMetrics = { brightness:0, glare:0, sharpness:0 }; }
-    const v = qualityVerdict(capMetrics);
-    capBlob = await toJpegBlob(img, CAP_MAX, 0.85);
-    $('#capPreview').src = capObjUrl; $('#capPreview').style.display = 'block';
-    $('#capGuide').style.display = 'none'; $('#capHint').style.display = 'none';
-    const badge = $('#capBadge'); badge.className = 'qbadge ' + v.worst; badge.textContent = v.label; badge.style.display = 'block';
-    $('#capActions').style.display = 'none';
-    $('#capReview').style.display = 'block';
-    const chips = `<div class="qmetrics">
-      <span class="ivflag">Sharpness ${capMetrics.sharpness}</span>
-      <span class="ivflag">Brightness ${capMetrics.brightness}</span>
-      <span class="ivflag">Glare ${(capMetrics.glare*100).toFixed(1)}%</span></div>`;
-    const warns = v.warn.length
-      ? v.warn.map(w => `<div class="qwarn ${w.cls}">${esc(w.t)}</div>`).join('')
-      : `<div class="qwarn g">Clear, well-lit and in focus — good to share.</div>`;
-    $('#capQuality').innerHTML = `<div style="font-weight:700;font-size:13px;margin-bottom:8px">Photo quality</div>${warns}${chips}`;
-  };
-  img.onerror = () => toast("Couldn't read that image — try again");
-  img.src = capObjUrl;
+  img.onload = async () => { await processCaptured(img); URL.revokeObjectURL(url); };
+  img.onerror = () => { URL.revokeObjectURL(url); toast("Couldn't read that image — try again"); };
+  img.src = url;
 };
-$('#capRetake').onclick = () => { capReset(); $('#photoInput').click(); };
+$('#capRetake').onclick = () => { capEnter(); };
 $('#capSave').onclick = async () => {
   if(!capBlob){ toast('Take a photo first'); return; }
   const u = (await sb.auth.getUser()).data.user;
