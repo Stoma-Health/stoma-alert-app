@@ -1216,7 +1216,7 @@ $('#capSave').onclick = async () => {
   $('#capSave').disabled = false;
   if(error){ toast('Photo uploaded, but log failed: '+error.message); return; }
   toast('Photo saved to your diary ✓');
-  capReset();
+  capEnter();          // restart the live camera so the next shot keeps the viewfinder
   loadPhotoDiary();
 };
 
