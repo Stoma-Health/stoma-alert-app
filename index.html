@@ -756,7 +756,7 @@ const IV_FEEL    = ['Normal','Fever','Weakness','Abdominal pain','Nausea','Vomit
 const IV_ABDOMEN = ['Normal','Sunken','Flat','Slightly protruding','Clearly protruding'];
 const IV_SKINSYM = ['Normal','Painful','Burning','Itchy','Warm / hot','Other'];
 const IV_BLEED   = ['No','Slight','Moderate','Heavy'];
-const IV_STOMA   = ['Enlarged','Narrowed','No changes'];
+const IV_STOMA   = ['Normal','Enlarged','Narrowed'];
 const IV_EMPTIES = ['Once','Twice','Three times','More'];
 const IV_COLOURS = [
   ['Transparent','#eef2f6'],['White','#ffffff'],['Yellow','#e9c84a'],
@@ -913,7 +913,7 @@ function renderInterview(){
         ${chipSetHtml('multi','skinSym',IV_SKINSYM)}
         <div id="skinSymOtherWrap" class="hidden" style="margin-top:9px"><label class="fl" style="display:block;margin:0 0 5px">Please describe</label><input class="input" id="skinSymOther" style="margin-bottom:0" placeholder="Describe the other skin symptom"></div>
         <div class="subq">${subh('Bleeding from the skin around the stoma')}${chipSetHtml('single','skinBleed',IV_BLEED)}</div>
-        <div class="subq">${subh('Any other discharge from the skin?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('skinDischarge')}</div>
+        <div class="subq" id="skinDischargeWrap">${subh('Any other discharge from the skin?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('skinDischarge')}</div>
       </div>
     </div>
     <div class="card">
@@ -923,7 +923,7 @@ function renderInterview(){
         <div class="subq">${subh('How many times a day do you empty the bag?')}${chipSetHtml('single','empties',IV_EMPTIES)}
           <div id="emptiesMoreWrap" class="hidden" style="margin-top:9px"><label class="fl" style="display:inline-block;margin:0">How many? <input class="input numin" id="emptiesMore" type="number" min="4" inputmode="numeric" placeholder="e.g. 5"></label></div></div>
         <div class="subq">${subh('Bleeding from the stoma?')}${chipSetHtml('single','stomaBleed',IV_BLEED)}</div>
-        <div class="subq">${subh('Any other discharge from the stoma?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('stomaDischarge')}</div>
+        <div class="subq" id="stomaDischargeWrap">${subh('Any other discharge from the stoma?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('stomaDischarge')}</div>
       </div>
     </div>`;
   $('#note').value = '';
@@ -980,6 +980,13 @@ function attachInterviewHandlers(){
         if(el.dataset.val !== 'Normal') el.classList.toggle('hidden', normalOn);
       });
     }
+    // bleeding "No" hides the discharge colour chart directly below
+    if(name === 'skinBleed' || name === 'stomaBleed'){
+      const dk = name === 'skinBleed' ? 'skinDischarge' : 'stomaDischarge';
+      const hide = iv[name] === 'No', wrap = $('#'+dk+'Wrap');
+      if(wrap) wrap.classList.toggle('hidden', hide);
+      if(hide){ delete iv[dk]; form.querySelectorAll(`[data-swatch="${dk}"]`).forEach(x => x.classList.remove('on')); }
+    }
   });
   form.querySelectorAll('[data-swatch]').forEach(s => s.onclick = () => {
     const name = s.dataset.swatch, val = s.dataset.val, already = s.classList.contains('on');
@@ -1017,7 +1024,7 @@ function ivFlags(d){
   (d.skinSym || []).forEach(s => out.push({ t:'Skin: '+s, cls: IV_BAD.has(s) ? 'bad' : (IV_WARN.has(s) ? 'warn' : '') }));
   if(d.skinBleed && d.skinBleed !== 'No') out.push({ t:'Skin bleeding: '+d.skinBleed, cls: d.skinBleed === 'Heavy' ? 'bad' : 'warn' });
   if(d.skinDischarge) out.push({ t:'Skin discharge: '+d.skinDischarge, cls:'warn' });
-  if(d.stoma && d.stoma !== 'No changes') out.push({ t:'Stoma: '+d.stoma, cls:'warn' });
+  if(d.stoma && d.stoma !== 'Normal') out.push({ t:'Stoma: '+d.stoma, cls:'warn' });
   if(d.stomaPain === 'Yes') out.push({ t:'Pain passing output', cls:'bad' });
   if(d.empties === 'More') out.push({ t:'Empties: '+(d.emptiesCount ? d.emptiesCount+'×/day' : 'many'), cls:'warn' });
   if(d.stomaBleed && d.stomaBleed !== 'No') out.push({ t:'Stoma bleeding: '+d.stomaBleed, cls: d.stomaBleed === 'Heavy' ? 'bad' : 'warn' });
