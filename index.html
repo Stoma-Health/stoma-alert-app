@@ -1001,7 +1001,7 @@ function ivFlags(d){
   if(!d) return [];
   const out = [];
   (d.feel || []).forEach(f => out.push({ t:f, cls: IV_BAD.has(f) ? 'bad' : (IV_WARN.has(f) ? 'warn' : '') }));
-  if(d.abdomen && d.abdomen !== 'Flat') out.push({ t:'Abdomen: '+d.abdomen, cls: d.abdomen === 'Clearly protruding' ? 'bad' : 'warn' });
+  if(d.abdomen && d.abdomen !== 'Flat') out.push({ t:'Abdomen: '+d.abdomen, cls: d.abdomen === 'Clearly protruding' ? 'bad' : (d.abdomen === 'Normal' ? '' : 'warn') });
   (d.skinSym || []).forEach(s => out.push({ t:'Skin: '+s, cls: IV_BAD.has(s) ? 'bad' : (IV_WARN.has(s) ? 'warn' : '') }));
   if(d.skinBleed && d.skinBleed !== 'No') out.push({ t:'Skin bleeding: '+d.skinBleed, cls: d.skinBleed === 'Heavy' ? 'bad' : 'warn' });
   if(d.skinDischarge) out.push({ t:'Skin discharge: '+d.skinDischarge, cls:'warn' });
