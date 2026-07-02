@@ -409,7 +409,6 @@
         <div class="avatar" id="homeAvatar" style="background:var(--amber)">M</div>
       </div>
       <button class="statuscard" id="startCheckin" style="display:block;width:100%;text-align:left;border:none;cursor:pointer;font:inherit">
-        <div class="lab">Today's check-in</div>
         <div class="big" id="homeStatus">Ready for your check-in</div>
         <div class="smt">A 60-second check-in keeps your care team in the loop.</div>
         <div class="row" style="justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;font-weight:700;font-size:14px;color:#fff">Start today's check-in
@@ -750,7 +749,7 @@ const $ = s => document.querySelector(s);
 // ---------- self-interview schema ("How are things today?") ----------
 const IV_SCALES = [
   { key:'comfort', label:'Comfort',            hint:'1 poor · 5 great' },
-  { key:'mood',    label:'Mood & confidence',  hint:'1 low · 5 confident' },
+  { key:'mood',    label:'Mood & Confidence',  hint:'1 low · 5 confident' },
 ];
 const IV_FEEL    = ['Fever','Weakness','Abdominal pain','Nausea','Vomiting','Other'];
 const IV_ABDOMEN = ['Sunken','Flat','Slightly protruding','Clearly protruding'];
@@ -904,18 +903,18 @@ function renderInterview(){
         ${chipSetHtml('multi','feel',IV_FEEL)}</div>
     </div>
     <div class="card">
-      <div class="q"><div class="qh"><span class="qnum">4</span>My abdomen is today</div>
+      <div class="q"><div class="qh"><span class="qnum">4</span>Today my abdomen is</div>
         ${chipSetHtml('single','abdomen',IV_ABDOMEN)}</div>
     </div>
     <div class="card">
-      <div class="q"><div class="qh"><span class="qnum">5</span>Skin around the stoma <span class="sub">select any that apply</span></div>
+      <div class="q"><div class="qh"><span class="qnum">5</span>Today the skin around the stoma is <span class="sub">select any that apply</span></div>
         ${chipSetHtml('multi','skinSym',IV_SKINSYM)}
         <div class="subq">${subh('Bleeding from the skin around the stoma')}${chipSetHtml('single','skinBleed',IV_BLEED)}</div>
         <div class="subq">${subh('Any other discharge from the skin?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('skinDischarge')}</div>
       </div>
     </div>
     <div class="card">
-      <div class="q"><div class="qh"><span class="qnum">6</span>My stoma is today</div>
+      <div class="q"><div class="qh"><span class="qnum">6</span>Today my stoma is</div>
         ${chipSetHtml('single','stoma',IV_STOMA)}
         <div class="subq">${subh('Pain when passing output into the bag?')}${chipSetHtml('single','stomaPain',['No','Yes'])}</div>
         <div class="subq">${subh('How many times a day do you empty the bag?')}${chipSetHtml('single','empties',IV_EMPTIES)}
