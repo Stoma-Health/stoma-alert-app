@@ -403,17 +403,17 @@
       <div class="row" style="justify-content:space-between">
         <div>
           <div class="greet" id="greet">Hello</div>
-          <span class="daychip">● Your recovery journey</span>
+          <span class="daychip" style="font-size:14.5px;padding:8px 16px;margin-top:8px;">● Your recovery journey</span>
         </div>
         <div class="avatar" id="homeAvatar" style="background:var(--amber)">M</div>
       </div>
-      <div class="statuscard">
+      <button class="statuscard" id="startCheckin" style="display:block;width:100%;text-align:left;border:none;cursor:pointer;font:inherit">
         <div class="lab">Today's check-in</div>
         <div class="big" id="homeStatus">Ready for your check-in</div>
         <div class="smt">A 60-second check-in keeps your care team in the loop.</div>
-      </div>
-      <button class="btn" id="startCheckin">Start today's check-in
-        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="row" style="justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;font-weight:700;font-size:14px;color:#fff">Start today's check-in
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </button>
       <div class="quick" style="margin-top:12px">
         <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
         <button class="qa" data-go="messages"><span class="ic" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" stroke="#4f9d7b"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg></span><div><div class="t">Message nurse</div><div class="d">Sarah · usually &lt;4h</div></div></button>
@@ -697,8 +697,8 @@
 
   <nav class="tabs" id="patientTabs" style="display:none">
     <button class="tab on" data-view="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8H4z" stroke-linejoin="round"/></svg>Home</button>
-    <button class="tab" data-view="checkin"><svg viewBox="0 0 24 24"><path d="M8 4h8v4H8zM6 8h12v12H6z" stroke-linejoin="round"/></svg>Check-in</button>
-    <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3"/></svg>Diary</button>
+    <button class="tab" data-view="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5" stroke-linecap="round"/></svg>Profile</button>
+    <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M12 6C10.5 5 7.5 4.5 4 5v13c3.5-.5 6.5 0 8 1 1.5-1 4.5-1.5 8-1V5c-3.5-.5-6.5 0-8 1z" stroke-linejoin="round"/><path d="M12 6v13" stroke-linecap="round"/></svg>Diary</button>
     <button class="tab" data-view="messages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
     <button class="tab" data-view="progress"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Progress</button>
   </nav>
