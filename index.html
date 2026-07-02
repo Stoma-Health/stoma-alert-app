@@ -192,8 +192,16 @@
   .photodiary .pdi .qd{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;}
   .qd.g{background:var(--green);} .qd.a{background:var(--amber);} .qd.r{background:var(--red);}
   .photodiary .empty{grid-column:1/-1;}
-  #lightbox{position:fixed;inset:0;z-index:60;background:rgba(10,14,20,.92);display:none;align-items:center;justify-content:center;padding:22px;}
-  #lightbox img{max-width:100%;max-height:100%;border-radius:12px;}
+  .pmodal{position:fixed;inset:0;z-index:60;background:rgba(10,14,20,.72);display:none;align-items:flex-end;justify-content:center;}
+  .pmodal.on{display:flex;}
+  .pmbox{background:var(--paper);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:16px 16px calc(var(--safe-b) + 16px);max-height:92%;overflow-y:auto;}
+  .pmbox img{width:100%;border-radius:14px;max-height:52vh;object-fit:contain;background:#0c1016;margin-bottom:12px;}
+  .pmmeta{display:flex;align-items:center;gap:9px;margin-bottom:12px;font-size:12.5px;color:var(--slate);font-weight:600;}
+  .qbadge-inline{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;color:#fff;}
+  .qbadge-inline.g{background:var(--green);} .qbadge-inline.a{background:var(--amber);} .qbadge-inline.r{background:var(--red);}
+  .pmactions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:2px;}
+  .btn.danger{color:var(--red);border-color:rgba(192,73,47,.35);background:var(--paper);box-shadow:none;}
+  .btn.danger svg{stroke:var(--red);}
 
   /* messaging */
   .msgthread{background:var(--wash);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;}
@@ -692,7 +700,19 @@
     <button class="tab" data-nview="reports"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3-4 3 2.5L19 7" stroke-linejoin="round"/></svg>Reports</button>
   </nav>
 
-  <div id="lightbox"><img id="lightboxImg" alt=""></div>
+  <div id="photoModal" class="pmodal">
+    <div class="pmbox">
+      <img id="pmImg" alt="">
+      <div class="pmmeta"><span id="pmDate"></span><span id="pmBadge" class="qbadge-inline"></span></div>
+      <label class="fl" id="pmNoteLabel">Note</label>
+      <textarea class="input" id="pmNote" rows="2" placeholder="Add a note for this photo…"></textarea>
+      <div class="pmactions">
+        <button class="btn" id="pmSaveNote">Save note</button>
+        <button class="btn danger" id="pmDelete">Delete photo</button>
+      </div>
+      <button class="btn ghost" id="pmClose" style="margin-top:9px">Close</button>
+    </div>
+  </div>
   <div class="toast" id="toast"></div>
 </div>
 
@@ -1225,17 +1245,59 @@ async function signedUrls(paths){
   const { data } = await sb.storage.from('diary-photos').createSignedUrls(paths, 3600);
   return (data || []).map(x => x?.signedUrl || '');
 }
-function photoThumb(r, url){
+function photoThumb(r, url, i){
   const dt = new Date(r.created_at).toLocaleDateString('en-GB',{ day:'numeric', month:'short' });
   const q = (r.quality && r.quality.verdict) || 'g';
-  return `<div class="pdi" data-url="${esc(url)}">${url ? `<img src="${esc(url)}" alt="Stoma photo ${dt}">` : ''}<span class="qd ${q}"></span><span class="dt">${dt}</span></div>`;
+  return `<div class="pdi" data-idx="${i}">${url ? `<img src="${esc(url)}" alt="Stoma photo ${dt}">` : ''}<span class="qd ${q}"></span><span class="dt">${dt}</span></div>`;
 }
-function wireThumbs(el){
+function renderPhotoGrid(el, data, signed, canEdit){
+  el.innerHTML = data.map((r,i) => photoThumb(r, signed[i], i)).join('');
   el.querySelectorAll('.pdi').forEach(t => t.onclick = () => {
-    const u = t.dataset.url; if(!u) return;
-    $('#lightboxImg').src = u; $('#lightbox').style.display = 'flex';
+    const i = +t.dataset.idx; openPhoto(data[i], signed[i], canEdit);
   });
 }
+let pmCurrent = null;
+function openPhoto(r, url, canEdit){
+  pmCurrent = r;
+  $('#pmImg').src = url || '';
+  $('#pmDate').textContent = new Date(r.created_at).toLocaleString('en-GB',{ day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  const q = (r.quality && r.quality.verdict) || 'g';
+  const badge = $('#pmBadge'); badge.className = 'qbadge-inline ' + q;
+  badge.textContent = q === 'g' ? 'Good quality' : (q === 'a' ? 'Usable' : 'Poor quality');
+  $('#pmNote').value = r.note || '';
+  $('#pmNote').readOnly = !canEdit;
+  $('#pmSaveNote').style.display = canEdit ? 'flex' : 'none';
+  $('#pmDelete').style.display = canEdit ? 'flex' : 'none';
+  $('#pmNoteLabel').textContent = canEdit ? 'Note (tap to edit)' : 'Patient note';
+  const hideNote = !canEdit && !r.note;
+  $('#pmNoteLabel').style.display = hideNote ? 'none' : '';
+  $('#pmNote').style.display = hideNote ? 'none' : '';
+  document.querySelector('.pmactions').style.display = canEdit ? 'grid' : 'none';
+  $('#photoModal').classList.add('on');
+}
+function closePhoto(){ $('#photoModal').classList.remove('on'); $('#pmImg').removeAttribute('src'); pmCurrent = null; }
+$('#pmClose').onclick = closePhoto;
+$('#photoModal').onclick = (e) => { if(e.target === $('#photoModal')) closePhoto(); };
+$('#pmSaveNote').onclick = async () => {
+  if(!pmCurrent) return;
+  $('#pmSaveNote').disabled = true;
+  const note = $('#pmNote').value.trim() || null;
+  const { error } = await sb.from('diary_photos').update({ note }).eq('id', pmCurrent.id);
+  $('#pmSaveNote').disabled = false;
+  if(error){ toast('Error: '+error.message); return; }
+  pmCurrent.note = note; toast('Note saved ✓');
+  closePhoto(); loadPhotoDiary();
+};
+$('#pmDelete').onclick = async () => {
+  if(!pmCurrent) return;
+  if(!confirm('Delete this photo? This cannot be undone.')) return;
+  $('#pmDelete').disabled = true;
+  await sb.storage.from('diary-photos').remove([pmCurrent.path]);
+  const { error } = await sb.from('diary_photos').delete().eq('id', pmCurrent.id);
+  $('#pmDelete').disabled = false;
+  if(error){ toast('Delete failed: '+error.message); return; }
+  toast('Photo deleted'); closePhoto(); loadPhotoDiary();
+};
 async function loadPhotoDiary(){
   const el = $('#photoDiary'); if(!el) return;
   el.innerHTML = '<div class="empty">Loading…</div>';
@@ -1243,8 +1305,7 @@ async function loadPhotoDiary(){
   if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
   if(!data.length){ el.innerHTML = '<div class="empty">No photos yet. Take your first above.</div>'; return; }
   const signed = await signedUrls(data.map(r => r.path));
-  el.innerHTML = data.map((r,i) => photoThumb(r, signed[i])).join('');
-  wireThumbs(el);
+  renderPhotoGrid(el, data, signed, true);
 }
 async function loadNursePhotos(key){
   const el = $('#ndetailPhotos'); if(!el) return;
@@ -1252,10 +1313,8 @@ async function loadNursePhotos(key){
   if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
   if(!data.length){ el.innerHTML = '<div class="empty">No photos shared yet.</div>'; return; }
   const signed = await signedUrls(data.map(r => r.path));
-  el.innerHTML = data.map((r,i) => photoThumb(r, signed[i])).join('');
-  wireThumbs(el);
+  renderPhotoGrid(el, data, signed, false);
 }
-$('#lightbox').onclick = () => { $('#lightbox').style.display = 'none'; $('#lightboxImg').removeAttribute('src'); };
 
 // ---------- history ----------
 function rowHtml(r, withName){
