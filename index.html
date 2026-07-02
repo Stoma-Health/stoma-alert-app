@@ -505,6 +505,7 @@
       </div>
       <div id="capReview" style="display:none">
         <div class="card" id="capQuality"></div>
+        <div class="card" id="capColour"></div>
         <label class="fl">Anything to note about this photo? (optional)</label>
         <textarea class="input" id="capNote" rows="2" placeholder="e.g. slightly more red than last week"></textarea>
         <button class="btn" id="capSave">Save to diary &amp; share with nurse
@@ -1091,11 +1092,11 @@ $('#pfSave').onclick = async () => {
 const CAP_MAX = 1600;        // max stored image dimension (px)
 const CAP_ANALYSIS = 512;    // downscaled dimension for quality analysis
 const CAP_THRESH = { blur:70, dark:55, bright:205, glare:0.06 };  // tunable after real-photo testing
-let capBlob = null, capMetrics = null, capObjUrl = null;
+let capBlob = null, capMetrics = null, capColour = null, capObjUrl = null;
 let capStream = null, capMode = 'file';   // 'live' once getUserMedia succeeds
 
 function capReset(){
-  capBlob = null; capMetrics = null;
+  capBlob = null; capMetrics = null; capColour = null;
   if(capObjUrl){ URL.revokeObjectURL(capObjUrl); capObjUrl = null; }
   const p = $('#capPreview'); if(p){ p.style.display = 'none'; p.removeAttribute('src'); }
   if($('#capGuide')) $('#capGuide').style.display = '';
@@ -1151,10 +1152,70 @@ function toJpegBlob(img, max, quality){
   return new Promise(res => drawScaled(img, max).toBlob(res, 'image/jpeg', quality));
 }
 
+// ---------- colour analysis: skin-anchored stoma colour (card-free) ----------
+// The stoma and the peristomal skin beside it share one light source, so a
+// von-Kries-style ratio (stoma expressed relative to skin) cancels the illuminant.
+// We normalise the skin to a canonical tone and apply the same per-channel gain to
+// the stoma → a lighting-stable stoma colour comparable shot to shot, no card needed.
+// PROTOTYPE: the perfusion band is a rough heuristic, NOT a clinical assessment.
+const REF_SKIN = [198, 150, 130];   // canonical mid peristomal skin tone
+function medianRGB(samples){
+  if(!samples.length) return null;
+  const ch = k => { const a = samples.map(s => s[k]).sort((x,y) => x-y); return a[a.length >> 1]; };
+  return [ch(0), ch(1), ch(2)];
+}
+function analyseColour(src){
+  const c = drawScaled(src, 256), ctx = c.getContext('2d');
+  const w = c.width, h = c.height, d = ctx.getImageData(0,0,w,h).data;
+  const cx = w/2, cy = h/2, R = Math.min(w,h)/2;
+  const stoma = [], skin = [];
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const rr = Math.hypot(x-cx, y-cy) / R;
+    const i = (y*w + x)*4, r = d[i], g = d[i+1], b = d[i+2];
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+    if(mx > 248 || mx < 25) continue;                 // skip blown highlights / deep shadow
+    if(rr < 0.15) stoma.push([r,g,b]);                // centre disc = stoma
+    else if(rr > 0.22 && rr < 0.34){                  // surrounding ring = skin
+      const sat = mx ? (mx-mn)/mx : 0;
+      if(r > g && g >= b - 6 && sat > 0.08 && sat < 0.62) skin.push([r,g,b]);  // warm, skin-like (survives warm light)
+    }
+  }
+  const S = medianRGB(skin), T = medianRGB(stoma);
+  // need enough plausible samples, and skin should read warm (r>b) to trust it
+  if(!S || !T || skin.length < 150 || stoma.length < 80 || S[0] <= S[2])
+    return { assessed:false, reason:'Could not read colour reliably — centre the stoma and fill the frame.', method:'skin-anchor-v1' };
+  const gain = [REF_SKIN[0]/S[0], REF_SKIN[1]/S[1], REF_SKIN[2]/S[2]];
+  const norm = T.map((v,k) => Math.max(0, Math.min(255, Math.round(v * gain[k]))));
+  const ratio = [T[0]/S[0], T[1]/S[1], T[2]/S[2]].map(x => +x.toFixed(3));
+  const [nr,ng,nb] = norm, val = Math.max(nr,ng,nb), redness = nr - (ng+nb)/2;
+  let band, cls;
+  if(val < 70){ band = 'Dark — please seek advice'; cls = 'r'; }
+  else if(redness >= 22 && (nr - nb) >= 18){ band = 'Healthy pink-red'; cls = 'g'; }
+  else { band = 'Pale / dusky — worth checking'; cls = 'a'; }
+  return { assessed:true, skin:S, stoma:T, norm, ratio, band, cls, method:'skin-anchor-v1' };
+}
+function renderColour(cc){
+  const el = $('#capColour'); if(!el) return;
+  const hdr = `<div style="font-weight:700;font-size:13px;margin-bottom:8px">Stoma colour <span style="font-weight:600;color:var(--mist);font-size:11px">· prototype, not a clinical assessment</span></div>`;
+  if(!cc || !cc.assessed){
+    el.innerHTML = hdr + `<div class="qwarn a">${esc(cc && cc.reason ? cc.reason : 'Colour not assessed for this photo.')}</div>`;
+    return;
+  }
+  const rgb = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+  el.innerHTML = hdr + `<div style="display:flex;align-items:center;gap:12px;margin-bottom:9px">
+      <div style="width:46px;height:46px;border-radius:12px;border:2px solid var(--line);background:${rgb(cc.norm)};flex:0 0 auto"></div>
+      <div><span class="ivflag ${cc.cls}" style="font-size:12px">${esc(cc.band)}</span>
+      <div style="font-size:10.5px;color:var(--mist);margin-top:5px">Lighting-normalised against your own skin</div></div>
+    </div>
+    <div style="font-size:10.5px;color:var(--mist);line-height:1.45">A guide to help you and your nurse notice change over time — it does not diagnose. If your stoma looks or feels different, contact your stoma nurse.</div>`;
+}
+
 // shared: analyse + preview + review panel from any image/canvas source
 async function processCaptured(src){
   try { capMetrics = analyseQuality(src); }
   catch(err){ capMetrics = { brightness:0, glare:0, sharpness:0 }; }
+  try { capColour = analyseColour(src); }
+  catch(err){ capColour = { assessed:false, reason:'Colour analysis unavailable for this photo.', method:'skin-anchor-v1' }; }
   const v = qualityVerdict(capMetrics);
   capBlob = await toJpegBlob(src, CAP_MAX, 0.85);
   capStopCamera();                                   // freeze on the captured shot
@@ -1173,6 +1234,7 @@ async function processCaptured(src){
     ? v.warn.map(w => `<div class="qwarn ${w.cls}">${esc(w.t)}</div>`).join('')
     : `<div class="qwarn g">Clear, well-lit and in focus — good to share.</div>`;
   $('#capQuality').innerHTML = `<div style="font-weight:700;font-size:13px;margin-bottom:8px">Photo quality</div>${warns}${chips}`;
+  renderColour(capColour);
 }
 // live camera path (getUserMedia) — lets the circle overlay a real feed
 async function capStartCamera(){
@@ -1246,7 +1308,7 @@ $('#capSave').onclick = async () => {
     patient_name: u.user_metadata?.full_name || u.email,
     patient_email: u.email,
     path,
-    quality: { ...capMetrics, verdict: qualityVerdict(capMetrics).worst },
+    quality: { ...capMetrics, verdict: qualityVerdict(capMetrics).worst, colour: capColour },
     note: $('#capNote').value.trim() || null,
   });
   $('#capSave').disabled = false;
