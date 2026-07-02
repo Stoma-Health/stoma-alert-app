@@ -98,8 +98,9 @@
 
   /* check-in metric */
   .metric{margin-bottom:18px;}
-  .metric .ml{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:600;margin-bottom:8px;}
-  .metric .ml .hint{font-size:11px;color:var(--mist);font-weight:500;}
+  .metric .ml{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;font-weight:600;margin-bottom:8px;}
+  .metric .ml .mh{display:flex;align-items:center;gap:7px;}
+  .metric .ml .hint{font-size:11px;color:var(--mist);font-weight:500;white-space:nowrap;}
   .dots{display:flex;gap:7px;}
   .dots .d{flex:1;height:30px;border-radius:9px;background:var(--wash);border:1px solid var(--line);
     display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--mist);cursor:pointer;}
@@ -748,8 +749,8 @@ const $ = s => document.querySelector(s);
 
 // ---------- self-interview schema ("How are things today?") ----------
 const IV_SCALES = [
-  { key:'comfort', label:'1. Comfort',            hint:'1 poor · 5 great' },
-  { key:'mood',    label:'2. Mood & confidence',  hint:'1 low · 5 confident' },
+  { key:'comfort', label:'Comfort',            hint:'1 poor · 5 great' },
+  { key:'mood',    label:'Mood & confidence',  hint:'1 low · 5 confident' },
 ];
 const IV_FEEL    = ['Fever','Weakness','Abdominal pain','Nausea','Vomiting','Other'];
 const IV_ABDOMEN = ['Sunken','Flat','Slightly protruding','Clearly protruding'];
@@ -892,8 +893,8 @@ $('#supportChatBtn').onclick = () => showView('support');
 // ---------- check-in (self-interview) ----------
 function renderInterview(){
   iv = { feel:[], skinSym:[] };
-  const dotRow = m => `<div class="metric" data-key="${m.key}">
-      <div class="ml"><span>${m.label}</span><span class="hint">${m.hint}</span></div>
+  const dotRow = (m,i) => `<div class="metric" data-key="${m.key}">
+      <div class="ml"><span class="mh"><span class="qnum">${i+1}</span>${m.label}</span><span class="hint">${m.hint}</span></div>
       <div class="dots">${[1,2,3,4,5].map(v=>`<div class="d" data-v="${v}">${v}</div>`).join('')}</div>
     </div>`;
   $('#interviewForm').innerHTML = `
