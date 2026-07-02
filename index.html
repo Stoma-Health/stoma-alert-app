@@ -176,6 +176,22 @@
   .thumbs .th.sel{outline:2px solid var(--teal);outline-offset:1px;}
   .shutter{width:62px;height:62px;border-radius:50%;background:#fff;border:4px solid var(--teal);margin:4px auto 0;box-shadow:0 6px 16px -8px rgba(10,138,143,.7);cursor:pointer;}
   .shutter:active{transform:scale(.94);}
+  .qbadge{position:absolute;top:12px;left:12px;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:100px;color:#fff;z-index:2;}
+  .qbadge.g{background:var(--green);} .qbadge.a{background:var(--amber);} .qbadge.r{background:var(--red);}
+  .qwarn{font-size:11.5px;font-weight:600;border-radius:9px;padding:8px 11px;margin-bottom:6px;}
+  .qwarn.g{color:var(--green);background:var(--green-soft);}
+  .qwarn.a{color:var(--amber);background:var(--amber-soft);}
+  .qwarn.r{color:var(--red);background:var(--red-soft);}
+  .qmetrics{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+  .photodiary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .photodiary .pdi{aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--wash);position:relative;cursor:pointer;}
+  .photodiary .pdi img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photodiary .pdi .dt{position:absolute;left:0;right:0;bottom:0;font-size:9px;font-weight:600;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:9px 6px 4px;}
+  .photodiary .pdi .qd{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;}
+  .qd.g{background:var(--green);} .qd.a{background:var(--amber);} .qd.r{background:var(--red);}
+  .photodiary .empty{grid-column:1/-1;}
+  #lightbox{position:fixed;inset:0;z-index:60;background:rgba(10,14,20,.92);display:none;align-items:center;justify-content:center;padding:22px;}
+  #lightbox img{max-width:100%;max-height:100%;border-radius:12px;}
 
   /* messaging */
   .msgthread{background:var(--wash);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;}
@@ -445,26 +461,41 @@
       <div id="historyList"></div>
     </section>
 
-    <!-- PATIENT: CAPTURE (designed) -->
+    <!-- PATIENT: CAPTURE (live — photo diary) -->
     <section class="view" data-view="capture">
       <div class="kic">Image capture</div>
       <div class="h">Stoma diary</div>
-      <div class="viewfinder">
+      <div class="card" style="background:var(--teal-soft);border-color:rgba(32,48,92,.14)">
+        <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">For a photo your nurse can rely on</div>
+        <ul style="margin:0;padding-left:17px;font-size:11.5px;color:var(--slate);line-height:1.6">
+          <li>Good, even light — <b>no flash</b> (it causes glare)</li>
+          <li>Hold the phone square-on and <b>fill the frame</b></li>
+          <li><b>No zoom</b> — move closer instead</li>
+          <li>Line the stoma up inside the circle</li>
+        </ul>
+      </div>
+      <div class="viewfinder" id="capViewfinder">
+        <img id="capPreview" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
         <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
-        <div class="frameguide"></div>
-        <div class="hint">Line up inside the circle</div>
+        <div class="frameguide" id="capGuide"></div>
+        <div class="hint" id="capHint">Line up inside the circle</div>
+        <span class="qbadge" id="capBadge" style="display:none"></span>
       </div>
-      <div class="thumbs">
-        <div class="th sel"></div><div class="th"></div><div class="th"></div><div class="th"></div>
-        <div class="th" style="background:var(--wash);border:1px dashed var(--line)"></div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+      <div id="capActions" style="display:flex;flex-direction:column;align-items:center;gap:5px">
+        <div class="shutter" id="shutterBtn"></div>
+        <div class="ssub">Tap to take the photo</div>
       </div>
-      <div class="card" style="background:var(--teal-soft);border-color:rgba(10,138,143,.18)">
-        <div class="row" style="gap:9px">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#172446" stroke-width="1.9" style="flex:0 0 auto"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
-          <div style="font-size:11.5px;color:var(--slate);line-height:1.4"><b style="color:var(--teal-deep)">No notable change</b> vs last week. Shared with your nurse for review.</div>
-        </div>
+      <div id="capReview" style="display:none">
+        <div class="card" id="capQuality"></div>
+        <label class="fl">Anything to note about this photo? (optional)</label>
+        <textarea class="input" id="capNote" rows="2" placeholder="e.g. slightly more red than last week"></textarea>
+        <button class="btn" id="capSave">Save to diary &amp; share with nurse
+          <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="btn ghost" id="capRetake" style="margin-top:8px">Retake</button>
       </div>
-      <div class="shutter" id="shutterBtn"></div>
+      <div class="kic" style="margin-top:20px">Your photo diary</div>
+      <div class="photodiary" id="photoDiary"><div class="empty">No photos yet. Take your first above.</div></div>
     </section>
 
     <!-- PATIENT: MESSAGES (designed) -->
@@ -656,6 +687,7 @@
     <button class="tab" data-nview="reports"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3-4 3 2.5L19 7" stroke-linejoin="round"/></svg>Reports</button>
   </nav>
 
+  <div id="lightbox"><img id="lightboxImg" alt=""></div>
   <div class="toast" id="toast"></div>
 </div>
 
@@ -789,6 +821,7 @@ function showView(name){
   $('#views').scrollTop = 0;
   if(name==='history') loadHistory();
   if(name==='checkin') renderInterview();
+  if(name==='capture'){ capReset(); loadPhotoDiary(); }
   if(name==='profile') loadProfile();
   if(name==='progress') loadProgress();
   if(name==='supplies') loadSupplies();
@@ -807,7 +840,7 @@ $('#ndetailBack').onclick = () => showView('caseload');
 document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView(el.dataset.go));
 
 // designed-screen demo actions (no backend)
-$('#shutterBtn').onclick     = () => toast('Photo added to your diary ✓');
+$('#shutterBtn').onclick     = () => $('#photoInput').click();
 $('#supportChatBtn').onclick = () => showView('support');
 
 // ---------- check-in (self-interview) ----------
@@ -1012,6 +1045,158 @@ $('#pfSave').onclick = async () => {
   updateProfileSub();
   showView('home');
 };
+
+// ---------- capture: stoma photo diary (Tier 1) ----------
+const CAP_MAX = 1600;        // max stored image dimension (px)
+const CAP_ANALYSIS = 512;    // downscaled dimension for quality analysis
+const CAP_THRESH = { blur:70, dark:55, bright:205, glare:0.06 };  // tunable after real-photo testing
+let capBlob = null, capMetrics = null, capObjUrl = null;
+
+function capReset(){
+  capBlob = null; capMetrics = null;
+  if(capObjUrl){ URL.revokeObjectURL(capObjUrl); capObjUrl = null; }
+  const p = $('#capPreview'); if(p){ p.style.display = 'none'; p.removeAttribute('src'); }
+  if($('#capGuide')) $('#capGuide').style.display = '';
+  if($('#capHint')) $('#capHint').style.display = '';
+  if($('#capBadge')) $('#capBadge').style.display = 'none';
+  if($('#capReview')) $('#capReview').style.display = 'none';
+  if($('#capActions')) $('#capActions').style.display = 'flex';
+  if($('#capNote')) $('#capNote').value = '';
+}
+function drawScaled(img, max){
+  let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  const s = Math.min(1, max / Math.max(w, h));
+  w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').drawImage(img, 0, 0, w, h);
+  return c;
+}
+// quality analysis: brightness (0–255), glare fraction, sharpness (variance of Laplacian)
+function analyseQuality(img){
+  const c = drawScaled(img, CAP_ANALYSIS), ctx = c.getContext('2d');
+  const w = c.width, h = c.height, n = w * h;
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const gray = new Float32Array(n);
+  let sum = 0, glare = 0;
+  for(let i = 0; i < n; i++){
+    const r = d[i*4], g = d[i*4+1], b = d[i*4+2];
+    const y = 0.299*r + 0.587*g + 0.114*b;
+    gray[i] = y; sum += y;
+    if(r > 250 && g > 250 && b > 250) glare++;
+  }
+  let lsum = 0, lsq = 0, cnt = 0;
+  for(let y = 1; y < h-1; y++){
+    for(let x = 1; x < w-1; x++){
+      const i = y*w + x;
+      const lap = 4*gray[i] - gray[i-1] - gray[i+1] - gray[i-w] - gray[i+w];
+      lsum += lap; lsq += lap*lap; cnt++;
+    }
+  }
+  const lmean = cnt ? lsum / cnt : 0;
+  const sharpness = cnt ? (lsq / cnt - lmean*lmean) : 0;
+  return { brightness: Math.round(sum / n), glare: +(glare / n).toFixed(3), sharpness: Math.round(sharpness) };
+}
+function qualityVerdict(m){
+  const warn = [];
+  if(m.sharpness < CAP_THRESH.blur) warn.push({ t:'Looks blurry — hold steady and tap to focus', cls:'r' });
+  if(m.brightness < CAP_THRESH.dark) warn.push({ t:'Too dark — add more light', cls:'r' });
+  else if(m.brightness > CAP_THRESH.bright) warn.push({ t:'Very bright — turn off flash to avoid washout', cls:'a' });
+  if(m.glare > CAP_THRESH.glare) warn.push({ t:'Glare detected — turn off flash, use softer light', cls:'a' });
+  const worst = warn.some(w => w.cls === 'r') ? 'r' : (warn.length ? 'a' : 'g');
+  return { warn, worst, label: worst === 'g' ? 'Good quality' : (worst === 'a' ? 'Usable — check tips' : 'Poor — please retake') };
+}
+function toJpegBlob(img, max, quality){
+  return new Promise(res => drawScaled(img, max).toBlob(res, 'image/jpeg', quality));
+}
+
+$('#photoInput').onchange = (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';           // allow re-selecting the same file
+  if(!file) return;
+  if(capObjUrl){ URL.revokeObjectURL(capObjUrl); }
+  capObjUrl = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = async () => {
+    try { capMetrics = analyseQuality(img); }
+    catch(err){ capMetrics = { brightness:0, glare:0, sharpness:0 }; }
+    const v = qualityVerdict(capMetrics);
+    capBlob = await toJpegBlob(img, CAP_MAX, 0.85);
+    $('#capPreview').src = capObjUrl; $('#capPreview').style.display = 'block';
+    $('#capGuide').style.display = 'none'; $('#capHint').style.display = 'none';
+    const badge = $('#capBadge'); badge.className = 'qbadge ' + v.worst; badge.textContent = v.label; badge.style.display = 'block';
+    $('#capActions').style.display = 'none';
+    $('#capReview').style.display = 'block';
+    const chips = `<div class="qmetrics">
+      <span class="ivflag">Sharpness ${capMetrics.sharpness}</span>
+      <span class="ivflag">Brightness ${capMetrics.brightness}</span>
+      <span class="ivflag">Glare ${(capMetrics.glare*100).toFixed(1)}%</span></div>`;
+    const warns = v.warn.length
+      ? v.warn.map(w => `<div class="qwarn ${w.cls}">${esc(w.t)}</div>`).join('')
+      : `<div class="qwarn g">Clear, well-lit and in focus — good to share.</div>`;
+    $('#capQuality').innerHTML = `<div style="font-weight:700;font-size:13px;margin-bottom:8px">Photo quality</div>${warns}${chips}`;
+  };
+  img.onerror = () => toast("Couldn't read that image — try again");
+  img.src = capObjUrl;
+};
+$('#capRetake').onclick = () => { capReset(); $('#photoInput').click(); };
+$('#capSave').onclick = async () => {
+  if(!capBlob){ toast('Take a photo first'); return; }
+  const u = (await sb.auth.getUser()).data.user;
+  const path = `${u.id}/${Date.now()}-${Math.round(performance.now())}.jpg`;
+  $('#capSave').disabled = true;
+  const up = await sb.storage.from('diary-photos').upload(path, capBlob, { contentType:'image/jpeg', upsert:false });
+  if(up.error){ $('#capSave').disabled = false; toast('Upload failed: '+up.error.message); return; }
+  const { error } = await sb.from('diary_photos').insert({
+    user_id: u.id,
+    patient_name: u.user_metadata?.full_name || u.email,
+    patient_email: u.email,
+    path,
+    quality: { ...capMetrics, verdict: qualityVerdict(capMetrics).worst },
+    note: $('#capNote').value.trim() || null,
+  });
+  $('#capSave').disabled = false;
+  if(error){ toast('Photo uploaded, but log failed: '+error.message); return; }
+  toast('Photo saved to your diary ✓');
+  capReset();
+  loadPhotoDiary();
+};
+
+async function signedUrls(paths){
+  if(!paths.length) return [];
+  const { data } = await sb.storage.from('diary-photos').createSignedUrls(paths, 3600);
+  return (data || []).map(x => x?.signedUrl || '');
+}
+function photoThumb(r, url){
+  const dt = new Date(r.created_at).toLocaleDateString('en-GB',{ day:'numeric', month:'short' });
+  const q = (r.quality && r.quality.verdict) || 'g';
+  return `<div class="pdi" data-url="${esc(url)}">${url ? `<img src="${esc(url)}" alt="Stoma photo ${dt}">` : ''}<span class="qd ${q}"></span><span class="dt">${dt}</span></div>`;
+}
+function wireThumbs(el){
+  el.querySelectorAll('.pdi').forEach(t => t.onclick = () => {
+    const u = t.dataset.url; if(!u) return;
+    $('#lightboxImg').src = u; $('#lightbox').style.display = 'flex';
+  });
+}
+async function loadPhotoDiary(){
+  const el = $('#photoDiary'); if(!el) return;
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ ascending:false }).limit(30);
+  if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(!data.length){ el.innerHTML = '<div class="empty">No photos yet. Take your first above.</div>'; return; }
+  const signed = await signedUrls(data.map(r => r.path));
+  el.innerHTML = data.map((r,i) => photoThumb(r, signed[i])).join('');
+  wireThumbs(el);
+}
+async function loadNursePhotos(key){
+  const el = $('#ndetailPhotos'); if(!el) return;
+  const { data, error } = await sb.from('diary_photos').select('*').eq('patient_email', key).order('created_at',{ ascending:false }).limit(12);
+  if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(!data.length){ el.innerHTML = '<div class="empty">No photos shared yet.</div>'; return; }
+  const signed = await signedUrls(data.map(r => r.path));
+  el.innerHTML = data.map((r,i) => photoThumb(r, signed[i])).join('');
+  wireThumbs(el);
+}
+$('#lightbox').onclick = () => { $('#lightbox').style.display = 'none'; $('#lightboxImg').removeAttribute('src'); };
 
 // ---------- history ----------
 function rowHtml(r, withName){
@@ -1474,9 +1659,12 @@ function openPatientDetail(key){
       ${r.note ? `<div class="pd-note">“${esc(r.note)}”</div>` : ''}
     </div>
     ${ivPanelHtml(r.details)}
-    <div class="rep-h" style="margin:2px 2px 8px">Check-in history</div>
+    <div class="rep-h" style="margin:2px 2px 8px">Photo diary</div>
+    <div class="photodiary" id="ndetailPhotos"><div class="empty">Loading…</div></div>
+    <div class="rep-h" style="margin:14px 2px 8px">Check-in history</div>
     <div>${p.rows.map(x => rowHtml(x, false)).join('')}</div>`;
   showView('ndetail');
+  loadNursePhotos(key);
 }
 $('#refreshCaseload').onclick = loadCaseload;
 
