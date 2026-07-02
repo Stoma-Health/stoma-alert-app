@@ -980,12 +980,11 @@ function attachInterviewHandlers(){
         if(el.dataset.val !== 'Normal') el.classList.toggle('hidden', normalOn);
       });
     }
-    // bleeding "No" hides the discharge colour chart directly below
-    if(name === 'skinBleed' || name === 'stomaBleed'){
-      const dk = name === 'skinBleed' ? 'skinDischarge' : 'stomaDischarge';
-      const hide = iv[name] === 'No', wrap = $('#'+dk+'Wrap');
+    // skin bleeding "No" hides the skin discharge colour chart below (stoma discharge stays open)
+    if(name === 'skinBleed'){
+      const hide = iv.skinBleed === 'No', wrap = $('#skinDischargeWrap');
       if(wrap) wrap.classList.toggle('hidden', hide);
-      if(hide){ delete iv[dk]; form.querySelectorAll(`[data-swatch="${dk}"]`).forEach(x => x.classList.remove('on')); }
+      if(hide){ delete iv.skinDischarge; form.querySelectorAll('[data-swatch="skinDischarge"]').forEach(x => x.classList.remove('on')); }
     }
   });
   form.querySelectorAll('[data-swatch]').forEach(s => s.onclick = () => {
