@@ -900,7 +900,8 @@ function renderInterview(){
     <div class="card">${IV_SCALES.map(dotRow).join('')}</div>
     <div class="card">
       <div class="q"><div class="qh"><span class="qnum">3</span>Today I feel <span class="sub">select any that apply</span></div>
-        ${chipSetHtml('multi','feel',IV_FEEL)}</div>
+        ${chipSetHtml('multi','feel',IV_FEEL)}
+        <div id="feelOtherWrap" class="hidden" style="margin-top:9px"><label class="fl" style="display:block;margin:0 0 5px">Please describe</label><input class="input" id="feelOther" style="margin-bottom:0" placeholder="Tell your care team what else you feel"></div></div>
     </div>
     <div class="card">
       <div class="q"><div class="qh"><span class="qnum">4</span>Today my abdomen is</div>
@@ -909,6 +910,7 @@ function renderInterview(){
     <div class="card">
       <div class="q"><div class="qh"><span class="qnum">5</span>Today the skin around the stoma is <span class="sub">select any that apply</span></div>
         ${chipSetHtml('multi','skinSym',IV_SKINSYM)}
+        <div id="skinSymOtherWrap" class="hidden" style="margin-top:9px"><label class="fl" style="display:block;margin:0 0 5px">Please describe</label><input class="input" id="skinSymOther" style="margin-bottom:0" placeholder="Describe the other skin symptom"></div>
         <div class="subq">${subh('Bleeding from the skin around the stoma')}${chipSetHtml('single','skinBleed',IV_BLEED)}</div>
         <div class="subq">${subh('Any other discharge from the skin?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('skinDischarge')}</div>
       </div>
@@ -941,6 +943,13 @@ function attachInterviewHandlers(){
     iv[name] = iv[name] || [];
     if(c.classList.toggle('on')) iv[name].push(val);
     else iv[name] = iv[name].filter(x => x !== val);
+    if(val === 'Other'){
+      const on = iv[name].includes('Other'), wrap = $('#'+name+'OtherWrap');
+      if(wrap){
+        wrap.classList.toggle('hidden', !on);
+        if(!on){ const inp = $('#'+name+'Other'); if(inp) inp.value = ''; delete iv[name+'Other']; }
+      }
+    }
   });
   form.querySelectorAll('[data-single]').forEach(c => c.onclick = () => {
     const name = c.dataset.single, val = c.dataset.val, already = c.classList.contains('on');
@@ -1017,6 +1026,10 @@ function ivPanelHtml(d){
 $('#submitCheckin').onclick = async () => {
   if(!iv.comfort || !iv.mood){ toast('Please rate comfort and mood to continue'); return; }
   if(iv.empties === 'More'){ const n = parseInt($('#emptiesMore').value, 10); if(n) iv.emptiesCount = n; }
+  ['feel','skinSym'].forEach(k => {
+    if((iv[k] || []).includes('Other')){ const t = $('#'+k+'Other'), val = t && t.value.trim(); if(val) iv[k+'Other'] = val; else delete iv[k+'Other']; }
+    else delete iv[k+'Other'];
+  });
   const sc = deriveScores(iv);
   const u = (await sb.auth.getUser()).data.user;
   $('#submitCheckin').disabled = true;
