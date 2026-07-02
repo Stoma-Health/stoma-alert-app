@@ -1562,7 +1562,7 @@ function rowHtml(r, withName){
     <div class="top"><span class="flagdot ${c}"></span>
       ${withName?`<span class="nm">${esc(r.patient_name||r.patient_email||'Patient')}</span>`:`<span class="nm">Check-in</span>`}
       <span class="when">${when}</span></div>
-    <div class="chips">${chip('Output',r.output)}${chip('Skin',r.skin)}${chip('Comfort',r.comfort)}${chip('Mood',r.mood)}</div>
+    <div class="chips">${chip('Comfort',r.comfort)}${chip('Mood',r.mood)}${chip('Skin',r.skin)}${chip('Output',r.output)}</div>
     ${flagsHtml(r.details)}
     ${r.note?`<div class="note">${esc(r.note)}</div>`:''}
   </div>`;
@@ -2009,7 +2009,7 @@ function openPatientDetail(key){
     </div>
     <div class="rep-card">
       <div class="rep-h">Latest check-in · ${when}</div>
-      ${metricBar('Output', r.output)}${metricBar('Skin', r.skin)}${metricBar('Comfort', r.comfort)}${metricBar('Mood', r.mood)}
+      ${metricBar('Comfort', r.comfort)}${metricBar('Mood', r.mood)}${metricBar('Skin', r.skin)}${metricBar('Output', r.output)}
       ${r.note ? `<div class="pd-note">“${esc(r.note)}”</div>` : ''}
     </div>
     ${ivPanelHtml(r.details)}
