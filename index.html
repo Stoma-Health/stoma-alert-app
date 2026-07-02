@@ -485,7 +485,9 @@
       <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
       <div id="capActions" style="display:flex;flex-direction:column;align-items:center;gap:5px">
         <div class="shutter" id="shutterBtn"></div>
-        <div class="ssub">Tap to take the photo</div>
+        <div class="ssub" id="capShutterSub">Tap to take the photo</div>
+        <div class="qwarn a" id="capCamErr" style="display:none;text-align:center;width:100%"></div>
+        <button class="btn ghost" id="capEnableCam" style="display:none;width:auto;padding:9px 16px;margin-top:2px">Turn on live camera</button>
       </div>
       <div id="capReview" style="display:none">
         <div class="card" id="capQuality"></div>
@@ -1136,18 +1138,39 @@ async function processCaptured(src){
 }
 // live camera path (getUserMedia) — lets the circle overlay a real feed
 async function capStartCamera(){
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ capMode = 'file'; capHintFallback(); return; }
+  if(!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    capFallback('This browser is blocking the live camera. Open the app in Safari or Chrome (not inside Telegram/another app), then tap below.');
+    return;
+  }
+  const tryGet = c => navigator.mediaDevices.getUserMedia(c);
   try {
-    capStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' } }, audio:false });
+    try { capStream = await tryGet({ video:{ facingMode:{ ideal:'environment' } }, audio:false }); }
+    catch(inner){ if(inner && inner.name === 'OverconstrainedError'){ capStream = await tryGet({ video:true, audio:false }); } else throw inner; }
     const v = $('#capVideo'); v.srcObject = capStream; v.style.display = 'block';
     await v.play().catch(() => {});
     capMode = 'live';
-    $('#capHint').style.display = ''; $('#capHint').textContent = 'Line the stoma up inside the circle';
+    $('#capGuide').style.display = ''; $('#capHint').style.display = ''; $('#capHint').textContent = 'Line the stoma up inside the circle';
+    $('#capShutterSub').textContent = 'Tap to take the photo';
+    $('#capCamErr').style.display = 'none'; $('#capEnableCam').style.display = 'none';
   } catch(err){
-    capStream = null; capMode = 'file'; capHintFallback();
+    const reason = ({
+      NotAllowedError:  'Camera permission is blocked. Allow camera for this site in your browser settings, then tap below.',
+      SecurityError:    'Camera permission is blocked. Allow camera for this site, then tap below.',
+      NotFoundError:    'No camera found on this device.',
+      NotReadableError: 'The camera is busy in another app. Close it, then tap below.',
+    })[err && err.name] || ('Live camera unavailable (' + ((err && err.name) || 'unknown') + '). Tap below to retry.');
+    capFallback(reason);
   }
 }
-function capHintFallback(){ $('#capHint').style.display = ''; $('#capHint').textContent = 'Tap the shutter to open your camera'; }
+function capFallback(msg){
+  capStream = null; capMode = 'file';
+  $('#capVideo').style.display = 'none';
+  $('#capHint').style.display = ''; $('#capHint').textContent = 'Native camera';
+  $('#capShutterSub').textContent = 'Shutter opens your phone camera';
+  const errBox = $('#capCamErr'); errBox.textContent = msg; errBox.style.display = 'block';
+  $('#capEnableCam').style.display = 'inline-flex';
+}
+$('#capEnableCam').onclick = () => capStartCamera();
 function capStopCamera(){
   if(capStream){ capStream.getTracks().forEach(t => t.stop()); capStream = null; }
   const v = $('#capVideo'); if(v){ v.srcObject = null; v.style.display = 'none'; }
