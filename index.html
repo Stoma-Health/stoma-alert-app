@@ -171,6 +171,8 @@
   .viewfinder .c3{bottom:16px;left:16px;border-right:0;border-top:0;border-radius:0 0 0 6px;}
   .viewfinder .c4{bottom:16px;right:16px;border-left:0;border-top:0;border-radius:0 0 6px 0;}
   .viewfinder .hint{position:absolute;bottom:18px;font-size:11px;font-weight:600;color:#fff;background:rgba(14,22,32,.45);padding:5px 12px;border-radius:100px;backdrop-filter:blur(4px);}
+  /* keep the guide overlays above the live <video> layer (mobile compositor fix) */
+  .viewfinder .corner,.viewfinder .frameguide,.viewfinder .hint{z-index:3;transform:translateZ(0);}
   .thumbs{display:flex;gap:8px;margin-bottom:12px;}
   .thumbs .th{flex:1;aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#f0cdb4,#dba17a);border:1px solid rgba(0,0,0,.04);}
   .thumbs .th.sel{outline:2px solid var(--teal);outline-offset:1px;}
@@ -475,8 +477,8 @@
         </ul>
       </div>
       <div class="viewfinder" id="capViewfinder">
-        <video id="capVideo" playsinline muted autoplay style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
-        <img id="capPreview" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+        <video id="capVideo" playsinline muted autoplay style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0"></video>
+        <img id="capPreview" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2">
         <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
         <div class="frameguide" id="capGuide"></div>
         <div class="hint" id="capHint">Line up inside the circle</div>
