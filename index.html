@@ -487,6 +487,9 @@
         <button class="btn ghost" id="capGetCard" style="margin-top:9px;width:auto;padding:8px 14px;font-size:12.5px">
           <svg viewBox="0 0 24 24" style="width:15px;height:15px"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/></svg>
           Optional: get a colour card</button>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:11px;font-size:11.5px;color:var(--slate);cursor:pointer">
+          <input type="checkbox" id="capChartMode" style="width:16px;height:16px;flex:0 0 auto">
+          <span>I'm using the <b>reference chart</b> <span style="color:var(--mist)">(experimental — reads the chart to correct colour; loads a one-off module)</span></span></label>
       </div>
       <div class="viewfinder" id="capViewfinder">
         <video id="capVideo" playsinline muted autoplay style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0"></video>
@@ -506,6 +509,7 @@
       <div id="capReview" style="display:none">
         <div class="card" id="capQuality"></div>
         <div class="card" id="capColour"></div>
+        <div class="card" id="capChart" style="display:none"></div>
         <label class="fl">Anything to note about this photo? (optional)</label>
         <textarea class="input" id="capNote" rows="2" placeholder="e.g. slightly more red than last week"></textarea>
         <button class="btn" id="capSave">Save to diary &amp; share with nurse
@@ -1103,6 +1107,7 @@ function capReset(){
   if($('#capHint')) $('#capHint').style.display = '';
   if($('#capBadge')) $('#capBadge').style.display = 'none';
   if($('#capReview')) $('#capReview').style.display = 'none';
+  if($('#capChart')) $('#capChart').style.display = 'none';
   if($('#capActions')) $('#capActions').style.display = 'flex';
   if($('#capNote')) $('#capNote').value = '';
 }
@@ -1210,6 +1215,78 @@ function renderColour(cc){
     <div style="font-size:10.5px;color:var(--mist);line-height:1.45">A guide to help you and your nurse notice change over time — it does not diagnose. If your stoma looks or feels different, contact your stoma nurse.</div>`;
 }
 
+// ---------- reference-chart reader (Option A: OpenCV.js) — EXPERIMENTAL ----------
+// Ports the validated Python pipeline: detect the 4 corner checkerboards (the paper's
+// 4×6 boards = 3×5 inner corners) → homography → straighten to a canonical layout.
+// Grey-patch white-balance + ROI cut + mm measurement come next (need the template spec).
+// Lazy-loads OpenCV.js (~8MB) only when the patient opts into chart mode.
+function loadOpenCV(){
+  if(window._cvReady) return window._cvReady;
+  window._cvReady = new Promise((resolve, reject) => {
+    if(window.cv && window.cv.Mat) return resolve(window.cv);
+    const s = document.createElement('script');
+    s.src = 'https://docs.opencv.org/4.10.0/opencv.js'; s.async = true;
+    s.onload = () => {
+      if(window.cv && window.cv.Mat) return resolve(window.cv);
+      if(window.cv && typeof window.cv.then === 'function'){ window.cv.then(c => { window.cv = c; resolve(c); }); return; }
+      if(window.cv){ window.cv.onRuntimeInitialized = () => resolve(window.cv); return; }
+      reject(new Error('Vision module loaded but did not initialise.'));
+    };
+    s.onerror = () => reject(new Error('Could not download the vision module — check your connection.'));
+    document.head.appendChild(s);
+  });
+  return window._cvReady;
+}
+const chartHdr = () => `<div style="font-weight:700;font-size:13px;margin-bottom:6px">Reference chart <span style="font-weight:600;color:var(--mist);font-size:11px">· experimental</span></div>`;
+async function runChartReader(src){
+  const el = $('#capChart'); el.style.display = '';
+  el.innerHTML = chartHdr() + `<div class="qwarn a">Loading the vision module (one-off, ~8 MB)…</div>`;
+  let cv;
+  try { cv = await loadOpenCV(); }
+  catch(e){ el.innerHTML = chartHdr() + `<div class="qwarn a">${esc(e.message || 'Could not load the vision module.')} The card-free colour above still applies.</div>`; return; }
+  const cnv = drawScaled(src, 1200);
+  const mats = [];
+  try {
+    const mat = cv.imread(cnv); mats.push(mat);
+    const gray = new cv.Mat(); mats.push(gray);
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+    const W = gray.cols, H = gray.rows, hw = W >> 1, hh = H >> 1;
+    const flags = cv.CALIB_CB_ADAPTIVE_THRESH + cv.CALIB_CB_NORMALIZE_IMAGE;
+    const centres = {};
+    for(const [k, ox, oy] of [['TL',0,0],['TR',hw,0],['BL',0,hh],['BR',hw,hh]]){
+      const sub = gray.roi(new cv.Rect(ox, oy, hw, hh));
+      const corners = new cv.Mat();
+      const ok = cv.findChessboardCorners(sub, new cv.Size(3,5), corners, flags);
+      if(ok && corners.rows > 0){
+        const d = corners.data32F, n = corners.rows; let sx = 0, sy = 0;
+        for(let i = 0; i < n; i++){ sx += d[2*i]; sy += d[2*i+1]; }
+        centres[k] = [ox + sx/n, oy + sy/n];
+      }
+      corners.delete(); sub.delete();
+    }
+    const nFound = ['TL','TR','BR','BL'].filter(k => centres[k]).length;
+    if(nFound < 4){
+      el.innerHTML = chartHdr() + `<div class="qwarn a">Found ${nFound} of 4 chart corners. Lay the whole chart flat with all four corner patterns fully in frame, then retake. (Card-free colour above still applies.)</div>`;
+      return;
+    }
+    const srcPts = cv.matFromArray(4, 1, cv.CV_32FC2, [...centres.TL, ...centres.TR, ...centres.BR, ...centres.BL]); mats.push(srcPts);
+    const OW = 700, OH = 520, m = 70;
+    const dstPts = cv.matFromArray(4, 1, cv.CV_32FC2, [m,m, OW-m,m, OW-m,OH-m, m,OH-m]); mats.push(dstPts);
+    const Mx = cv.getPerspectiveTransform(srcPts, dstPts); mats.push(Mx);
+    const warped = new cv.Mat(); mats.push(warped);
+    cv.warpPerspective(mat, warped, Mx, new cv.Size(OW, OH));
+    const out = document.createElement('canvas'); cv.imshow(out, warped);
+    el.innerHTML = chartHdr() + `<div style="font-size:11px;color:var(--mist);margin-bottom:8px">Chart detected and straightened (4/4 corners). Grey-patch colour correction is the next step, pending the template spec.</div>`;
+    const im = new Image(); im.src = out.toDataURL('image/png');
+    im.style.cssText = 'width:100%;border-radius:12px;border:1px solid var(--line)';
+    el.appendChild(im);
+  } catch(e){
+    el.innerHTML = chartHdr() + `<div class="qwarn a">Chart read failed: ${esc((e && e.message) || String(e))}. The card-free colour above still applies.</div>`;
+  } finally {
+    mats.forEach(mm => { try { mm.delete(); } catch(_){} });
+  }
+}
+
 // shared: analyse + preview + review panel from any image/canvas source
 async function processCaptured(src){
   try { capMetrics = analyseQuality(src); }
@@ -1235,6 +1312,8 @@ async function processCaptured(src){
     : `<div class="qwarn g">Clear, well-lit and in focus — good to share.</div>`;
   $('#capQuality').innerHTML = `<div style="font-weight:700;font-size:13px;margin-bottom:8px">Photo quality</div>${warns}${chips}`;
   renderColour(capColour);
+  if($('#capChartMode') && $('#capChartMode').checked){ runChartReader(src); }
+  else if($('#capChart')){ $('#capChart').style.display = 'none'; }
 }
 // live camera path (getUserMedia) — lets the circle overlay a real feed
 async function capStartCamera(){
