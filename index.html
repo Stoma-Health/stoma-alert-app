@@ -944,13 +944,18 @@ function attachInterviewHandlers(){
     iv[name] = iv[name] || [];
     if(c.classList.toggle('on')) iv[name].push(val);
     else iv[name] = iv[name].filter(x => x !== val);
-    // "Normal" is mutually exclusive with the symptom chips in this group
-    if(iv[name].includes(val)){
-      const clear = v => { iv[name] = iv[name].filter(x => x !== v);
-        const el = form.querySelector(`[data-multi="${name}"][data-val="${v}"]`); if(el) el.classList.remove('on'); };
-      if(val === 'Normal'){ iv[name].slice().forEach(v => { if(v !== 'Normal') clear(v); });
-        const ow = $('#'+name+'OtherWrap'); if(ow){ ow.classList.add('hidden'); const inp = $('#'+name+'Other'); if(inp) inp.value=''; delete iv[name+'Other']; } }
-      else { clear('Normal'); }
+    // "Normal" hides + clears every other symptom chip in this group (mutually exclusive)
+    const normalOn = iv[name].includes('Normal');
+    if(val === 'Normal' || normalOn){
+      form.querySelectorAll(`[data-multi="${name}"]`).forEach(el => {
+        if(el.dataset.val === 'Normal') return;
+        el.classList.toggle('hidden', normalOn);
+        if(normalOn) el.classList.remove('on');
+      });
+      if(normalOn){
+        iv[name] = ['Normal'];
+        const ow = $('#'+name+'OtherWrap'); if(ow){ ow.classList.add('hidden'); const inp = $('#'+name+'Other'); if(inp) inp.value=''; delete iv[name+'Other']; }
+      }
     }
     if(val === 'Other'){
       const on = iv[name].includes('Other'), wrap = $('#'+name+'OtherWrap');
