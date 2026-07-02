@@ -973,6 +973,13 @@ function attachInterviewHandlers(){
       $('#emptiesMoreWrap').classList.toggle('hidden', iv.empties !== 'More');
       if(iv.empties !== 'More'){ const em = $('#emptiesMore'); if(em) em.value = ''; }
     }
+    // single-select groups with a "Normal" option (e.g. abdomen): Normal hides the rest
+    if(form.querySelector(`[data-single="${name}"][data-val="Normal"]`)){
+      const normalOn = iv[name] === 'Normal';
+      form.querySelectorAll(`[data-single="${name}"]`).forEach(el => {
+        if(el.dataset.val !== 'Normal') el.classList.toggle('hidden', normalOn);
+      });
+    }
   });
   form.querySelectorAll('[data-swatch]').forEach(s => s.onclick = () => {
     const name = s.dataset.swatch, val = s.dataset.val, already = s.classList.contains('on');
