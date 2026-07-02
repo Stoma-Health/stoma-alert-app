@@ -108,6 +108,33 @@
   .dots .d.sel.a{background:var(--amber);border-color:var(--amber);}
   .dots .d.sel.r{background:var(--red);border-color:var(--red);}
 
+  /* self-interview */
+  .q{margin-bottom:17px;}
+  .q:last-child{margin-bottom:0;}
+  .qh{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:9px;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
+  .qh .sub{font-weight:500;color:var(--mist);font-size:11px;}
+  .chipset{display:flex;flex-wrap:wrap;gap:7px;}
+  .selchip{font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--slate);background:var(--paper);
+    border:1.5px solid var(--line);border-radius:100px;padding:8px 13px;cursor:pointer;user-select:none;transition:background .12s,border-color .12s,color .12s;}
+  .selchip.on{border-color:var(--teal);background:var(--teal-soft);color:var(--teal-deep);}
+  .selchip.warn.on{border-color:var(--amber);background:var(--amber-soft);color:var(--amber);}
+  .selchip.bad.on{border-color:var(--red);background:var(--red-soft);color:var(--red);}
+  .subq{margin-top:12px;padding-left:12px;border-left:2px solid var(--teal-soft);}
+  .subq.hidden{display:none;}
+  .swatches{display:flex;flex-wrap:wrap;gap:9px;align-items:flex-start;padding-bottom:16px;}
+  .swatch{width:34px;height:34px;border-radius:9px;border:2px solid var(--line);cursor:pointer;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);}
+  .swatch.on{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
+  .swatch.on::after{content:"\2713";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);}
+  .swatch .cx{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:9px;color:var(--mist);white-space:nowrap;}
+  .qnum{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;background:var(--teal-soft);color:var(--teal-deep);font-size:11px;font-weight:800;flex:0 0 auto;}
+  .ivflags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+  .ivflag{font-size:10.5px;font-weight:600;color:var(--slate);background:var(--wash);border:1px solid var(--line);border-radius:100px;padding:2px 8px;}
+  .ivflag.bad{color:var(--red);background:var(--red-soft);border-color:rgba(192,73,47,.2);}
+  .ivflag.warn{color:var(--amber);background:var(--amber-soft);border-color:rgba(201,138,23,.2);}
+  .pd-iv .g{margin-bottom:11px;} .pd-iv .g:last-child{margin-bottom:0;}
+  .pd-iv .gl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mist);margin-bottom:5px;}
+  .numin{width:82px;display:inline-block;margin:0 0 0 6px;padding:9px 11px;}
+
   .greet{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;color:var(--teal);}
   .statuscard{background:linear-gradient(155deg,var(--teal),var(--teal-deep));color:#fff;border-radius:20px;padding:18px;margin:12px 0;position:relative;overflow:hidden;}
   .statuscard::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.1);}
@@ -367,13 +394,44 @@
         <button class="qa" data-go="learn"><span class="ic" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" stroke="#c98a17"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span><div><div class="t">Learning &amp; Education</div><div class="d">Guides &amp; videos</div></div></button>
         <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
       </div>
+      <div class="card" id="profileCard" data-go="profile" style="display:flex;align-items:center;gap:12px;cursor:pointer;margin-top:12px">
+        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--green-soft);flex:0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4f9d7b" stroke-width="1.9"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5" stroke-linecap="round"/></svg></span>
+        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Your stoma profile</div><div class="ssub" id="profileSub">Tap to add your details</div></div>
+        <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
+      </div>
+    </section>
+
+    <!-- PATIENT: PROFILE (Part A — one-time details) -->
+    <section class="view" data-view="profile">
+      <button class="btn ghost" id="profileBack" style="margin-bottom:14px;width:auto;padding:9px 14px">← Home</button>
+      <div class="kic">Your details</div>
+      <div class="h">Stoma profile</div>
+      <div class="ssub" style="margin:-8px 0 16px">Held securely and shared with your care team. You can update this any time.</div>
+      <div class="card">
+        <label class="fl">First name</label>
+        <input class="input" id="pfName" placeholder="e.g. Margaret" autocomplete="given-name">
+        <label class="fl">Email address</label>
+        <input class="input" id="pfEmail" type="email" placeholder="you@example.com" autocomplete="email" readonly style="opacity:.7">
+      </div>
+      <div class="card">
+        <div class="qh">Type of stoma</div>
+        <div class="chipset" id="pfStomaType"></div>
+        <label class="fl" style="margin-top:14px">Date of stoma creation</label>
+        <input class="input" id="pfStomaDate" type="date" style="margin-bottom:0">
+      </div>
+      <div class="card">
+        <div class="qh">Stoma care products you use <span class="sub">select all that apply</span></div>
+        <div class="chipset" id="pfProducts"></div>
+      </div>
+      <button class="btn" id="pfSave">Save my profile
+        <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </section>
 
     <!-- PATIENT: CHECK-IN -->
     <section class="view" data-view="checkin">
       <div class="kic">Daily check-in</div>
       <div class="h">How are things today?</div>
-      <div class="card" id="metrics"></div>
+      <div id="interviewForm"></div>
       <label class="fl">Anything to add for your nurse? (optional)</label>
       <textarea class="input" id="note" rows="2" placeholder="e.g. skin a little sore this morning"></textarea>
       <button class="btn" id="submitCheckin">Share with care team
@@ -609,14 +667,53 @@ const SUPABASE_KEY = 'sb_publishable_9hPnsA1CJh3BQ_v09rIkBw_O2Vrrgps';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = s => document.querySelector(s);
-const METRICS = [
-  { key:'output',  label:'Output',            hint:'1 very loose · 5 normal' },
-  { key:'skin',    label:'Skin around stoma', hint:'1 sore/red · 5 healthy' },
-  { key:'comfort', label:'Comfort',           hint:'1 poor · 5 great' },
-  { key:'mood',    label:'Mood & confidence', hint:'1 low · 5 confident' },
+
+// ---------- self-interview schema ("How are things today?") ----------
+const IV_SCALES = [
+  { key:'comfort', label:'1. Comfort',            hint:'1 poor · 5 great' },
+  { key:'mood',    label:'2. Mood & confidence',  hint:'1 low · 5 confident' },
 ];
+const IV_FEEL    = ['Fever','Weakness','Abdominal pain','Nausea','Vomiting','Other'];
+const IV_ABDOMEN = ['Sunken','Flat','Slightly protruding','Clearly protruding'];
+const IV_SKINSYM = ['Painful','Burning','Itchy','Warm / hot','Other'];
+const IV_BLEED   = ['No','Slight','Moderate','Heavy'];
+const IV_STOMA   = ['Enlarged','Narrowed','No changes'];
+const IV_EMPTIES = ['Once','Twice','Three times','More'];
+const IV_COLOURS = [
+  ['Transparent','#eef2f6'],['White','#ffffff'],['Yellow','#e9c84a'],
+  ['Red','#c0492f'],['Green','#4f9d7b'],['Brown','#8a5a2b'],['Black','#333333'],
+];
+// which chip answers read as "concerning" (red) vs "watch" (amber) for colour cues
+const IV_BAD  = new Set(['Fever','Vomiting','Abdominal pain','Clearly protruding','Painful','Burning','Heavy']);
+const IV_WARN = new Set(['Weakness','Nausea','Itchy','Warm / hot','Enlarged','Narrowed','Moderate','Slight']);
+
+// ---------- patient profile schema (Part A) ----------
+const PROFILE_TYPES = ['Ileostomy','Colostomy','Urostomy'];
+const PROFILE_PRODUCTS = [
+  'Stoma bags','Sealing paste (with alcohol)','Sealing paste (alcohol-free)','Strip paste',
+  'Barrier cream / paste','Sealing ring','Healing powder','Protective wipe (second skin)',
+  'Protective spray (alcohol-free)','Skin cleansing wipes','Skin cleanser','Skin cleansing foam',
+  'Protective half-rings','Barrier flange belt','Adhesive enhancer spray','Odour neutralising drops',
+  'Odour neutralising spray','Gelling sachets',
+];
+
 const colourFor = v => v <= 2 ? 'r' : (v === 3 ? 'a' : 'g');
-let current = {};   // current check-in values
+let iv = {};        // current self-interview answers
+let profileState = { stoma_type:null, products:[] };
+
+// small HTML builders for the interview form
+const subh = t => `<div style="font-size:12px;font-weight:600;color:var(--slate);margin-bottom:8px">${t}</div>`;
+function chipSetHtml(kind, name, opts){ // kind: 'multi' | 'single'
+  return `<div class="chipset">` + opts.map(o => {
+    const cls = IV_BAD.has(o) ? 'bad' : (IV_WARN.has(o) ? 'warn' : '');
+    return `<div class="selchip ${cls}" data-${kind}="${name}" data-val="${esc(o)}">${esc(o)}</div>`;
+  }).join('') + `</div>`;
+}
+function swatchHtml(name){
+  return `<div class="swatches">` + IV_COLOURS.map(([lbl,hex]) =>
+    `<div class="swatch" data-swatch="${name}" data-val="${lbl}" title="${lbl}" style="background:${hex}"><span class="cx">${lbl}</span></div>`
+  ).join('') + `</div>`;
+}
 let mode = 'signin';
 let signupRole = 'patient';
 let myUid = null, myRole = 'patient', myName = '';   // session identity
@@ -691,7 +788,8 @@ function showView(name){
   if(name!=='messages' && name!=='nmessages' && msgChannel){ sb.removeChannel(msgChannel); msgChannel=null; }
   $('#views').scrollTop = 0;
   if(name==='history') loadHistory();
-  if(name==='checkin') renderMetrics();
+  if(name==='checkin') renderInterview();
+  if(name==='profile') loadProfile();
   if(name==='progress') loadProgress();
   if(name==='supplies') loadSupplies();
   if(name==='support') renderSupport();
@@ -712,34 +810,143 @@ document.querySelectorAll('[data-go]').forEach(el => el.onclick = () => showView
 $('#shutterBtn').onclick     = () => toast('Photo added to your diary ✓');
 $('#supportChatBtn').onclick = () => showView('support');
 
-// ---------- check-in ----------
-function renderMetrics(){
-  current = {};
-  $('#metrics').innerHTML = METRICS.map(m => `
-    <div class="metric" data-key="${m.key}">
+// ---------- check-in (self-interview) ----------
+function renderInterview(){
+  iv = { feel:[], skinSym:[] };
+  const dotRow = m => `<div class="metric" data-key="${m.key}">
       <div class="ml"><span>${m.label}</span><span class="hint">${m.hint}</span></div>
       <div class="dots">${[1,2,3,4,5].map(v=>`<div class="d" data-v="${v}">${v}</div>`).join('')}</div>
-    </div>`).join('');
+    </div>`;
+  $('#interviewForm').innerHTML = `
+    <div class="card">${IV_SCALES.map(dotRow).join('')}</div>
+    <div class="card">
+      <div class="q"><div class="qh"><span class="qnum">3</span>Today I feel <span class="sub">select any that apply</span></div>
+        ${chipSetHtml('multi','feel',IV_FEEL)}</div>
+    </div>
+    <div class="card">
+      <div class="q"><div class="qh"><span class="qnum">4</span>My abdomen is today</div>
+        ${chipSetHtml('single','abdomen',IV_ABDOMEN)}</div>
+    </div>
+    <div class="card">
+      <div class="q"><div class="qh"><span class="qnum">5</span>Skin around the stoma <span class="sub">select any that apply</span></div>
+        ${chipSetHtml('multi','skinSym',IV_SKINSYM)}
+        <div class="subq">${subh('Bleeding from the skin around the stoma')}${chipSetHtml('single','skinBleed',IV_BLEED)}</div>
+        <div class="subq">${subh('Any other discharge from the skin?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('skinDischarge')}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="q"><div class="qh"><span class="qnum">6</span>My stoma is today</div>
+        ${chipSetHtml('single','stoma',IV_STOMA)}
+        <div class="subq">${subh('Pain when passing output into the bag?')}${chipSetHtml('single','stomaPain',['No','Yes'])}</div>
+        <div class="subq">${subh('How many times a day do you empty the bag?')}${chipSetHtml('single','empties',IV_EMPTIES)}
+          <div id="emptiesMoreWrap" class="hidden" style="margin-top:9px"><label class="fl" style="display:inline-block;margin:0">How many? <input class="input numin" id="emptiesMore" type="number" min="4" inputmode="numeric" placeholder="e.g. 5"></label></div></div>
+        <div class="subq">${subh('Bleeding from the stoma?')}${chipSetHtml('single','stomaBleed',IV_BLEED)}</div>
+        <div class="subq">${subh('Any other discharge from the stoma?')}<div class="ssub" style="margin:-3px 0 8px">Tap a colour if there is discharge — leave blank if none.</div>${swatchHtml('stomaDischarge')}</div>
+      </div>
+    </div>`;
   $('#note').value = '';
-  $('#metrics').querySelectorAll('.metric').forEach(row => {
+  attachInterviewHandlers();
+}
+function attachInterviewHandlers(){
+  const form = $('#interviewForm');
+  form.querySelectorAll('.metric').forEach(row => {
     const key = row.dataset.key;
     row.querySelectorAll('.d').forEach(d => d.onclick = () => {
-      const v = +d.dataset.v; current[key] = v;
-      const cls = colourFor(v);
-      row.querySelectorAll('.d').forEach(x => { x.className = 'd'; });
+      const v = +d.dataset.v; iv[key] = v; const cls = colourFor(v);
+      row.querySelectorAll('.d').forEach(x => x.className = 'd');
       row.querySelectorAll('.d').forEach(x => { if(+x.dataset.v <= v) x.classList.add('sel', cls); });
     });
   });
+  form.querySelectorAll('[data-multi]').forEach(c => c.onclick = () => {
+    const name = c.dataset.multi, val = c.dataset.val;
+    iv[name] = iv[name] || [];
+    if(c.classList.toggle('on')) iv[name].push(val);
+    else iv[name] = iv[name].filter(x => x !== val);
+  });
+  form.querySelectorAll('[data-single]').forEach(c => c.onclick = () => {
+    const name = c.dataset.single, val = c.dataset.val, already = c.classList.contains('on');
+    form.querySelectorAll(`[data-single="${name}"]`).forEach(s => s.classList.remove('on'));
+    if(already){ delete iv[name]; } else { c.classList.add('on'); iv[name] = val; }
+    if(name === 'empties'){
+      $('#emptiesMoreWrap').classList.toggle('hidden', iv.empties !== 'More');
+      if(iv.empties !== 'More'){ const em = $('#emptiesMore'); if(em) em.value = ''; }
+    }
+  });
+  form.querySelectorAll('[data-swatch]').forEach(s => s.onclick = () => {
+    const name = s.dataset.swatch, val = s.dataset.val, already = s.classList.contains('on');
+    form.querySelectorAll(`[data-swatch="${name}"]`).forEach(x => x.classList.remove('on'));
+    if(already){ delete iv[name]; } else { s.classList.add('on'); iv[name] = val; }
+  });
+}
+// derive the four legacy scores (1–5) from the rich answers so nurse trends keep working
+function deriveScores(v){
+  let skin = 5;
+  const ss = v.skinSym || [];
+  skin -= Math.min(2, ss.filter(x => x !== 'Other').length);
+  if(ss.includes('Other')) skin -= 0.5;
+  if(v.skinBleed === 'Slight') skin -= 1; else if(v.skinBleed === 'Moderate') skin -= 2; else if(v.skinBleed === 'Heavy') skin -= 3;
+  if(v.skinDischarge) skin -= (['Red','Green','Black'].includes(v.skinDischarge) ? 2 : 1);
+  skin = Math.max(1, Math.min(5, Math.round(skin)));
+
+  let output = 5;
+  if(v.stoma === 'Enlarged' || v.stoma === 'Narrowed') output -= 1;
+  if(v.stomaPain === 'Yes') output -= 1;
+  if(v.empties === 'Three times') output -= 0.5; else if(v.empties === 'More') output -= 1.5;
+  if(v.stomaBleed === 'Slight') output -= 1; else if(v.stomaBleed === 'Moderate') output -= 2; else if(v.stomaBleed === 'Heavy') output -= 3;
+  if(v.stomaDischarge) output -= (['Red','Green','Black'].includes(v.stomaDischarge) ? 2 : 1);
+  output -= Math.min(2, (v.feel || []).filter(x => ['Fever','Vomiting','Abdominal pain'].includes(x)).length);
+  output = Math.max(1, Math.min(5, Math.round(output)));
+
+  return { comfort: v.comfort, mood: v.mood, skin, output };
+}
+// flags shown in diary / nurse views
+function ivFlags(d){
+  if(!d) return [];
+  const out = [];
+  (d.feel || []).forEach(f => out.push({ t:f, cls: IV_BAD.has(f) ? 'bad' : (IV_WARN.has(f) ? 'warn' : '') }));
+  if(d.abdomen && d.abdomen !== 'Flat') out.push({ t:'Abdomen: '+d.abdomen, cls: d.abdomen === 'Clearly protruding' ? 'bad' : 'warn' });
+  (d.skinSym || []).forEach(s => out.push({ t:'Skin: '+s, cls: IV_BAD.has(s) ? 'bad' : (IV_WARN.has(s) ? 'warn' : '') }));
+  if(d.skinBleed && d.skinBleed !== 'No') out.push({ t:'Skin bleeding: '+d.skinBleed, cls: d.skinBleed === 'Heavy' ? 'bad' : 'warn' });
+  if(d.skinDischarge) out.push({ t:'Skin discharge: '+d.skinDischarge, cls:'warn' });
+  if(d.stoma && d.stoma !== 'No changes') out.push({ t:'Stoma: '+d.stoma, cls:'warn' });
+  if(d.stomaPain === 'Yes') out.push({ t:'Pain passing output', cls:'bad' });
+  if(d.empties === 'More') out.push({ t:'Empties: '+(d.emptiesCount ? d.emptiesCount+'×/day' : 'many'), cls:'warn' });
+  if(d.stomaBleed && d.stomaBleed !== 'No') out.push({ t:'Stoma bleeding: '+d.stomaBleed, cls: d.stomaBleed === 'Heavy' ? 'bad' : 'warn' });
+  if(d.stomaDischarge) out.push({ t:'Stoma discharge: '+d.stomaDischarge, cls:'warn' });
+  return out;
+}
+function flagsHtml(d){
+  const f = ivFlags(d); if(!f.length) return '';
+  return `<div class="ivflags">${f.map(x => `<span class="ivflag ${x.cls}">${esc(x.t)}</span>`).join('')}</div>`;
+}
+// full structured panel for the nurse detail view
+function ivPanelHtml(d){
+  if(!d) return '';
+  const list = arr => (arr && arr.length)
+    ? arr.map(x => `<span class="ivflag ${IV_BAD.has(x) ? 'bad' : (IV_WARN.has(x) ? 'warn' : '')}">${esc(x)}</span>`).join('')
+    : '<span class="ivflag">None reported</span>';
+  const kv = (label, v) => v ? `<span class="ivflag">${esc(label)}: ${esc(v)}</span>` : '';
+  const empties = d.empties === 'More' ? (d.emptiesCount ? d.emptiesCount+'×' : 'More') : d.empties;
+  return `<div class="rep-card pd-iv">
+    <div class="rep-h">Full self-interview</div>
+    <div class="g"><div class="gl">Today I feel</div><div class="ivflags" style="margin-top:0">${list(d.feel)}</div></div>
+    <div class="g"><div class="gl">Abdomen</div><div class="ivflags" style="margin-top:0">${d.abdomen ? `<span class="ivflag">${esc(d.abdomen)}</span>` : '<span class="ivflag">—</span>'}</div></div>
+    <div class="g"><div class="gl">Skin around stoma</div><div class="ivflags" style="margin-top:0">${list(d.skinSym)}${kv('Bleeding', d.skinBleed && d.skinBleed !== 'No' ? d.skinBleed : '')}${kv('Discharge', d.skinDischarge)}</div></div>
+    <div class="g"><div class="gl">Stoma</div><div class="ivflags" style="margin-top:0">${d.stoma ? `<span class="ivflag">${esc(d.stoma)}</span>` : ''}${kv('Pain passing output', d.stomaPain === 'Yes' ? 'Yes' : '')}${kv('Empties/day', empties)}${kv('Bleeding', d.stomaBleed && d.stomaBleed !== 'No' ? d.stomaBleed : '')}${kv('Discharge', d.stomaDischarge)}</div></div>
+  </div>`;
 }
 $('#submitCheckin').onclick = async () => {
-  for(const m of METRICS){ if(!current[m.key]){ toast('Please rate '+m.label.toLowerCase()); return; } }
+  if(!iv.comfort || !iv.mood){ toast('Please rate comfort and mood to continue'); return; }
+  if(iv.empties === 'More'){ const n = parseInt($('#emptiesMore').value, 10); if(n) iv.emptiesCount = n; }
+  const sc = deriveScores(iv);
   const u = (await sb.auth.getUser()).data.user;
   $('#submitCheckin').disabled = true;
   const { error } = await sb.from('check_ins').insert({
     user_id: u.id,
     patient_name: u.user_metadata?.full_name || u.email,
     patient_email: u.email,
-    output: current.output, skin: current.skin, comfort: current.comfort, mood: current.mood,
+    output: sc.output, skin: sc.skin, comfort: sc.comfort, mood: sc.mood,
+    details: iv,
     note: $('#note').value.trim() || null,
   });
   $('#submitCheckin').disabled = false;
@@ -747,6 +954,63 @@ $('#submitCheckin').onclick = async () => {
   toast('Shared with your care team ✓');
   $('#homeStatus').textContent = 'Check-in shared — thank you';
   showView('history');
+};
+
+// ---------- patient profile (Part A) ----------
+async function loadProfile(){
+  const u = (await sb.auth.getUser()).data.user; if(!u) return;
+  $('#pfEmail').value = u.email;
+  const { data } = await sb.from('patient_profile').select('*').eq('user_id', u.id).maybeSingle();
+  profileState = { stoma_type: data?.stoma_type || null, products: Array.isArray(data?.products) ? data.products.slice() : [] };
+  $('#pfName').value = data?.patient_name || u.user_metadata?.full_name || '';
+  $('#pfStomaDate').value = data?.stoma_date || '';
+  renderProfileControls();
+}
+function renderProfileControls(){
+  $('#pfStomaType').innerHTML = PROFILE_TYPES.map(t =>
+    `<div class="selchip ${profileState.stoma_type === t ? 'on' : ''}" data-pftype data-val="${t}">${t}</div>`).join('');
+  $('#pfProducts').innerHTML = PROFILE_PRODUCTS.map(p =>
+    `<div class="selchip ${profileState.products.includes(p) ? 'on' : ''}" data-pfprod data-val="${esc(p)}">${esc(p)}</div>`).join('');
+  $('#pfStomaType').querySelectorAll('[data-pftype]').forEach(c => c.onclick = () => {
+    $('#pfStomaType').querySelectorAll('[data-pftype]').forEach(x => x.classList.remove('on'));
+    c.classList.add('on'); profileState.stoma_type = c.dataset.val;
+  });
+  $('#pfProducts').querySelectorAll('[data-pfprod]').forEach(c => c.onclick = () => {
+    if(c.classList.toggle('on')) profileState.products.push(c.dataset.val);
+    else profileState.products = profileState.products.filter(x => x !== c.dataset.val);
+  });
+}
+async function updateProfileSub(){
+  try {
+    const u = (await sb.auth.getUser()).data.user; if(!u) return;
+    const { data } = await sb.from('patient_profile').select('stoma_type,products').eq('user_id', u.id).maybeSingle();
+    const el = $('#profileSub'); if(!el) return;
+    if(data && data.stoma_type){
+      const n = Array.isArray(data.products) ? data.products.length : 0;
+      el.textContent = `${data.stoma_type} · ${n} product${n === 1 ? '' : 's'} · tap to edit`;
+    } else el.textContent = 'Tap to add your details';
+  } catch(e){}
+}
+$('#profileBack').onclick = () => showView('home');
+$('#pfSave').onclick = async () => {
+  const u = (await sb.auth.getUser()).data.user;
+  if(!profileState.stoma_type){ toast('Please choose your stoma type'); return; }
+  const rec = {
+    user_id: u.id,
+    patient_name: $('#pfName').value.trim() || null,
+    patient_email: u.email,
+    stoma_type: profileState.stoma_type,
+    stoma_date: $('#pfStomaDate').value || null,
+    products: profileState.products,
+    updated_at: new Date().toISOString(),
+  };
+  $('#pfSave').disabled = true;
+  const { error } = await sb.from('patient_profile').upsert(rec, { onConflict:'user_id' });
+  $('#pfSave').disabled = false;
+  if(error){ toast('Error: '+error.message); return; }
+  toast('Profile saved ✓');
+  updateProfileSub();
+  showView('home');
 };
 
 // ---------- history ----------
@@ -760,6 +1024,7 @@ function rowHtml(r, withName){
       ${withName?`<span class="nm">${esc(r.patient_name||r.patient_email||'Patient')}</span>`:`<span class="nm">Check-in</span>`}
       <span class="when">${when}</span></div>
     <div class="chips">${chip('Output',r.output)}${chip('Skin',r.skin)}${chip('Comfort',r.comfort)}${chip('Mood',r.mood)}</div>
+    ${flagsHtml(r.details)}
     ${r.note?`<div class="note">${esc(r.note)}</div>`:''}
   </div>`;
 }
@@ -1208,6 +1473,7 @@ function openPatientDetail(key){
       ${metricBar('Output', r.output)}${metricBar('Skin', r.skin)}${metricBar('Comfort', r.comfort)}${metricBar('Mood', r.mood)}
       ${r.note ? `<div class="pd-note">“${esc(r.note)}”</div>` : ''}
     </div>
+    ${ivPanelHtml(r.details)}
     <div class="rep-h" style="margin:2px 2px 8px">Check-in history</div>
     <div>${p.rows.map(x => rowHtml(x, false)).join('')}</div>`;
   showView('ndetail');
@@ -1252,9 +1518,10 @@ async function loadReports(){
 }
 function exportCsv(){
   if(!reportRows.length){ toast('Nothing to export yet'); return; }
-  const cols = ['created_at','patient_name','patient_email','output','skin','comfort','mood','note'];
+  const cols = ['created_at','patient_name','patient_email','output','skin','comfort','mood','flags','note'];
   const cell = v => `"${String(v??'').replace(/"/g,'""')}"`;
-  const lines = [cols.join(',')].concat(reportRows.map(r => cols.map(c => cell(r[c])).join(',')));
+  const lines = [cols.join(',')].concat(reportRows.map(r =>
+    cols.map(c => cell(c === 'flags' ? ivFlags(r.details).map(x => x.t).join('; ') : r[c])).join(',')));
   const blob = new Blob([lines.join('\n')], { type:'text/csv' });
   const url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = `stoma-alert-checkins-${new Date().toISOString().slice(0,10)}.csv`;
@@ -1285,6 +1552,7 @@ async function boot(){
     $('#nurseTabs').style.display = 'none';
     $('#greet').textContent = 'Hello, ' + myName;
     $('#homeAvatar').textContent = (myName[0]||'?').toUpperCase();
+    updateProfileSub();
     showView('home');
   }
 }
