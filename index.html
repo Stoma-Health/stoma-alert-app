@@ -1880,6 +1880,8 @@ function buildCardSVG(){
 </g>
 </svg>`;
 }
+function openCard(){ $('#cardArt').innerHTML = buildCardSVG(); $('#cardModal').classList.add('on'); }
+function closeCard(){ $('#cardModal').classList.remove('on'); }
 function printCard(){
   const w = window.open('', '_blank');
   if(!w){ toast('Allow pop-ups to print the card'); return; }
