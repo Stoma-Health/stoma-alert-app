@@ -194,6 +194,22 @@
   .photodiary .pdi .qd{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;}
   .qd.g{background:var(--green);} .qd.a{background:var(--amber);} .qd.r{background:var(--red);}
   .photodiary .empty{grid-column:1/-1;}
+  .cal{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 12px 14px;margin-bottom:14px;}
+  .cal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cal-top button{background:none;border:none;font-size:22px;line-height:1;color:var(--slate);cursor:pointer;padding:2px 12px;border-radius:8px;}
+  .cal-top button:active{background:var(--wash);}
+  .cal-mon{font-weight:700;font-size:14px;color:var(--ink);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .cal-dow{font-size:9px;font-weight:700;color:var(--mist);text-align:center;padding-bottom:3px;letter-spacing:.04em;}
+  .cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12.5px;border-radius:9px;color:var(--slate);}
+  .cal-day.pad{visibility:hidden;}
+  .cal-day.today{outline:1.5px solid var(--teal);outline-offset:-1.5px;}
+  .cal-day.has{cursor:pointer;font-weight:700;color:var(--ink);background:var(--wash);}
+  .cal-day.sel{background:var(--teal);color:#fff;}
+  .cal-day .cdot{width:5px;height:5px;border-radius:50%;margin-top:2px;}
+  .cal-day.sel .cdot{background:#fff!important;}
+  .histfilter{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;color:var(--slate);}
+  .histfilter button{margin-left:auto;background:none;border:1px solid var(--line);border-radius:100px;padding:4px 11px;font-size:11px;cursor:pointer;color:var(--slate);}
   .pmodal{position:fixed;inset:0;z-index:60;background:rgba(10,14,20,.72);display:none;align-items:flex-end;justify-content:center;}
   .pmodal.on{display:flex;}
   .pmbox{background:var(--paper);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:16px 16px calc(var(--safe-b) + 16px);max-height:92%;overflow-y:auto;}
@@ -469,6 +485,7 @@
     <section class="view" data-view="history">
       <div class="kic">Your diary</div>
       <div class="h">Past check-ins</div>
+      <div class="cal" id="diaryCal"></div>
       <div id="historyList"></div>
     </section>
 
@@ -1932,12 +1949,57 @@ function rowHtml(r, withName){
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+// ---------- diary: month calendar + date-filtered history ----------
+let histAll = [], histMonth = null, histSel = null;
+const ymdLocal = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; };
 async function loadHistory(){
-  $('#historyList').innerHTML = '<div class="empty">Loading…</div>';
-  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(50);
-  if(error){ $('#historyList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
-  $('#historyList').innerHTML = data.length ? data.map(r=>rowHtml(r,false)).join('')
-    : '<div class="empty">No check-ins yet. Tap “Check-in” to add your first.</div>';
+  $('#diaryCal').innerHTML = ''; $('#historyList').innerHTML = '<div class="empty">Loading…</div>';
+  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
+  if(error){ $('#historyList').innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  histAll = data || []; histSel = null;
+  const anchor = histAll.length ? new Date(histAll[0].created_at) : new Date();
+  histMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  renderCalendar(); renderHistoryList();
+}
+function renderCalendar(){
+  const el = $('#diaryCal'); if(!el) return;
+  const rank = { r:0, a:1, g:2 };                        // worst status wins the day's dot
+  const byDay = {};
+  histAll.forEach(r => { const k = ymdLocal(r.created_at); const c = colourFor(Math.min(r.output,r.skin,r.comfort,r.mood));
+    if(byDay[k]===undefined || rank[c] < rank[byDay[k]]) byDay[k] = c; });
+  const y = histMonth.getFullYear(), m = histMonth.getMonth();
+  const monthName = histMonth.toLocaleDateString('en-GB',{ month:'long', year:'numeric' });
+  const firstDow = (new Date(y,m,1).getDay()+6)%7;       // Monday-first
+  const days = new Date(y,m+1,0).getDate();
+  const todayK = ymdLocal(new Date());
+  const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  let cells = '';
+  for(let i=0;i<firstDow;i++) cells += `<div class="cal-day pad"></div>`;
+  for(let d=1; d<=days; d++){
+    const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const c = byDay[k], cls = ['cal-day'];
+    if(c) cls.push('has'); if(k===histSel) cls.push('sel'); if(k===todayK) cls.push('today');
+    const dotCol = c==='r'?'var(--red)':c==='a'?'var(--amber)':'var(--green)';
+    cells += `<div class="${cls.join(' ')}"${c?` data-day="${k}"`:''}>${d}${c?`<span class="cdot" style="background:${dotCol}"></span>`:''}</div>`;
+  }
+  el.innerHTML = `<div class="cal-top"><button data-mo="-1" aria-label="Previous month">‹</button><span class="cal-mon">${monthName}</span><button data-mo="1" aria-label="Next month">›</button></div><div class="cal-grid">${dow}${cells}</div>`;
+  el.querySelector('[data-mo="-1"]').onclick = () => { histMonth = new Date(y,m-1,1); renderCalendar(); };
+  el.querySelector('[data-mo="1"]').onclick  = () => { histMonth = new Date(y,m+1,1); renderCalendar(); };
+  el.querySelectorAll('[data-day]').forEach(cell => cell.onclick = () => {
+    histSel = (histSel === cell.dataset.day) ? null : cell.dataset.day; renderCalendar(); renderHistoryList();
+  });
+}
+function renderHistoryList(){
+  const el = $('#historyList'); if(!el) return;
+  if(!histAll.length){ el.innerHTML = '<div class="empty">No check-ins yet. Tap “Check-in” to add your first.</div>'; return; }
+  const rows = histSel ? histAll.filter(r => ymdLocal(r.created_at) === histSel) : histAll;
+  let banner = '';
+  if(histSel){
+    const nice = new Date(histSel+'T00:00').toLocaleDateString('en-GB',{ weekday:'long', day:'numeric', month:'long' });
+    banner = `<div class="histfilter">Showing <b>${nice}</b> · ${rows.length} check-in${rows.length!==1?'s':''}<button id="histClear">Show all</button></div>`;
+  }
+  el.innerHTML = banner + (rows.length ? rows.map(r=>rowHtml(r,false)).join('') : '<div class="empty">No check-ins on this day.</div>');
+  const clr = $('#histClear'); if(clr) clr.onclick = () => { histSel = null; renderCalendar(); renderHistoryList(); };
 }
 
 // ---------- progress / outcome tracking (live) ----------
