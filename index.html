@@ -535,6 +535,7 @@
         <button class="btn ghost" id="capRetake" style="margin-top:8px">Retake</button>
       </div>
       <div class="kic" style="margin-top:20px">Your photo diary</div>
+      <div class="cal" id="photoCal" style="display:none"></div>
       <div class="photodiary" id="photoDiary"><div class="empty">No photos yet. Take your first above.</div></div>
     </section>
 
@@ -1634,8 +1635,8 @@ function photoThumb(r, url, i){
   const q = (r.quality && r.quality.verdict) || 'g';
   return `<div class="pdi" data-idx="${i}">${url ? `<img src="${esc(url)}" alt="Stoma photo ${dt}">` : ''}<span class="qd ${q}"></span><span class="dt">${dt}</span></div>`;
 }
-function renderPhotoGrid(el, data, signed, canEdit){
-  el.innerHTML = data.map((r,i) => photoThumb(r, signed[i], i)).join('');
+function renderPhotoGrid(el, data, signed, canEdit, prefixHtml){
+  el.innerHTML = (prefixHtml || '') + data.map((r,i) => photoThumb(r, signed[i], i)).join('');
   el.querySelectorAll('.pdi').forEach(t => t.onclick = () => {
     const i = +t.dataset.idx; openPhoto(data[i], signed[i], canEdit);
   });
@@ -1914,14 +1915,29 @@ $('#pmDelete').onclick = async () => {
   if(error){ toast('Delete failed: '+error.message); return; }
   toast('Photo deleted'); closePhoto(); loadPhotoDiary();
 };
+let photoAll = [], photoSigned = [], photoSel = null, photoCal = null;
 async function loadPhotoDiary(){
   const el = $('#photoDiary'); if(!el) return;
+  const cal = $('#photoCal');
   el.innerHTML = '<div class="empty">Loading…</div>';
-  const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ ascending:false }).limit(30);
-  if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
-  if(!data.length){ el.innerHTML = '<div class="empty">No photos yet. Take your first above.</div>'; return; }
-  const signed = await signedUrls(data.map(r => r.path));
-  renderPhotoGrid(el, data, signed, true);
+  const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ ascending:false }).limit(60);
+  if(error){ if(cal) cal.style.display='none'; el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  photoAll = data || []; photoSel = null;
+  if(!photoAll.length){ if(cal) cal.style.display='none'; el.innerHTML = '<div class="empty">No photos yet. Take your first above.</div>'; return; }
+  photoSigned = await signedUrls(photoAll.map(r => r.path));
+  if(cal){ cal.style.display = '';
+    photoCal = mountCalendar(cal, photoAll.map(r => ({ ts:r.created_at, colour:(r.quality && r.quality.verdict) || 'g' })),
+      key => { photoSel = key; renderPhotoDiary(); }); }
+  renderPhotoDiary();
+}
+function renderPhotoDiary(){
+  const el = $('#photoDiary'); if(!el) return;
+  const rows = [], signed = [];
+  photoAll.forEach((r,i) => { if(!photoSel || ymdLocal(r.created_at) === photoSel){ rows.push(r); signed.push(photoSigned[i]); } });
+  const banner = photoSel ? `<div class="histfilter" style="grid-column:1/-1">Showing <b>${niceDay(photoSel)}</b> · ${rows.length} photo${rows.length!==1?'s':''}<button data-photoclear>Show all</button></div>` : '';
+  if(!rows.length) el.innerHTML = banner + '<div class="empty">No photos on this day.</div>';
+  else renderPhotoGrid(el, rows, signed, true, banner);
+  const clr = el.querySelector('[data-photoclear]'); if(clr) clr.onclick = () => { if(photoCal) photoCal.clear(); };
 }
 async function loadNursePhotos(key){
   const el = $('#ndetailPhotos'); if(!el) return;
@@ -1949,57 +1965,63 @@ function rowHtml(r, withName){
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-// ---------- diary: month calendar + date-filtered history ----------
-let histAll = [], histMonth = null, histSel = null;
+// ---------- reusable month calendar ----------
 const ymdLocal = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; };
+const niceDay = k => new Date(k+'T00:00').toLocaleDateString('en-GB',{ weekday:'long', day:'numeric', month:'long' });
+// items: [{ts, colour}] (colour 'r'|'a'|'g'|null; worst wins the day's dot). onSelect(dayKey|null) on tap.
+// returns { clear() } so a "Show all" control can reset both the list and the calendar highlight.
+function mountCalendar(container, items, onSelect){
+  if(!container) return { clear(){} };
+  const rank = { r:0, a:1, g:2 }, byDay = {};
+  items.forEach(it => { const k = ymdLocal(it.ts), c = it.colour || 'g';
+    if(byDay[k]===undefined || rank[c] < rank[byDay[k]]) byDay[k] = c; });
+  const anchor = items.length ? new Date(items[0].ts) : new Date();
+  let month = new Date(anchor.getFullYear(), anchor.getMonth(), 1), sel = null;
+  const todayK = ymdLocal(new Date());
+  function draw(){
+    const y = month.getFullYear(), m = month.getMonth();
+    const monthName = month.toLocaleDateString('en-GB',{ month:'long', year:'numeric' });
+    const firstDow = (new Date(y,m,1).getDay()+6)%7, days = new Date(y,m+1,0).getDate();   // Monday-first
+    const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+    let cells = '';
+    for(let i=0;i<firstDow;i++) cells += `<div class="cal-day pad"></div>`;
+    for(let d=1; d<=days; d++){
+      const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const c = byDay[k], cls = ['cal-day'];
+      if(c) cls.push('has'); if(k===sel) cls.push('sel'); if(k===todayK) cls.push('today');
+      const dotCol = c==='r'?'var(--red)':c==='a'?'var(--amber)':'var(--green)';
+      cells += `<div class="${cls.join(' ')}"${c?` data-day="${k}"`:''}>${d}${c?`<span class="cdot" style="background:${dotCol}"></span>`:''}</div>`;
+    }
+    container.innerHTML = `<div class="cal-top"><button data-mo="-1" aria-label="Previous month">‹</button><span class="cal-mon">${monthName}</span><button data-mo="1" aria-label="Next month">›</button></div><div class="cal-grid">${dow}${cells}</div>`;
+    container.querySelector('[data-mo="-1"]').onclick = () => { month = new Date(y,m-1,1); draw(); };
+    container.querySelector('[data-mo="1"]').onclick  = () => { month = new Date(y,m+1,1); draw(); };
+    container.querySelectorAll('[data-day]').forEach(cell => cell.onclick = () => {
+      sel = (sel === cell.dataset.day) ? null : cell.dataset.day; draw(); onSelect(sel);
+    });
+  }
+  draw();
+  return { clear(){ if(sel!==null){ sel = null; draw(); onSelect(null); } } };
+}
+
+// ---------- diary: check-in history + calendar ----------
+let histAll = [], histSel = null, histCal = null;
 async function loadHistory(){
   $('#diaryCal').innerHTML = ''; $('#historyList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
   if(error){ $('#historyList').innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
   histAll = data || []; histSel = null;
-  const anchor = histAll.length ? new Date(histAll[0].created_at) : new Date();
-  histMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
-  renderCalendar(); renderHistoryList();
-}
-function renderCalendar(){
-  const el = $('#diaryCal'); if(!el) return;
-  const rank = { r:0, a:1, g:2 };                        // worst status wins the day's dot
-  const byDay = {};
-  histAll.forEach(r => { const k = ymdLocal(r.created_at); const c = colourFor(Math.min(r.output,r.skin,r.comfort,r.mood));
-    if(byDay[k]===undefined || rank[c] < rank[byDay[k]]) byDay[k] = c; });
-  const y = histMonth.getFullYear(), m = histMonth.getMonth();
-  const monthName = histMonth.toLocaleDateString('en-GB',{ month:'long', year:'numeric' });
-  const firstDow = (new Date(y,m,1).getDay()+6)%7;       // Monday-first
-  const days = new Date(y,m+1,0).getDate();
-  const todayK = ymdLocal(new Date());
-  const dow = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
-  let cells = '';
-  for(let i=0;i<firstDow;i++) cells += `<div class="cal-day pad"></div>`;
-  for(let d=1; d<=days; d++){
-    const k = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const c = byDay[k], cls = ['cal-day'];
-    if(c) cls.push('has'); if(k===histSel) cls.push('sel'); if(k===todayK) cls.push('today');
-    const dotCol = c==='r'?'var(--red)':c==='a'?'var(--amber)':'var(--green)';
-    cells += `<div class="${cls.join(' ')}"${c?` data-day="${k}"`:''}>${d}${c?`<span class="cdot" style="background:${dotCol}"></span>`:''}</div>`;
-  }
-  el.innerHTML = `<div class="cal-top"><button data-mo="-1" aria-label="Previous month">‹</button><span class="cal-mon">${monthName}</span><button data-mo="1" aria-label="Next month">›</button></div><div class="cal-grid">${dow}${cells}</div>`;
-  el.querySelector('[data-mo="-1"]').onclick = () => { histMonth = new Date(y,m-1,1); renderCalendar(); };
-  el.querySelector('[data-mo="1"]').onclick  = () => { histMonth = new Date(y,m+1,1); renderCalendar(); };
-  el.querySelectorAll('[data-day]').forEach(cell => cell.onclick = () => {
-    histSel = (histSel === cell.dataset.day) ? null : cell.dataset.day; renderCalendar(); renderHistoryList();
-  });
+  histCal = mountCalendar($('#diaryCal'),
+    histAll.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
+    key => { histSel = key; renderHistoryList(); });
+  renderHistoryList();
 }
 function renderHistoryList(){
   const el = $('#historyList'); if(!el) return;
   if(!histAll.length){ el.innerHTML = '<div class="empty">No check-ins yet. Tap “Check-in” to add your first.</div>'; return; }
   const rows = histSel ? histAll.filter(r => ymdLocal(r.created_at) === histSel) : histAll;
-  let banner = '';
-  if(histSel){
-    const nice = new Date(histSel+'T00:00').toLocaleDateString('en-GB',{ weekday:'long', day:'numeric', month:'long' });
-    banner = `<div class="histfilter">Showing <b>${nice}</b> · ${rows.length} check-in${rows.length!==1?'s':''}<button id="histClear">Show all</button></div>`;
-  }
+  const banner = histSel ? `<div class="histfilter">Showing <b>${niceDay(histSel)}</b> · ${rows.length} check-in${rows.length!==1?'s':''}<button data-histclear>Show all</button></div>` : '';
   el.innerHTML = banner + (rows.length ? rows.map(r=>rowHtml(r,false)).join('') : '<div class="empty">No check-ins on this day.</div>');
-  const clr = $('#histClear'); if(clr) clr.onclick = () => { histSel = null; renderCalendar(); renderHistoryList(); };
+  const clr = el.querySelector('[data-histclear]'); if(clr) clr.onclick = () => { if(histCal) histCal.clear(); };
 }
 
 // ---------- progress / outcome tracking (live) ----------
@@ -2477,9 +2499,23 @@ function openPatientDetail(key){
     <div class="rep-h" style="margin:2px 2px 8px">Photo diary</div>
     <div class="photodiary" id="ndetailPhotos"><div class="empty">Loading…</div></div>
     <div class="rep-h" style="margin:14px 2px 8px">Check-in history</div>
-    <div>${p.rows.map(x => rowHtml(x, false)).join('')}</div>`;
+    <div class="cal" id="ndetailCal"></div>
+    <div id="ndetailHistory"></div>`;
   showView('ndetail');
+  ndetailRows = p.rows; ndetailSel = null;
+  ndetailCal = mountCalendar($('#ndetailCal'),
+    p.rows.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
+    dayKey => { ndetailSel = dayKey; renderNdetailHistory(); });
+  renderNdetailHistory();
   loadNursePhotos(key);
+}
+let ndetailRows = [], ndetailSel = null, ndetailCal = null;
+function renderNdetailHistory(){
+  const el = $('#ndetailHistory'); if(!el) return;
+  const rows = ndetailSel ? ndetailRows.filter(r => ymdLocal(r.created_at) === ndetailSel) : ndetailRows;
+  const banner = ndetailSel ? `<div class="histfilter">Showing <b>${niceDay(ndetailSel)}</b> · ${rows.length} check-in${rows.length!==1?'s':''}<button data-ndclear>Show all</button></div>` : '';
+  el.innerHTML = banner + (rows.length ? rows.map(x => rowHtml(x, false)).join('') : '<div class="empty">No check-ins on this day.</div>');
+  const clr = el.querySelector('[data-ndclear]'); if(clr) clr.onclick = () => { if(ndetailCal) ndetailCal.clear(); };
 }
 $('#refreshCaseload').onclick = loadCaseload;
 
