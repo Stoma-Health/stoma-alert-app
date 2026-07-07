@@ -684,6 +684,7 @@
       <div class="h">Today's caseload</div>
       <div class="cl-intro">Patients sorted by who may need attention first — <b>flagged for review, not diagnosed.</b></div>
       <div class="counts" id="counts"></div>
+      <input class="input" id="caseSearch" type="search" placeholder="Search by patient name…" autocomplete="off" style="margin-bottom:12px">
       <div id="caseloadList"></div>
       <button class="btn ghost" id="refreshCaseload">Refresh</button>
     </section>
@@ -2470,9 +2471,18 @@ async function loadCaseload(){
     <div class="c"><div class="n" style="color:var(--red)">${red}</div><div class="l">For review</div></div>
     <div class="c"><div class="n" style="color:var(--amber)">${a}</div><div class="l">Watch</div></div>
     <div class="c"><div class="n" style="color:var(--green)">${g}</div><div class="l">Settled</div></div>`;
-  $('#caseloadList').innerHTML = pts.length ? pts.map(caseRow).join('')
-    : '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>';
-  $('#caseloadList').querySelectorAll('.cl-row').forEach(el => el.onclick = () => openPatientDetail(el.dataset.key));
+  caseAll = pts;
+  renderCaseList();
+}
+let caseAll = [];
+function renderCaseList(){
+  const el = $('#caseloadList'); if(!el) return;
+  const q = ($('#caseSearch')?.value || '').trim().toLowerCase();
+  if(!caseAll.length){ el.innerHTML = '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>'; return; }
+  const pts = q ? caseAll.filter(p => (p.name||'').toLowerCase().includes(q)) : caseAll;
+  el.innerHTML = pts.length ? pts.map(caseRow).join('')
+    : `<div class="empty">No patients matching “${esc(q)}”.</div>`;
+  el.querySelectorAll('.cl-row').forEach(row => row.onclick = () => openPatientDetail(row.dataset.key));
 }
 // nurse → tap a caseload patient → see the scoring data behind the flag
 function metricBar(label, v){
@@ -2518,6 +2528,7 @@ function renderNdetailHistory(){
   const clr = el.querySelector('[data-ndclear]'); if(clr) clr.onclick = () => { if(ndetailCal) ndetailCal.clear(); };
 }
 $('#refreshCaseload').onclick = loadCaseload;
+$('#caseSearch').oninput = renderCaseList;
 
 // ---------- nurse reports & audit ----------
 let reportRows = [];
