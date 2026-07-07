@@ -1267,16 +1267,19 @@ function renderColour(cc){
 function loadOpenCV(){
   if(window._cvReady) return window._cvReady;
   window._cvReady = new Promise((resolve, reject) => {
+    const fail = msg => { window._cvReady = null; reject(new Error(msg)); };   // clear so a later attempt can retry (never poison future reads)
     if(window.cv && window.cv.Mat) return resolve(window.cv);
+    const to = setTimeout(() => fail('The vision module took too long to load (slow connection).'), 25000);   // never hang forever
+    const done = c => { clearTimeout(to); resolve(c); };
     const s = document.createElement('script');
     s.src = 'https://docs.opencv.org/4.x/opencv.js'; s.async = true;   // 4.x = maintained alias; pinned point releases (e.g. 4.10.0) get removed and 404
     s.onload = () => {
-      if(window.cv && window.cv.Mat) return resolve(window.cv);
-      if(window.cv && typeof window.cv.then === 'function'){ window.cv.then(c => { window.cv = c; resolve(c); }); return; }
-      if(window.cv){ window.cv.onRuntimeInitialized = () => resolve(window.cv); return; }
-      reject(new Error('Vision module loaded but did not initialise.'));
+      if(window.cv && window.cv.Mat) return done(window.cv);
+      if(window.cv && typeof window.cv.then === 'function'){ window.cv.then(c => { window.cv = c; done(c); }); return; }
+      if(window.cv){ window.cv.onRuntimeInitialized = () => done(window.cv); return; }
+      clearTimeout(to); fail('Vision module loaded but did not initialise.');
     };
-    s.onerror = () => reject(new Error('Could not download the vision module — check your connection.'));
+    s.onerror = () => { clearTimeout(to); fail('Could not download the vision module — check your connection.'); };
     document.head.appendChild(s);
   });
   return window._cvReady;
@@ -1439,15 +1442,19 @@ async function runChartReader(src){
   const cnv = drawScaled(src, 1200);
   const mats = [];
   let measured = null;
+  const paint = () => new Promise(r => setTimeout(r, 0));   // yield a frame so the UI updates & taps register between heavy stages
   try {
-    step('Reading the chart…');
+    step('Reading the chart…'); await paint();
     const mat = cv.imread(cnv); mats.push(mat);
     const quad = cvDetectCard(cv, mat);
     if(!quad){ step('Could not find the chart. Lay the whole card flat with all colour panels and both checker bars in frame, then retake. (Card-free colour above still applies.)'); return; }
+    step('Straightening…'); await paint();
     const rect = cvRectify(cv, mat, quad, CHART.CANON, mats);
     const reg = cvRegister(cv, rect, mats);
     if(!reg){ step('Found the chart but could not lock onto the colour patches — try again with even light, no glare, whole card in frame. (Card-free colour above still applies.)'); return; }
+    step('Correcting colour…'); await paint();
     const { wb, meanErr } = cvWhiteBalance(cv, reg.reg, mats);
+    step('Measuring…'); await paint();
     measured = cvMeasure(cv, wb, mats);
     // overlay measurement on the corrected chart
     const disp = new cv.Mat(); mats.push(disp); wb.copyTo(disp);
@@ -1579,7 +1586,8 @@ $('#capRetake').onclick = () => { capEnter(); };
 $('#capSave').onclick = async () => {
   if(!capBlob){ toast('Take a photo first'); return; }
   $('#capSave').disabled = true;
-  if(capChartPending){ try { await capChartPending; } catch(_){} }   // let an in-flight chart read finish so its mm size is saved
+  // wait BRIEFLY for an in-flight chart read so its mm size is saved — but never block Save on it
+  if(capChartPending){ try { await Promise.race([capChartPending, new Promise(r => setTimeout(r, 1500))]); } catch(_){} }
   const u = (await sb.auth.getUser()).data.user;
   const path = `${u.id}/${Date.now()}-${Math.round(performance.now())}.jpg`;
   const up = await sb.storage.from('diary-photos').upload(path, capBlob, { contentType:'image/jpeg', upsert:false });
