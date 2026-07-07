@@ -541,7 +541,8 @@
         <button class="btn ghost" id="capRetake" style="margin-top:8px">Retake</button>
       </div>
       <div class="kic" style="margin-top:20px">Your photo diary</div>
-      <div class="cal" id="photoCal" style="display:none"></div>
+      <button class="chkPill" id="photoPill" type="button" aria-expanded="false" aria-controls="photoCal" style="display:none"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
+      <div class="cal chkList collapsed" id="photoCal"></div>
       <div class="photodiary" id="photoDiary"><div class="empty">No photos yet. Take your first above.</div></div>
     </section>
 
@@ -1928,16 +1929,19 @@ $('#pmDelete').onclick = async () => {
 let photoAll = [], photoSigned = [], photoSel = null, photoCal = null;
 async function loadPhotoDiary(){
   const el = $('#photoDiary'); if(!el) return;
-  const cal = $('#photoCal');
+  const cal = $('#photoCal'), pill = $('#photoPill');
+  const hideCal = () => { if(pill) pill.style.display='none'; if(cal){ cal.classList.add('collapsed'); cal.innerHTML=''; } };
   el.innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ ascending:false }).limit(60);
-  if(error){ if(cal) cal.style.display='none'; el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(error){ hideCal(); el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
   photoAll = data || []; photoSel = null;
-  if(!photoAll.length){ if(cal) cal.style.display='none'; el.innerHTML = '<div class="empty">No photos yet. Take your first above.</div>'; return; }
+  if(!photoAll.length){ hideCal(); el.innerHTML = '<div class="empty">No photos yet. Take your first above.</div>'; return; }
   photoSigned = await signedUrls(photoAll.map(r => r.path));
-  if(cal){ cal.style.display = '';
+  if(cal){
     photoCal = mountCalendar(cal, photoAll.map(r => ({ ts:r.created_at, colour:(r.quality && r.quality.verdict) || 'g' })),
-      key => { photoSel = key; renderPhotoDiary(); }); }
+      key => { photoSel = key; renderPhotoDiary(); });
+    if(pill){ pill.style.display=''; wireChkPill(pill, cal, {show:'Show calendar', hide:'Hide calendar'}); }
+  }
   renderPhotoDiary();
 }
 function renderPhotoDiary(){
