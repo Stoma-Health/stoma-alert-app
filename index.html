@@ -210,6 +210,11 @@
   .cal-day.sel .cdot{background:#fff!important;}
   .histfilter{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;color:var(--slate);}
   .histfilter button{margin-left:auto;background:none;border:1px solid var(--line);border-radius:100px;padding:4px 11px;font-size:11px;cursor:pointer;color:var(--slate);}
+  .chkPill{display:inline-flex;align-items:center;gap:7px;margin:2px 0 4px;background:var(--paper);color:var(--teal-deep);border:1.5px solid var(--teal-soft);border-radius:100px;padding:7px 14px;font-family:var(--ui);font-size:12.5px;font-weight:600;cursor:pointer;}
+  .chkPill:active{background:var(--wash);}
+  .chkPill .chev{font-size:11px;color:var(--mist);transition:transform .18s ease;}
+  .chkPill.open .chev{transform:rotate(180deg);}
+  .chkList.collapsed{display:none;}
   .pmodal{position:fixed;inset:0;z-index:60;background:rgba(10,14,20,.72);display:none;align-items:flex-end;justify-content:center;}
   .pmodal.on{display:flex;}
   .pmbox{background:var(--paper);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:16px 16px calc(var(--safe-b) + 16px);max-height:92%;overflow-y:auto;}
@@ -485,7 +490,8 @@
     <section class="view" data-view="history">
       <div class="kic">Your diary</div>
       <div class="h">Past check-ins</div>
-      <div class="cal" id="diaryCal"></div>
+      <button class="chkPill" id="diaryPill" type="button" aria-expanded="false" aria-controls="diaryCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
+      <div class="cal chkList collapsed" id="diaryCal"></div>
       <div id="historyList"></div>
     </section>
 
@@ -1974,6 +1980,22 @@ const ymdLocal = d => { const x = new Date(d); return `${x.getFullYear()}-${Stri
 const niceDay = k => new Date(k+'T00:00').toLocaleDateString('en-GB',{ weekday:'long', day:'numeric', month:'long' });
 // items: [{ts, colour}] (colour 'r'|'a'|'g'|null; worst wins the day's dot). onSelect(dayKey|null) on tap.
 // returns { clear() } so a "Show all" control can reset both the list and the calendar highlight.
+// collapse a target element (e.g. the calendar) behind a pill; returns { open } to expand programmatically
+function wireChkPill(pill, target, opts){
+  if(!pill || !target) return null;
+  const lbl = pill.querySelector('.chkLbl');
+  const show = (opts && opts.show) || 'Show', hide = (opts && opts.hide) || 'Hide';
+  function set(open){
+    target.classList.toggle('collapsed', !open);
+    pill.classList.toggle('open', open);
+    pill.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(lbl) lbl.textContent = open ? hide : show;
+  }
+  pill.onclick = () => set(target.classList.contains('collapsed'));
+  set(false);
+  return { open(){ set(true); } };
+}
+
 function mountCalendar(container, items, onSelect){
   if(!container) return { clear(){} };
   const rank = { r:0, a:1, g:2 }, byDay = {};
@@ -2008,7 +2030,7 @@ function mountCalendar(container, items, onSelect){
 }
 
 // ---------- diary: check-in history + calendar ----------
-let histAll = [], histSel = null, histCal = null;
+let histAll = [], histSel = null, histCal = null, histPillApi = null;
 async function loadHistory(){
   $('#diaryCal').innerHTML = ''; $('#historyList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
@@ -2017,6 +2039,7 @@ async function loadHistory(){
   histCal = mountCalendar($('#diaryCal'),
     histAll.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
     key => { histSel = key; renderHistoryList(); });
+  histPillApi = wireChkPill($('#diaryPill'), $('#diaryCal'), {show:'Show calendar', hide:'Hide calendar'});
   renderHistoryList();
 }
 function renderHistoryList(){
@@ -2512,17 +2535,19 @@ function openPatientDetail(key){
     <div class="rep-h" style="margin:2px 2px 8px">Photo diary</div>
     <div class="photodiary" id="ndetailPhotos"><div class="empty">Loading…</div></div>
     <div class="rep-h" style="margin:14px 2px 8px">Check-in history</div>
-    <div class="cal" id="ndetailCal"></div>
+    <button class="chkPill" id="ndetailPill" type="button" aria-expanded="false" aria-controls="ndetailCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
+    <div class="cal chkList collapsed" id="ndetailCal"></div>
     <div id="ndetailHistory"></div>`;
   showView('ndetail');
   ndetailRows = p.rows; ndetailSel = null;
   ndetailCal = mountCalendar($('#ndetailCal'),
     p.rows.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
     dayKey => { ndetailSel = dayKey; renderNdetailHistory(); });
+  ndPillApi = wireChkPill($('#ndetailPill'), $('#ndetailCal'), {show:'Show calendar', hide:'Hide calendar'});
   renderNdetailHistory();
   loadNursePhotos(key);
 }
-let ndetailRows = [], ndetailSel = null, ndetailCal = null;
+let ndetailRows = [], ndetailSel = null, ndetailCal = null, ndPillApi = null;
 function renderNdetailHistory(){
   const el = $('#ndetailHistory'); if(!el) return;
   const rows = ndetailSel ? ndetailRows.filter(r => ymdLocal(r.created_at) === ndetailSel) : ndetailRows;
