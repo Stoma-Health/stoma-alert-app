@@ -633,6 +633,12 @@
         <div class="chart" id="qolChart"></div>
         <div class="legend" id="qolLegend"><span class="muted">Loading your trend…</span></div>
       </div>
+      <div class="card" id="sizeCard" style="display:none">
+        <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Stoma size <span style="font-weight:600;color:var(--mist);font-size:11px">· from reference-chart photos</span></div><span class="pill t" id="sizePill">—</span></div>
+        <div class="chart" id="sizeChart"></div>
+        <div class="legend" id="sizeLegend"></div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.4;margin-top:6px">Measured in millimetres from photos taken with the reference chart. A guide to help you and your nurse notice change over time — not a diagnosis.</div>
+      </div>
       <div class="card" style="display:flex;align-items:center;gap:14px">
         <div id="streakRing" style="flex:0 0 auto"></div>
         <div><div style="font-size:13px;font-weight:700">Check-in streak</div><div class="ssub" id="streakText">Loading…</div></div>
@@ -1131,10 +1137,11 @@ const CAP_MAX = 1600;        // max stored image dimension (px)
 const CAP_ANALYSIS = 512;    // downscaled dimension for quality analysis
 const CAP_THRESH = { blur:70, dark:55, bright:205, glare:0.06 };  // tunable after real-photo testing
 let capBlob = null, capMetrics = null, capColour = null, capObjUrl = null;
+let capChart = null, capChartPending = null;   // chart-reader mm measurement + in-flight read
 let capStream = null, capMode = 'file';   // 'live' once getUserMedia succeeds
 
 function capReset(){
-  capBlob = null; capMetrics = null; capColour = null;
+  capBlob = null; capMetrics = null; capColour = null; capChart = null; capChartPending = null;
   if(capObjUrl){ URL.revokeObjectURL(capObjUrl); capObjUrl = null; }
   const p = $('#capPreview'); if(p){ p.style.display = 'none'; p.removeAttribute('src'); }
   if($('#capGuide')) $('#capGuide').style.display = '';
@@ -1422,6 +1429,7 @@ function cvMeasure(cv, wb, mats){
 }
 
 async function runChartReader(src){
+  capChart = null;                                   // fresh read; only set on a successful measure
   const el = $('#capChart'); el.style.display = '';
   const step = t => el.innerHTML = chartHdr() + `<div class="qwarn a">${esc(t)}</div>`;
   step('Loading the vision module (one-off, ~8 MB)…');
@@ -1452,6 +1460,10 @@ async function runChartReader(src){
       cv.circle(disp, new cv.Point(Math.round(measured.mec.center.x),Math.round(measured.mec.center.y)), Math.round(measured.mec.radius), red, 2);
       measured.cnt.delete();
       sizeLine = `${measured.equiv.toFixed(1)} mm across`;
+      // persist for the Progress size trend (rounded, plain numbers only)
+      capChart = { equiv:+measured.equiv.toFixed(1), maxd:+measured.maxd.toFixed(1),
+                   area:Math.round(measured.area), rot:reg.rot, colourErr:meanErr, scaleMm:CHART.ROI_DIAM_MM,
+                   ell: measured.ell ? [+measured.ell[0].toFixed(1), +measured.ell[1].toFixed(1)] : null };
     }
     const out = document.createElement('canvas'); cv.imshow(out, disp);
     const im = new Image(); im.src = out.toDataURL('image/png');
@@ -1500,7 +1512,8 @@ async function processCaptured(src){
     : `<div class="qwarn g">Clear, well-lit and in focus — good to share.</div>`;
   $('#capQuality').innerHTML = `<div style="font-weight:700;font-size:13px;margin-bottom:8px">Photo quality</div>${warns}${chips}`;
   renderColour(capColour);
-  if($('#capChartMode') && $('#capChartMode').checked){ runChartReader(src); }
+  capChartPending = null;
+  if($('#capChartMode') && $('#capChartMode').checked){ capChartPending = runChartReader(src); }
   else if($('#capChart')){ $('#capChart').style.display = 'none'; }
 }
 // live camera path (getUserMedia) — lets the circle overlay a real feed
@@ -1565,9 +1578,10 @@ $('#photoInput').onchange = (e) => {
 $('#capRetake').onclick = () => { capEnter(); };
 $('#capSave').onclick = async () => {
   if(!capBlob){ toast('Take a photo first'); return; }
+  $('#capSave').disabled = true;
+  if(capChartPending){ try { await capChartPending; } catch(_){} }   // let an in-flight chart read finish so its mm size is saved
   const u = (await sb.auth.getUser()).data.user;
   const path = `${u.id}/${Date.now()}-${Math.round(performance.now())}.jpg`;
-  $('#capSave').disabled = true;
   const up = await sb.storage.from('diary-photos').upload(path, capBlob, { contentType:'image/jpeg', upsert:false });
   if(up.error){ $('#capSave').disabled = false; toast('Upload failed: '+up.error.message); return; }
   const { error } = await sb.from('diary_photos').insert({
@@ -1575,7 +1589,7 @@ $('#capSave').onclick = async () => {
     patient_name: u.user_metadata?.full_name || u.email,
     patient_email: u.email,
     path,
-    quality: { ...capMetrics, verdict: qualityVerdict(capMetrics).worst, colour: capColour },
+    quality: { ...capMetrics, verdict: qualityVerdict(capMetrics).worst, colour: capColour, chart: capChart },
     note: $('#capNote').value.trim() || null,
   });
   $('#capSave').disabled = false;
@@ -1758,7 +1772,43 @@ function ringSvg(pct){
     <circle cx="18" cy="18" r="15.5" fill="none" stroke="#20305c" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 18 18)"/>
     <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#1a2733">${pct}%</text></svg>`;
 }
+// stoma-size trend: auto-scaled to the data's mm range (values are small, e.g. 5–40mm)
+function sizeTrendSvg(vals){
+  const W = 240, H = 120, padX = 6, padY = 14;
+  let pts = vals.slice(); if(pts.length === 1) pts = [pts[0], pts[0]];
+  const m = pts.length, lo = Math.min(...pts), hi = Math.max(...pts), span = Math.max(2, hi - lo);
+  const ylo = lo - span*0.25, rng = (hi + span*0.25) - ylo;
+  const x = i => padX + (W - 2*padX) * (m === 1 ? 0 : i/(m-1));
+  const y = v => padY + (H - 2*padY) * (1 - (v - ylo)/rng);
+  const P = pts.map((v,i) => [x(i), y(v)]);
+  const line = P.map((p,i) => (i?'L':'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = `M${P[0][0].toFixed(1)} ${H} ` + P.map(p => 'L'+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ') + ` L${P[m-1][0].toFixed(1)} ${H} Z`;
+  const last = P[m-1];
+  return `<svg viewBox="0 0 240 120" width="100%" height="120" preserveAspectRatio="none">
+    <defs><linearGradient id="sfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#20305c" stop-opacity=".18"/><stop offset="1" stop-color="#20305c" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#sfill)"/>
+    <path d="${line}" fill="none" stroke="#20305c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="#20305c" stroke="#fff" stroke-width="2"/>
+  </svg>`;
+}
+async function loadSizeTrend(){
+  const card = $('#sizeCard'); if(!card) return;
+  const { data, error } = await sb.from('diary_photos').select('created_at,quality').order('created_at',{ascending:true}).limit(60);
+  const rows = (!error && data ? data : []).filter(r => r.quality && r.quality.chart && typeof r.quality.chart.equiv === 'number');
+  if(rows.length < 1){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  const vals = rows.slice(-10).map(r => +r.quality.chart.equiv);
+  $('#sizeChart').innerHTML = sizeTrendSvg(vals);
+  const first = vals[0], last = vals[vals.length-1], diff = +(last - first).toFixed(1);
+  const pill = Math.abs(diff) < 1 ? '→ Steady' : (diff < 0 ? `↓ ${diff} mm` : `↑ +${diff} mm`);
+  $('#sizePill').textContent = pill; $('#sizePill').className = 'pill t';   // neutral: size change ≠ good/bad
+  $('#sizeLegend').innerHTML =
+    `<span><b>${last.toFixed(1)} mm</b> latest</span>` +
+    `<span style="margin-left:auto">${rows.length} chart photo${rows.length>1?'s':''}` +
+    (vals.length>1 ? ` · ${diff>=0?'+':''}${diff} mm vs first` : '') + `</span>`;
+}
 async function loadProgress(){
+  loadSizeTrend();
   $('#qolChart').innerHTML = ''; $('#qolLegend').innerHTML = '<span class="muted">Loading your trend…</span>';
   $('#streakText').textContent = 'Loading…'; $('#streakRing').innerHTML = ringSvg(0);
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:true}).limit(60);
