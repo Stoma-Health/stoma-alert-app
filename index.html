@@ -706,6 +706,7 @@
       </div>
       <div class="rep-card">
         <div class="rep-h">Per-patient summary</div>
+        <input class="input" id="repSearch" type="search" placeholder="Search by patient name…" autocomplete="off" style="margin-bottom:10px">
         <div class="rep-table" id="repTable"></div>
       </div>
       <button class="btn" id="exportCsv">⤓ Export check-ins (CSV)</button>
@@ -2561,10 +2562,19 @@ async function loadReports(){
   const mx = Math.max(1, ...days.map(x => x.n));
   $('#repSpark').innerHTML = days.map(x => `<div class="col"><div class="bar" style="height:${Math.round(x.n/mx*100)}%">${x.n?`<b>${x.n}</b>`:''}</div><div class="dy">${x.d.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2)}</div></div>`).join('');
   pts.sort((p,q) => caseRank(p) - caseRank(q) || q.count - p.count);
-  $('#repTable').innerHTML = pts.length ? pts.map(p => {
+  repAll = pts;
+  renderRepTable();
+}
+let repAll = [];
+function renderRepTable(){
+  const el = $('#repTable'); if(!el) return;
+  if(!repAll.length){ el.innerHTML = '<div class="empty">No check-ins yet.</div>'; return; }
+  const q = ($('#repSearch')?.value || '').trim().toLowerCase();
+  const pts = q ? repAll.filter(p => (p.name||'').toLowerCase().includes(q)) : repAll;
+  el.innerHTML = pts.length ? pts.map(p => {
     const c = colourFor(Math.min(p.latest.output,p.latest.skin,p.latest.comfort,p.latest.mood)), t = p.trend;
     return `<div class="rr"><span class="dot ${c}"></span><span class="nm">${esc(p.name)}</span><span class="mt">${p.count} check-in${p.count>1?'s':''} · ${relTime(p.latest.created_at)}</span><span class="tr ${t.dir}">${t.ar} ${t.lbl}</span></div>`;
-  }).join('') : '<div class="empty">No check-ins yet.</div>';
+  }).join('') : `<div class="empty">No patients matching “${esc(q)}”.</div>`;
 }
 function exportCsv(){
   if(!reportRows.length){ toast('Nothing to export yet'); return; }
@@ -2579,6 +2589,7 @@ function exportCsv(){
   toast('CSV exported ✓');
 }
 $('#refreshReports').onclick = loadReports;
+$('#repSearch').oninput = renderRepTable;
 $('#exportCsv').onclick = exportCsv;
 
 // ---------- boot / routing ----------
