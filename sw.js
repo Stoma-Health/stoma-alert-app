@@ -1,6 +1,6 @@
 // Stoma Alert — prototype service worker (network-first so updates show immediately)
-const CACHE = 'stoma-alert-app-v65';
-const SHELL = ['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/apple-touch-icon.png'];
+const CACHE = 'stoma-alert-app-v66';
+const SHELL = ['./','./index.html','./chart-worker.js','./manifest.webmanifest','./icons/icon-192.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -14,7 +14,7 @@ self.addEventListener('activate', e => {
 // Never cache Supabase/API or the JS CDN; network-first for everything else, cache as offline fallback.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.hostname.endsWith('supabase.co') || url.hostname.includes('esm.sh') || url.hostname.includes('opencv.org')) return;
+  if (e.request.method !== 'GET' || url.hostname.endsWith('supabase.co') || url.hostname.includes('esm.sh') || url.hostname.includes('jsdelivr.net')) return;
   e.respondWith(
     fetch(e.request).then(res => {
       if (res.ok && url.origin === self.location.origin) {
