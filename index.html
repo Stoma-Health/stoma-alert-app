@@ -180,6 +180,21 @@
   .thumbs .th.sel{outline:2px solid var(--teal);outline-offset:1px;}
   .shutter{width:62px;height:62px;border-radius:50%;background:#fff;border:4px solid var(--teal);margin:4px auto 0;box-shadow:0 6px 16px -8px rgba(10,138,143,.7);cursor:pointer;}
   .shutter:active{transform:scale(.94);}
+  /* camera mode: reclaim the fixed chrome so viewfinder + shutter sit on one screen */
+  .app.cam-mode .ribbon,
+  .app.cam-mode .topbar{display:none;}
+  .app.cam-mode .view[data-view="capture"]{padding-top:calc(var(--safe-t) + 10px);}
+  .app.cam-mode .view[data-view="capture"] > .kic:first-child,
+  .app.cam-mode .view[data-view="capture"] > .h{display:none;}
+  /* collapsible photo tips — compact by default so the camera leads */
+  details.captips{padding:0;}
+  details.captips > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:700;color:var(--ink);padding:11px 13px;}
+  details.captips > summary::-webkit-details-marker{display:none;}
+  details.captips > summary .chev{margin-left:auto;transition:transform .2s;color:var(--mist);}
+  details.captips[open] > summary .chev{transform:rotate(180deg);}
+  details.captips > summary .tipicon{width:16px;height:16px;stroke:var(--teal);fill:none;stroke-width:2;}
+  details.captips .tipbody{padding:0 13px 12px;}
   .qbadge{position:absolute;top:12px;left:12px;font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:100px;color:#fff;z-index:2;}
   .qbadge.g{background:var(--green);} .qbadge.a{background:var(--amber);} .qbadge.r{background:var(--red);}
   .qwarn{font-size:11.5px;font-weight:600;border-radius:9px;padding:8px 11px;margin-bottom:6px;}
@@ -497,10 +512,15 @@
 
     <!-- PATIENT: CAPTURE (live — photo diary) -->
     <section class="view" data-view="capture">
-      <div class="kic">Image capture <span style="color:var(--mist);font-weight:600">· build v67 (bg-reader)</span></div>
+      <div class="kic">Image capture <span style="color:var(--mist);font-weight:600">· build v69 (camera mode + steady cam)</span></div>
       <div class="h">Stoma diary</div>
-      <div class="card" style="background:var(--teal-soft);border-color:rgba(32,48,92,.14)">
-        <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">For a photo your nurse can rely on</div>
+      <details class="card captips" style="background:var(--teal-soft);border-color:rgba(32,48,92,.14)">
+        <summary>
+          <svg class="tipicon" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg>
+          For a photo your nurse can rely on
+          <svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="tipbody">
         <ul style="margin:0;padding-left:17px;font-size:11.5px;color:var(--slate);line-height:1.6">
           <li>Good, even light — <b>no flash</b> (it causes glare)</li>
           <li>Hold the phone square-on and <b>fill the frame</b></li>
@@ -514,7 +534,8 @@
         <label style="display:flex;align-items:center;gap:8px;margin-top:11px;font-size:11.5px;color:var(--slate);cursor:pointer">
           <input type="checkbox" id="capChartMode" style="width:16px;height:16px;flex:0 0 auto">
           <span>I'm using the <b>reference chart</b> <span style="color:var(--mist)">(experimental — corrects colour and measures stoma size in mm; loads a one-off module)</span></span></label>
-      </div>
+        </div>
+      </details>
       <div class="viewfinder" id="capViewfinder">
         <video id="capVideo" playsinline muted autoplay style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0"></video>
         <img id="capPreview" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2">
@@ -899,6 +920,8 @@ function showView(name){
   // leaving a thread? drop the realtime channel
   if(name!=='messages' && name!=='nmessages' && msgChannel){ sb.removeChannel(msgChannel); msgChannel=null; }
   $('#views').scrollTop = 0;
+  // camera mode: drop the fixed chrome so the viewfinder + shutter fit one screen
+  document.querySelector('.app').classList.toggle('cam-mode', name==='capture');
   if(name==='history') loadHistory();
   if(name==='checkin') renderInterview();
   if(name==='capture'){ capEnter(); loadPhotoDiary(); } else { capStopCamera(); }
@@ -1373,7 +1396,7 @@ async function processCaptured(src){
   catch(err){ capColour = { assessed:false, reason:'Colour analysis unavailable for this photo.', method:'skin-anchor-v1' }; }
   const v = qualityVerdict(capMetrics);
   capBlob = await toJpegBlob(src, CAP_MAX, 0.85);
-  capStopCamera();                                   // freeze on the captured shot
+  const lv = $('#capVideo'); if(lv){ try { lv.pause(); } catch(_){} }  // freeze the view but KEEP the stream — avoids re-prompting getUserMedia next shot
   if(capObjUrl){ URL.revokeObjectURL(capObjUrl); }
   capObjUrl = URL.createObjectURL(capBlob);
   $('#capPreview').src = capObjUrl; $('#capPreview').style.display = 'block';
@@ -1396,6 +1419,16 @@ async function processCaptured(src){
 }
 // live camera path (getUserMedia) — lets the circle overlay a real feed
 async function capStartCamera(){
+  // reuse an already-granted stream — don't call getUserMedia again (that re-fires Safari's "Camera access allowed" banner every shot)
+  if(capStream && capStream.getVideoTracks().some(t => t.readyState === 'live')){
+    const v = $('#capVideo'); v.srcObject = capStream; v.style.display = 'block';
+    await v.play().catch(() => {});
+    capMode = 'live';
+    $('#capGuide').style.display = ''; $('#capHint').style.display = ''; $('#capHint').textContent = 'Line the stoma up inside the circle';
+    $('#capShutterSub').textContent = 'Tap to take the photo';
+    $('#capCamErr').style.display = 'none'; $('#capEnableCam').style.display = 'none';
+    return;
+  }
   if(!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
     capFallback('This browser is blocking the live camera. Open the app in Safari or Chrome (not inside Telegram/another app), then tap below.');
     return;
