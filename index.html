@@ -182,7 +182,7 @@
   .shutter:active{transform:scale(.94);}
   /* camera mode: reclaim the fixed chrome so viewfinder + shutter sit on one screen */
   .app.cam-mode .ribbon,
-  .app.cam-mode .topbar{display:none;}
+  .app.cam-mode .topbar{display:none !important;}  /* !important: JS sets an inline display on #topbar which would otherwise win */
   .app.cam-mode .view[data-view="capture"]{padding-top:calc(var(--safe-t) + 10px);}
   .app.cam-mode .view[data-view="capture"] > .kic:first-child,
   .app.cam-mode .view[data-view="capture"] > .h{display:none;}
@@ -512,7 +512,7 @@
 
     <!-- PATIENT: CAPTURE (live — photo diary) -->
     <section class="view" data-view="capture">
-      <div class="kic">Image capture <span style="color:var(--mist);font-weight:600">· build v69 (camera mode + steady cam)</span></div>
+      <div class="kic">Image capture <span style="color:var(--mist);font-weight:600">· build v70 (camera mode + steady cam)</span></div>
       <div class="h">Stoma diary</div>
       <details class="card captips" style="background:var(--teal-soft);border-color:rgba(32,48,92,.14)">
         <summary>
