@@ -497,7 +497,7 @@
 
     <!-- PATIENT: CAPTURE (live — photo diary) -->
     <section class="view" data-view="capture">
-      <div class="kic">Image capture</div>
+      <div class="kic">Image capture <span style="color:var(--mist);font-weight:600">· build v67 (bg-reader)</span></div>
       <div class="h">Stoma diary</div>
       <div class="card" style="background:var(--teal-soft);border-color:rgba(32,48,92,.14)">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">For a photo your nurse can rely on</div>
@@ -1290,7 +1290,7 @@ function renderColour(cc){
 // plain (card-free) photo is still saved. The pipeline itself lives, verbatim, in the worker.
 const chartHdr = () => `<div style="font-weight:700;font-size:13px;margin-bottom:6px">Reference chart <span style="font-weight:600;color:var(--mist);font-size:11px">· experimental</span></div>`;
 const CHART_ROI_DIAM_MM = 120;        // printed chart window (mm) — recorded on capChart.scaleMm
-const CHART_WORKER_V = 66;            // bump with the sw.js CACHE version to bust a stale worker
+const CHART_WORKER_V = 67;            // bump with the sw.js CACHE version to bust a stale worker
 const CHART_READ_TIMEOUT = 25000;     // kill a stuck read after 25s — the UI must never freeze
 
 let _chartWorker = null, _chartGen = 0;
@@ -1306,7 +1306,7 @@ async function runChartReader(src){
   capChart = null;                                    // fresh read; only set on a successful measure
   const el = $('#capChart'); el.style.display = '';
   const step = t => { if(gen === _chartGen) el.innerHTML = chartHdr() + `<div class="qwarn a">${esc(t)}</div>`; };
-  step('Loading the vision module (one-off, ~8 MB)…');
+  step('Reading the chart in the background — the app stays responsive…');
 
   // scale to the 1200px working size on the main thread, then hand the raw pixels to the worker
   const cnv = drawScaled(src, 1200);
