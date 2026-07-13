@@ -330,6 +330,16 @@
   .counts .c{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;}
   .counts .c .n{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;}
   .counts .c .l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mist);margin-top:4px;}
+  /* patient progress — per-dimension breakdown */
+  .dimrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);}
+  .dimrow:first-child{border-top:0;padding-top:2px;}
+  .dimrow .dl{font-size:12.5px;font-weight:700;width:62px;flex:0 0 auto;}
+  .dimrow .dbar{flex:1;height:7px;border-radius:100px;background:var(--wash);overflow:hidden;}
+  .dimrow .dbar>span{display:block;height:100%;border-radius:100px;background:var(--teal);transition:width .4s ease;}
+  .dimrow .dv{font-size:12px;font-weight:700;color:var(--slate);width:32px;text-align:right;flex:0 0 auto;font-variant-numeric:tabular-nums;}
+  .dimrow .pill{flex:0 0 auto;min-width:58px;text-align:center;}
+  #qolWeek{font-size:12px;color:var(--slate);margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
+  #qolWeek b{color:var(--ink);}
   /* nurse caseload — portal styling */
   .cl-intro{font-size:12.5px;color:var(--slate);margin:-6px 0 14px;line-height:1.45;}
   .cl-intro b{color:var(--teal-deep);font-weight:700;}
@@ -674,10 +684,21 @@
     <section class="view" data-view="progress">
       <div class="kic">Outcome tracking</div>
       <div class="h">Your progress</div>
+      <div class="counts" id="progStats">
+        <div class="c"><div class="n" id="statCheckins">—</div><div class="l">Check-ins</div></div>
+        <div class="c"><div class="n" id="statDays">—</div><div class="l">Days tracked</div></div>
+        <div class="c"><div class="n" id="statPhotos">—</div><div class="l">Photos</div></div>
+      </div>
       <div class="card">
         <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Confidence &amp; quality of life</div><span class="pill t" id="qolPill">Building…</span></div>
         <div class="chart" id="qolChart"></div>
         <div class="legend" id="qolLegend"><span class="muted">Loading your trend…</span></div>
+        <div id="qolWeek" style="display:none"></div>
+      </div>
+      <div class="card" id="dimCard" style="display:none">
+        <div class="row" style="justify-content:space-between;margin-bottom:2px"><div style="font-size:12.5px;font-weight:700">How each area is tracking</div></div>
+        <div class="ssub" style="margin-bottom:8px">Your own ratings — trend vs. your earlier check-ins. A guide, not a diagnosis.</div>
+        <div id="dimRows"></div>
       </div>
       <div class="card" id="sizeCard" style="display:none">
         <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Stoma size <span style="font-weight:600;color:var(--mist);font-size:11px">· from reference-chart photos</span></div><span class="pill t" id="sizePill">—</span></div>
@@ -1994,18 +2015,59 @@ async function loadSizeTrend(){
     `<span style="margin-left:auto">${rows.length} chart photo${rows.length>1?'s':''}` +
     (vals.length>1 ? ` · ${diff>=0?'+':''}${diff} mm vs first` : '') + `</span>`;
 }
+const avg = a => a.reduce((s,v) => s + v, 0) / a.length;
+// per-dimension breakdown — un-collapses the four ratings behind the wellbeing index
+function renderDimensions(recent){
+  const DIMS = [['output','Output'],['skin','Skin'],['comfort','Comfort'],['mood','Mood']];
+  const rows = DIMS.map(([k,label]) => {
+    const vals = recent.map(r => r[k]).filter(v => typeof v === 'number');
+    if(!vals.length) return '';
+    const cur = avg(vals.slice(-3)), base = avg(vals.slice(0, Math.min(3, vals.length))), delta = cur - base;
+    const [ptxt,pcls] = delta > 0.3 ? ['↑ Improving','g'] : (delta < -0.3 ? ['↓ Easing','a'] : ['→ Steady','t']);
+    return `<div class="dimrow"><span class="dl">${label}</span>` +
+      `<span class="dbar"><span style="width:${Math.round(cur/5*100)}%"></span></span>` +
+      `<span class="dv">${cur.toFixed(1)}</span>` +
+      `<span class="pill ${pcls}">${ptxt}</span></div>`;
+  }).filter(Boolean).join('');
+  if(rows){ $('#dimRows').innerHTML = rows; $('#dimCard').style.display = ''; }
+  else $('#dimCard').style.display = 'none';
+}
+// this-week vs last-week wellbeing delta
+function renderWeekDelta(data){
+  const el = $('#qolWeek'), now = Date.now(), wk = 7*864e5;
+  const thisW = data.filter(r => now - new Date(r.created_at).getTime() < wk);
+  const lastW = data.filter(r => { const g = now - new Date(r.created_at).getTime(); return g >= wk && g < 2*wk; });
+  if(!thisW.length){ el.style.display = 'none'; return; }
+  const tw = Math.round(avg(thisW.map(wellbeing)));
+  let html = `Wellbeing this week: <b>${tw}%</b>`;
+  if(lastW.length){
+    const d = tw - Math.round(avg(lastW.map(wellbeing)));
+    html += ` · <b style="color:${d>=0?'var(--green)':'var(--amber)'}">${d>=0?'+':''}${d}</b> vs last week`;
+  }
+  el.innerHTML = html; el.style.display = '';
+}
 async function loadProgress(){
   loadSizeTrend();
   $('#qolChart').innerHTML = ''; $('#qolLegend').innerHTML = '<span class="muted">Loading your trend…</span>';
+  $('#qolWeek').style.display = 'none'; $('#dimCard').style.display = 'none';
   $('#streakText').textContent = 'Loading…'; $('#streakRing').innerHTML = ringSvg(0);
+  // at-a-glance: diary photo count (independent of check-ins)
+  const { count: photoCount } = await sb.from('diary_photos').select('id',{count:'exact',head:true});
+  $('#statPhotos').textContent = photoCount ?? 0;
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:true}).limit(60);
   if(error){ $('#qolLegend').innerHTML = `<span class="muted">${error.message}</span>`; return; }
   if(!data.length){
+    $('#statCheckins').textContent = '0'; $('#statDays').textContent = '0';
     $('#qolChart').innerHTML = '<div class="empty" style="padding:24px 8px">No check-ins yet — submit a few and your wellbeing trend appears here.</div>';
     $('#qolLegend').innerHTML = ''; $('#qolPill').textContent = '—'; $('#qolPill').className = 'pill t';
     $('#streakText').textContent = 'No check-ins logged yet'; $('#streakRing').innerHTML = ringSvg(0);
     return;
   }
+  // at-a-glance counts
+  $('#statCheckins').textContent = data.length;
+  const d0 = new Date(data[0].created_at); d0.setHours(0,0,0,0);
+  const dNow = new Date(); dNow.setHours(0,0,0,0);
+  $('#statDays').textContent = Math.round((dNow - d0)/864e5) + 1;
   // wellbeing trend (last 10 check-ins, oldest→newest)
   const recent = data.slice(-10);
   const scores = recent.map(wellbeing);
@@ -2017,6 +2079,8 @@ async function loadProgress(){
     `<span><b>${last}%</b> wellbeing index</span>` +
     `<span style="margin-left:auto">${data.length} check-in${data.length>1?'s':''}` +
     (scores.length>1 ? ` · <b style="color:${diff>=0?'#4f9d7b':'var(--amber)'}">${diff>=0?'+':''}${diff}%</b> vs first` : '') + `</span>`;
+  renderWeekDelta(data);          // this week vs last week
+  renderDimensions(recent);       // per-dimension breakdown
   // adherence streak: distinct days logged in the last 28
   const cutoff = Date.now() - 28*864e5, days = new Set();
   data.forEach(r => { const t = new Date(r.created_at); if(t.getTime() >= cutoff) days.add(t.toISOString().slice(0,10)); });
