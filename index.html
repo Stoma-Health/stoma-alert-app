@@ -807,7 +807,11 @@
       <div class="kic">Admin</div>
       <div class="h">Supplies overview</div>
       <div class="cl-intro">Reorder demand across all patients — <b>broken down by supplier and by product.</b></div>
-      <div class="counts" id="asupTop"></div>
+      <div class="counts counts-tap" id="asupTop"></div>
+      <div class="rep-card" id="asupDrillCard" style="display:none">
+        <div class="rep-h" id="asupDrillH"></div>
+        <div class="rep-table" id="asupDrill"></div>
+      </div>
       <div class="rep-card">
         <div class="rep-h">By supplier</div>
         <div id="asupBySupplier"><div class="empty">Loading…</div></div>
@@ -2778,6 +2782,7 @@ async function loadAdminSupplies(){
     $('#asupTop').innerHTML=''; $('#asupBySupplier').innerHTML=msg; $('#asupByProduct').innerHTML=msg; $('#asupMatrix').innerHTML=msg;
     return;
   }
+  asupRows = data; asupView = null; $('#asupDrillCard').style.display = 'none';
   const bySupplier = {}, byProduct = {}, matrix = {}, patients = new Set();
   data.forEach(r => {
     const sup = (r.supplier && r.supplier.trim()) || 'Not specified';
@@ -2788,9 +2793,14 @@ async function loadAdminSupplies(){
     if(r.patient_email || r.patient_name) patients.add(r.patient_email || r.patient_name);
   });
   $('#asupTop').innerHTML = `
-    <div class="c"><div class="n" style="color:var(--teal)">${data.length}</div><div class="l">Reorders</div></div>
-    <div class="c"><div class="n" style="color:var(--teal)">${patients.size}</div><div class="l">Patients</div></div>
-    <div class="c"><div class="n" style="color:var(--teal)">${Object.keys(bySupplier).length}</div><div class="l">Suppliers</div></div>`;
+    <div class="c" data-av="reorders"><div class="n" style="color:var(--teal)">${data.length}</div><div class="l">Reorders</div></div>
+    <div class="c" data-av="patients"><div class="n" style="color:var(--teal)">${patients.size}</div><div class="l">Patients</div></div>
+    <div class="c" data-av="suppliers"><div class="n" style="color:var(--teal)">${Object.keys(bySupplier).length}</div><div class="l">Suppliers</div></div>`;
+  $('#asupTop').querySelectorAll('.c').forEach(c => c.onclick = () => {
+    asupView = (asupView === c.dataset.av) ? null : c.dataset.av;
+    document.querySelectorAll('#asupTop .c').forEach(x => x.classList.toggle('active', x.dataset.av === asupView));
+    renderAsupDrill();
+  });
   const bars = map => {
     const es = Object.entries(map).sort((a,b)=>b[1]-a[1]);
     if(!es.length) return '<div class="empty">No reorders yet.</div>';
@@ -2807,6 +2817,37 @@ async function loadAdminSupplies(){
     ? rows.map(([k,v]) => { const [sup,prod] = k.split(' ‹|› ');
         return `<div class="rr"><span class="nm">${esc(sup)}</span><span class="mt">${esc(prod)}</span><span class="tr">${v}</span></div>`; }).join('')
     : '<div class="empty">No reorders yet.</div>';
+  renderAsupDrill();
+}
+let asupRows = [], asupView = null;
+function renderAsupDrill(){
+  const card = $('#asupDrillCard'); if(!card) return;
+  if(!asupView){ card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const nm = r => r.patient_email || r.patient_name || 'Patient';
+  const when = r => new Date(r.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  if(asupView === 'reorders'){
+    $('#asupDrillH').textContent = `All reorders (${asupRows.length})`;
+    $('#asupDrill').innerHTML = asupRows.length ? asupRows.map(r =>
+      `<div class="rr"><span class="nm">${esc(r.patient_name || nm(r))}</span><span class="mt">${esc((r.supplier&&r.supplier.trim())||'Not specified')} · ${esc((r.item&&r.item.trim())||REORDER_ITEM)}</span><span class="tr">${when(r)}</span></div>`).join('')
+      : '<div class="empty">No reorders yet.</div>';
+  } else if(asupView === 'patients'){
+    const by = {};
+    asupRows.forEach(r => { const k = nm(r); (by[k] = by[k] || { name:r.patient_name||k, n:0, latest:r.created_at }).n++; });
+    const es = Object.values(by).sort((a,b)=>b.n-a.n);
+    $('#asupDrillH').textContent = `Patients (${es.length})`;
+    $('#asupDrill').innerHTML = es.length ? es.map(p =>
+      `<div class="rr"><span class="nm">${esc(p.name)}</span><span class="mt">${p.n} reorder${p.n!==1?'s':''}</span><span class="tr">${relTime(p.latest)}</span></div>`).join('')
+      : '<div class="empty">No patients yet.</div>';
+  } else if(asupView === 'suppliers'){
+    const by = {};
+    asupRows.forEach(r => { const s = (r.supplier&&r.supplier.trim())||'Not specified'; by[s] = (by[s]||0)+1; });
+    const es = Object.entries(by).sort((a,b)=>b[1]-a[1]);
+    $('#asupDrillH').textContent = `Suppliers (${es.length})`;
+    $('#asupDrill').innerHTML = es.length ? es.map(([s,n]) =>
+      `<div class="rr"><span class="nm">${esc(s)}</span><span class="mt">${n} reorder${n!==1?'s':''}</span><span class="tr"></span></div>`).join('')
+      : '<div class="empty">No suppliers yet.</div>';
+  }
 }
 $('#asupRefresh').onclick = loadAdminSupplies;
 
