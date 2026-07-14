@@ -336,6 +336,9 @@
   .counts .c{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;}
   .counts .c .n{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;}
   .counts .c .l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mist);margin-top:4px;}
+  .counts-tap .c{cursor:pointer;transition:border-color .15s, background .15s, transform .05s;}
+  .counts-tap .c:active{transform:scale(.98);}
+  .counts-tap .c.active{border-color:var(--teal);background:var(--teal-soft);}
   /* patient progress — per-dimension breakdown */
   .dimrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);}
   .dimrow:first-child{border-top:0;padding-top:2px;}
@@ -761,11 +764,13 @@
 
     <!-- NURSE: CASELOAD -->
     <section class="view" data-view="caseload">
-      <div class="kic">Nurse portal</div>
+      <div class="kic" id="caseKic">Nurse portal</div>
       <div class="h">Today's caseload</div>
-      <div class="cl-intro">Patients sorted by who may need attention first — <b>flagged for review, not diagnosed.</b></div>
-      <div class="counts" id="counts"></div>
+      <div class="cl-intro">Tap a group to open those patients, search by name, or pick a date — <b>flagged for review, not diagnosed.</b></div>
+      <div class="counts counts-tap" id="counts"></div>
       <input class="input" id="caseSearch" type="search" placeholder="Search by patient name…" autocomplete="off" style="margin-bottom:12px">
+      <button class="chkPill" id="casePill" type="button" aria-expanded="false" aria-controls="caseCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
+      <div class="cal chkList collapsed" id="caseCal"></div>
       <div id="caseloadList"></div>
       <button class="btn ghost" id="refreshCaseload">Refresh</button>
     </section>
@@ -2508,6 +2513,7 @@ function caseRow(p){
     </div></div>`;
 }
 async function loadCaseload(){
+  caseFilter = null; caseDate = null;
   $('#caseloadList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
   if(error){ $('#caseloadList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
@@ -2524,20 +2530,39 @@ async function loadCaseload(){
   pts.sort((a,b) => caseRank(a) - caseRank(b) || (new Date(b.latest.created_at) - new Date(a.latest.created_at)));
   let red=0,a=0,g=0; pts.forEach(p => { const rk = caseRank(p); if(rk===0)red++; else if(rk===1)a++; else g++; });
   $('#counts').innerHTML = `
-    <div class="c"><div class="n" style="color:var(--red)">${red}</div><div class="l">For review</div></div>
-    <div class="c"><div class="n" style="color:var(--amber)">${a}</div><div class="l">Watch</div></div>
-    <div class="c"><div class="n" style="color:var(--green)">${g}</div><div class="l">Settled</div></div>`;
+    <div class="c" data-band="0"><div class="n" style="color:var(--red)">${red}</div><div class="l">For review</div></div>
+    <div class="c" data-band="1"><div class="n" style="color:var(--amber)">${a}</div><div class="l">Watch</div></div>
+    <div class="c" data-band="2"><div class="n" style="color:var(--green)">${g}</div><div class="l">Settled</div></div>`;
+  $('#counts').querySelectorAll('.c').forEach(c => c.onclick = () => {
+    const b = +c.dataset.band; caseFilter = (caseFilter === b) ? null : b; renderCaseList();
+  });
   caseAll = pts;
+  // cross-patient calendar (collapsed) — day colour = worst check-in that day; picking a day filters patients
+  const calItems = data.map(r => ({ ts:r.created_at, colour: colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) }));
+  caseCal = mountCalendar($('#caseCal'), calItems, dayKey => { caseDate = dayKey; renderCaseList(); });
+  wireChkPill($('#casePill'), $('#caseCal'), { show:'Show calendar', hide:'Hide calendar' });
+  $('#caseKic').textContent = (typeof myRole !== 'undefined' && myRole === 'admin') ? 'Admin' : 'Nurse portal';
   renderCaseList();
 }
-let caseAll = [];
+let caseAll = [], caseFilter = null, caseDate = null, caseCal = null;
 function renderCaseList(){
   const el = $('#caseloadList'); if(!el) return;
-  const q = ($('#caseSearch')?.value || '').trim().toLowerCase();
+  document.querySelectorAll('#counts .c').forEach(c => c.classList.toggle('active', +c.dataset.band === caseFilter));
   if(!caseAll.length){ el.innerHTML = '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>'; return; }
-  const pts = q ? caseAll.filter(p => (p.name||'').toLowerCase().includes(q)) : caseAll;
-  el.innerHTML = pts.length ? pts.map(caseRow).join('')
-    : `<div class="empty">No patients matching “${esc(q)}”.</div>`;
+  const q = ($('#caseSearch')?.value || '').trim().toLowerCase();
+  let pts = caseAll;
+  if(caseDate) pts = pts.filter(p => p.rows ? p.rows.some(r => ymdLocal(r.created_at) === caseDate)
+                                            : (casePatients[p.key]?.rows || []).some(r => ymdLocal(r.created_at) === caseDate));
+  if(q) pts = pts.filter(p => (p.name||'').toLowerCase().includes(q));
+  if(caseFilter !== null) pts = pts.filter(p => caseRank(p) === caseFilter);
+  if(caseFilter === null && !caseDate && !q){
+    el.innerHTML = '<div class="empty" style="padding:22px 8px">Tap a group above, search a name, or pick a date to see patients.</div>';
+    return;
+  }
+  const dateNote = caseDate ? `<div class="histfilter" style="margin-bottom:10px">Check-ins on <b>${niceDay(caseDate)}</b> · ${pts.length} patient${pts.length!==1?'s':''}<button data-caseclear>Clear date</button></div>` : '';
+  el.innerHTML = dateNote + (pts.length ? pts.map(caseRow).join('')
+    : `<div class="empty">No patients match.</div>`);
+  const clr = el.querySelector('[data-caseclear]'); if(clr) clr.onclick = () => { caseDate = null; if(caseCal) caseCal.clear(); renderCaseList(); };
   el.querySelectorAll('.cl-row').forEach(row => row.onclick = () => openPatientDetail(row.dataset.key));
 }
 // nurse → tap a caseload patient → see the scoring data behind the flag
