@@ -552,7 +552,8 @@
       <div class="h">Past check-ins</div>
       <button class="chkPill" id="diaryPill" type="button" aria-expanded="false" aria-controls="diaryCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
       <div class="cal chkList collapsed" id="diaryCal"></div>
-      <div id="historyList"></div>
+      <button class="chkPill" id="diaryHistPill" type="button" aria-expanded="false" aria-controls="historyWrap" style="margin-top:2px"><span class="chkLbl">Previous check-ins</span><span class="chev">▾</span></button>
+      <div class="chkList collapsed" id="historyWrap"><div id="historyList"></div></div>
     </section>
 
     <!-- PATIENT: CAPTURE (live — photo diary) -->
@@ -2084,8 +2085,10 @@ async function loadHistory(){
   histAll = data || []; histSel = null;
   histCal = mountCalendar($('#diaryCal'),
     histAll.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
-    key => { histSel = key; renderHistoryList(); });
+    key => { histSel = key; renderHistoryList();
+      if(key){ $('#historyWrap').classList.remove('collapsed'); $('#diaryHistPill').classList.add('open'); } });
   histPillApi = wireChkPill($('#diaryPill'), $('#diaryCal'), {show:'Show calendar', hide:'Hide calendar'});
+  wireChkPill($('#diaryHistPill'), $('#historyWrap'), {show:`Previous check-ins${histAll.length?` (${histAll.length})`:''}`, hide:'Previous check-ins'});
   renderHistoryList();
 }
 function renderHistoryList(){
