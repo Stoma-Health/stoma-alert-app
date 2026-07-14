@@ -2662,16 +2662,19 @@ function openPatientDetail(key){
     <div class="rep-h" style="margin:2px 2px 8px">Photo diary</div>
     <button class="chkPill" id="ndetailPhotoPill" type="button" aria-expanded="false" aria-controls="ndetailPhotosWrap"><span class="chkLbl">Show photo diary</span><span class="chev">▾</span></button>
     <div class="chkList collapsed" id="ndetailPhotosWrap"><div class="photodiary" id="ndetailPhotos"><div class="empty">Loading…</div></div></div>
-    <div class="rep-h" style="margin:14px 2px 8px">Check-in history</div>
+    <div class="rep-h" style="margin:14px 2px 8px">History</div>
     <button class="chkPill" id="ndetailPill" type="button" aria-expanded="false" aria-controls="ndetailCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
     <div class="cal chkList collapsed" id="ndetailCal"></div>
-    <div id="ndetailHistory"></div>`;
+    <button class="chkPill" id="ndetailHistPill" type="button" aria-expanded="false" aria-controls="ndetailHistoryWrap" style="margin-top:2px"><span class="chkLbl">Check-in history</span><span class="chev">▾</span></button>
+    <div class="chkList collapsed" id="ndetailHistoryWrap"><div id="ndetailHistory"></div></div>`;
   showView('ndetail');
   ndetailRows = p.rows; ndetailSel = null;
   ndetailCal = mountCalendar($('#ndetailCal'),
     p.rows.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
-    dayKey => { ndetailSel = dayKey; renderNdetailHistory(); });
+    dayKey => { ndetailSel = dayKey; renderNdetailHistory();
+      if(dayKey){ $('#ndetailHistoryWrap').classList.remove('collapsed'); $('#ndetailHistPill').classList.add('open'); } });
   ndPillApi = wireChkPill($('#ndetailPill'), $('#ndetailCal'), {show:'Show calendar', hide:'Hide calendar'});
+  wireChkPill($('#ndetailHistPill'), $('#ndetailHistoryWrap'), {show:'Check-in history', hide:'Check-in history'});
   wireChkPill($('#ndetailPhotoPill'), $('#ndetailPhotosWrap'), {show:'Show photo diary', hide:'Hide photo diary'});
   renderNdetailHistory();
   loadNursePhotos(key);
