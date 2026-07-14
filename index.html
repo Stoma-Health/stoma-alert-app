@@ -473,11 +473,7 @@
         <button class="qa" data-go="learn"><span class="ic" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" stroke="#c98a17"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span><div><div class="t">Learning &amp; Education</div><div class="d">Guides &amp; videos</div></div></button>
         <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
       </div>
-      <div class="card" id="profileCard" data-go="profile" style="display:flex;align-items:center;gap:12px;cursor:pointer;margin-top:12px">
-        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--green-soft);flex:0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4f9d7b" stroke-width="1.9"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5" stroke-linecap="round"/></svg></span>
-        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Update your stoma profile</div><div class="ssub" id="profileSub">Tap to add your details</div></div>
-        <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
-      </div>
+      <!-- Home profile card removed 2026-07-14 — Profile is reached via the bottom tab; Update pill lives on the Profile page -->
 
       <!-- Community -->
       <div class="kic" style="margin-top:20px">Community</div>
@@ -495,7 +491,10 @@
 
     <!-- PATIENT: PROFILE (Part A — one-time details) -->
     <section class="view" data-view="profile">
-      <button class="btn ghost" id="profileBack" style="margin-bottom:14px;width:auto;padding:9px 14px">← Home</button>
+      <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px">
+        <button class="btn ghost" id="profileBack" style="width:auto;padding:9px 14px;margin:0">← Home</button>
+        <button class="chkPill chkPill--primary" id="pfUpdateTop" type="button" style="margin:0"><span class="chkLbl">Update</span></button>
+      </div>
       <div class="kic">Your details</div>
       <div class="h">Stoma profile</div>
       <div class="ssub" style="margin:-8px 0 16px">Held securely and shared with your care team. You can update this any time.</div>
@@ -1239,6 +1238,8 @@ $('#pfSave').onclick = async () => {
   updateProfileSub();
   showView('home');
 };
+// top-right "Update" pill mirrors the Save action
+$('#pfUpdateTop').onclick = () => $('#pfSave').click();
 
 // ---------- capture: stoma photo diary (Tier 1) ----------
 const CAP_MAX = 1600;        // max stored image dimension (px)
