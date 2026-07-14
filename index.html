@@ -2215,9 +2215,10 @@ function renderProgDrill(){
     progRows.forEach(r => { const k = ymdLocal(r.created_at); by[k] = (by[k]||0) + 1; });
     const days = Object.entries(by).sort((a,b) => a[0] < b[0] ? 1 : -1);
     $('#progDrillH').textContent = `Days you checked in (${days.length})`;
-    body.innerHTML = days.length ? days.map(([k,n]) =>
-      `<div class="rr"><span class="nm">${niceDay(k)}</span><span class="mt">${n} check-in${n!==1?'s':''}</span><span class="tr"></span></div>`).join('')
-      : '<div class="empty">No days tracked yet.</div>';
+    body.innerHTML = days.length ? days.map(([k,n]) => {
+      const label = new Date(k+'T00:00').toLocaleDateString('en-GB',{ weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      return `<div class="rr"><span class="nm">${label} - ${n} check-in${n!==1?'s':''}</span></div>`;
+    }).join('') : '<div class="empty">No days tracked yet.</div>';
   } else if(progView === 'photos'){
     $('#progDrillH').textContent = 'Your photos';
     body.innerHTML = '<div class="empty">Loading…</div>';
@@ -2250,7 +2251,7 @@ async function loadProgress(){
   // at-a-glance: diary photo count (independent of check-ins)
   const { count: photoCount } = await sb.from('diary_photos').select('id',{count:'exact',head:true});
   $('#statPhotos').textContent = photoCount ?? 0;
-  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:true}).limit(60);
+  const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:true}).limit(1000);
   if(error){ $('#qolLegend').innerHTML = `<span class="muted">${error.message}</span>`; return; }
   if(!data.length){
     $('#statCheckins').textContent = '0'; $('#statDays').textContent = '0';
