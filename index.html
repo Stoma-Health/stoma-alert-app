@@ -473,9 +473,8 @@
       </button>
       <div class="quick" style="margin-top:12px">
         <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
-        <!-- Message nurse quick-action hidden per request 2026-07-14 (Messages view + logic retained) -->
-        <button class="qa" data-go="learn"><span class="ic" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" stroke="#c98a17"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span><div><div class="t">Learning &amp; Education</div><div class="d">Guides &amp; videos</div></div></button>
         <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
+        <!-- Message nurse quick-action hidden 2026-07-14; Learning & Education moved to Community below -->
       </div>
       <!-- Home profile card removed 2026-07-14 — Profile is reached via the bottom tab; Update pill lives on the Profile page -->
 
@@ -491,6 +490,11 @@
         <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Join your WhatsApp community</div><div class="ssub">Chat &amp; quick support in the group</div></div>
         <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
       </a>
+      <button class="card" data-go="learn" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
+        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--amber-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c98a17" stroke-width="1.9"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span>
+        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Learning &amp; Education</div><div class="ssub">Guides &amp; videos</div></div>
+        <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
+      </button>
     </section>
 
     <!-- PATIENT: PROFILE (Part A — one-time details) -->
