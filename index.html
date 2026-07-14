@@ -1987,9 +1987,14 @@ async function loadNursePhotos(key){
   const el = $('#ndetailPhotos'); if(!el) return;
   const { data, error } = await sb.from('diary_photos').select('*').eq('patient_email', key).order('created_at',{ ascending:false }).limit(12);
   if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
-  if(!data.length){ el.innerHTML = '<div class="empty">No photos shared yet.</div>'; return; }
+  if(!data.length){ el.innerHTML = '<div class="empty">No photos shared yet.</div>'; setPhotoPillCount(0); return; }
   const signed = await signedUrls(data.map(r => r.path));
   renderPhotoGrid(el, data, signed, false);
+  setPhotoPillCount(data.length);
+}
+function setPhotoPillCount(n){
+  const lbl = $('#ndetailPhotoPill')?.querySelector('.chkLbl');
+  if(lbl && !$('#ndetailPhotoPill').classList.contains('open')) lbl.textContent = n ? `Show photo diary (${n})` : 'Show photo diary';
 }
 
 // ---------- history ----------
@@ -2655,7 +2660,8 @@ function openPatientDetail(key){
     </div>
     ${ivPanelHtml(r.details)}
     <div class="rep-h" style="margin:2px 2px 8px">Photo diary</div>
-    <div class="photodiary" id="ndetailPhotos"><div class="empty">Loading…</div></div>
+    <button class="chkPill" id="ndetailPhotoPill" type="button" aria-expanded="false" aria-controls="ndetailPhotosWrap"><span class="chkLbl">Show photo diary</span><span class="chev">▾</span></button>
+    <div class="chkList collapsed" id="ndetailPhotosWrap"><div class="photodiary" id="ndetailPhotos"><div class="empty">Loading…</div></div></div>
     <div class="rep-h" style="margin:14px 2px 8px">Check-in history</div>
     <button class="chkPill" id="ndetailPill" type="button" aria-expanded="false" aria-controls="ndetailCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
     <div class="cal chkList collapsed" id="ndetailCal"></div>
@@ -2666,6 +2672,7 @@ function openPatientDetail(key){
     p.rows.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
     dayKey => { ndetailSel = dayKey; renderNdetailHistory(); });
   ndPillApi = wireChkPill($('#ndetailPill'), $('#ndetailCal'), {show:'Show calendar', hide:'Hide calendar'});
+  wireChkPill($('#ndetailPhotoPill'), $('#ndetailPhotosWrap'), {show:'Show photo diary', hide:'Hide photo diary'});
   renderNdetailHistory();
   loadNursePhotos(key);
 }
