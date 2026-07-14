@@ -478,6 +478,14 @@
         <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Update your stoma profile</div><div class="ssub" id="profileSub">Tap to add your details</div></div>
         <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
       </div>
+
+      <!-- Community -->
+      <div class="kic" style="margin-top:20px">Community</div>
+      <a class="card" id="fbCommunity" href="#" data-fb-placeholder="1" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;margin-top:8px">
+        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#e7f0ff;flex:0 0 auto"><svg width="21" height="21" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg></span>
+        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Join our Facebook community</div><div class="ssub">Support &amp; tips from others on the same journey</div></div>
+        <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
+      </a>
     </section>
 
     <!-- PATIENT: PROFILE (Part A — one-time details) -->
@@ -1166,6 +1174,8 @@ $('#submitCheckin').onclick = async () => {
 };
 // note-for-nurse: collapsible box (feature not yet live)
 wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurse?', hide:'Anything to add for your nurse?'});
+// community: Facebook link (placeholder until real URL is wired in)
+$('#fbCommunity').addEventListener('click', e => { if(e.currentTarget.dataset.fbPlaceholder){ e.preventDefault(); toast('Facebook community link coming soon'); } });
 
 // ---------- patient profile (Part A) ----------
 async function loadProfile(){
