@@ -432,6 +432,7 @@
       <div class="roles">
         <button id="rolePatient" class="on" data-role="patient">🧑‍🦱 Patient</button>
         <button id="roleNurse" data-role="nurse">🩺 Stoma nurse</button>
+        <button id="roleAdmin" data-role="admin" style="grid-column:1 / -1">🛠️ Admin</button>
       </div>
     </div>
 
@@ -794,6 +795,37 @@
       <p class="ssub" style="text-align:center;margin-top:12px">Every submission is timestamped. Export keeps a record for audit and handover. Non-diagnostic.</p>
     </section>
 
+    <!-- ADMIN: SUPPLIES STATS -->
+    <section class="view" data-view="asupplies">
+      <div class="kic">Admin</div>
+      <div class="h">Supplies overview</div>
+      <div class="cl-intro">Reorder demand across all patients — <b>broken down by supplier and by product.</b></div>
+      <div class="counts" id="asupTop"></div>
+      <div class="rep-card">
+        <div class="rep-h">By supplier</div>
+        <div id="asupBySupplier"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="rep-card">
+        <div class="rep-h">By product</div>
+        <div id="asupByProduct"><div class="empty">Loading…</div></div>
+      </div>
+      <div class="rep-card">
+        <div class="rep-h">Supplier × product</div>
+        <div class="rep-table" id="asupMatrix"></div>
+      </div>
+      <button class="btn ghost" id="asupRefresh">Refresh</button>
+    </section>
+
+    <!-- ADMIN: CONTENT (management) -->
+    <section class="view" data-view="acontent">
+      <div class="kic">Admin</div>
+      <div class="h">Content</div>
+      <div class="cl-intro">Manage the words and lists patients see. <b>Editor coming in the next build.</b></div>
+      <div class="rep-card"><div class="rep-h">On the way</div>
+        <div class="ssub" style="line-height:1.6">Editable home &amp; check-in copy · supplier list · reorder products · product-helper FAQ · learning articles. Say the word and I'll wire these to save.</div>
+      </div>
+    </section>
+
     <!-- NURSE: PATIENT DETAIL (scoring behind a caseload flag) -->
     <section class="view" data-view="ndetail">
       <button class="btn ghost" id="ndetailBack" style="width:auto;padding:9px 14px;margin-bottom:14px">← Caseload</button>
@@ -814,6 +846,14 @@
     <button class="tab on" data-nview="caseload"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>Caseload</button>
     <button class="tab" data-nview="nmessages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
     <button class="tab" data-nview="reports"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3-4 3 2.5L19 7" stroke-linejoin="round"/></svg>Reports</button>
+  </nav>
+
+  <nav class="tabs" id="adminTabs" style="display:none">
+    <button class="tab on" data-nview="caseload"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5" stroke-linecap="round"/></svg>Patients</button>
+    <button class="tab" data-nview="nmessages"><svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/></svg>Messages</button>
+    <button class="tab" data-nview="reports"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3-4 3 2.5L19 7" stroke-linejoin="round"/></svg>Reports</button>
+    <button class="tab" data-nview="asupplies"><svg viewBox="0 0 24 24"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg>Supplies</button>
+    <button class="tab" data-nview="acontent"><svg viewBox="0 0 24 24"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg>Content</button>
   </nav>
 
   <div id="photoModal" class="pmodal">
@@ -925,7 +965,8 @@ function setMode(m){
 }
 $('#rolePatient').onclick = () => setRole('patient');
 $('#roleNurse').onclick   = () => setRole('nurse');
-function setRole(r){ signupRole=r; $('#rolePatient').classList.toggle('on',r==='patient'); $('#roleNurse').classList.toggle('on',r==='nurse'); }
+$('#roleAdmin').onclick   = () => setRole('admin');
+function setRole(r){ signupRole=r; $('#rolePatient').classList.toggle('on',r==='patient'); $('#roleNurse').classList.toggle('on',r==='nurse'); $('#roleAdmin').classList.toggle('on',r==='admin'); }
 
 $('#authBtn').onclick = async () => {
   clearMsg();
@@ -969,6 +1010,7 @@ function showView(name){
   const sec = document.querySelector(`.view[data-view="${name}"]`); if(sec) sec.classList.add('on');
   document.querySelectorAll('#patientTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.view===name));
   document.querySelectorAll('#nurseTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.nview===name));
+  document.querySelectorAll('#adminTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.nview===name));
   // leaving a thread? drop the realtime channel
   if(name!=='messages' && name!=='nmessages' && msgChannel){ sb.removeChannel(msgChannel); msgChannel=null; }
   $('#views').scrollTop = 0;
@@ -986,9 +1028,11 @@ function showView(name){
   if(name==='caseload') loadCaseload();
   if(name==='reports') loadReports();
   if(name==='nmessages') loadThreadList();
+  if(name==='asupplies') loadAdminSupplies();
 }
 $('#startCheckin').onclick = () => showView('checkin');
 document.querySelectorAll('#nurseTabs .tab').forEach(t => t.onclick = () => showView(t.dataset.nview));
+document.querySelectorAll('#adminTabs .tab').forEach(t => t.onclick = () => showView(t.dataset.nview));
 $('#ndetailBack').onclick = () => showView('caseload');
 
 // quick-action cards on Home → jump to designed screens
@@ -2202,13 +2246,16 @@ $('#reorderBtn').onclick = async () => {
   const u = (await sb.auth.getUser()).data.user;
   if(!u){ toast('Please sign in'); return; }
   $('#reorderBtn').disabled = true;
-  const { error } = await sb.from('reorders').insert({
+  const base = {
     user_id: u.id,
     patient_name: u.user_metadata?.full_name || u.email,
     patient_email: u.email,
     item: REORDER_ITEM,
     status: 'requested',
-  });
+  };
+  let { error } = await sb.from('reorders').insert({ ...base, supplier: mySupplier || null });
+  // migration 0009 (supplier column) not applied yet? fall back so reorders still work
+  if(error && /supplier/i.test(error.message)){ ({ error } = await sb.from('reorders').insert(base)); }
   $('#reorderBtn').disabled = false;
   if(error){ toast('Error: ' + error.message); return; }
   toast(mySupplier ? `Reorder placed with ${mySupplier} ✓` : 'Reorder placed ✓');
@@ -2602,6 +2649,48 @@ $('#refreshReports').onclick = loadReports;
 $('#repSearch').oninput = renderRepTable;
 $('#exportCsv').onclick = exportCsv;
 
+// ---------- admin: supplies overview (reorder demand by supplier × product) ----------
+async function loadAdminSupplies(){
+  const busy = '<div class="empty">Loading…</div>';
+  $('#asupBySupplier').innerHTML = busy; $('#asupByProduct').innerHTML = busy; $('#asupMatrix').innerHTML = busy;
+  const { data, error } = await sb.from('reorders').select('*').order('created_at',{ascending:false}).limit(1000);
+  if(error){
+    const msg = `<div class="empty">${esc(error.message)} — run migration 0009 in Supabase.</div>`;
+    $('#asupTop').innerHTML=''; $('#asupBySupplier').innerHTML=msg; $('#asupByProduct').innerHTML=msg; $('#asupMatrix').innerHTML=msg;
+    return;
+  }
+  const bySupplier = {}, byProduct = {}, matrix = {}, patients = new Set();
+  data.forEach(r => {
+    const sup = (r.supplier && r.supplier.trim()) || 'Not specified';
+    const prod = (r.item && r.item.trim()) || REORDER_ITEM;
+    bySupplier[sup] = (bySupplier[sup]||0) + 1;
+    byProduct[prod] = (byProduct[prod]||0) + 1;
+    const mk = sup + ' ‹|› ' + prod; matrix[mk] = (matrix[mk]||0) + 1;
+    if(r.patient_email || r.patient_name) patients.add(r.patient_email || r.patient_name);
+  });
+  $('#asupTop').innerHTML = `
+    <div class="c"><div class="n" style="color:var(--teal)">${data.length}</div><div class="l">Reorders</div></div>
+    <div class="c"><div class="n" style="color:var(--teal)">${patients.size}</div><div class="l">Patients</div></div>
+    <div class="c"><div class="n" style="color:var(--teal)">${Object.keys(bySupplier).length}</div><div class="l">Suppliers</div></div>`;
+  const bars = map => {
+    const es = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+    if(!es.length) return '<div class="empty">No reorders yet.</div>';
+    const mx = Math.max(...es.map(e=>e[1]));
+    return es.map(([k,v]) => `<div style="margin:9px 0">
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;margin-bottom:4px"><span>${esc(k)}</span><span style="color:var(--teal)">${v}</span></div>
+        <div style="height:8px;border-radius:100px;background:var(--wash);overflow:hidden"><span style="display:block;height:100%;width:${Math.round(v/mx*100)}%;background:var(--teal)"></span></div>
+      </div>`).join('');
+  };
+  $('#asupBySupplier').innerHTML = bars(bySupplier);
+  $('#asupByProduct').innerHTML = bars(byProduct);
+  const rows = Object.entries(matrix).sort((a,b)=>b[1]-a[1]);
+  $('#asupMatrix').innerHTML = rows.length
+    ? rows.map(([k,v]) => { const [sup,prod] = k.split(' ‹|› ');
+        return `<div class="rr"><span class="nm">${esc(sup)}</span><span class="mt">${esc(prod)}</span><span class="tr">${v}</span></div>`; }).join('')
+    : '<div class="empty">No reorders yet.</div>';
+}
+$('#asupRefresh').onclick = loadAdminSupplies;
+
 // ---------- boot / routing ----------
 async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
@@ -2613,10 +2702,12 @@ async function boot(){
   $('#authWrap').style.display = 'none';
   $('#topbar').style.display = 'flex';
   $('#views').style.display = 'block';
-  if(myRole === 'nurse'){
-    $('#roleBadge').style.display = 'inline-block';
+  if(myRole === 'nurse' || myRole === 'admin'){
+    const badge = $('#roleBadge');
+    badge.textContent = myRole === 'admin' ? 'Admin' : 'Nurse';
+    badge.style.display = 'inline-block';
     $('#patientTabs').style.display = 'none';
-    $('#nurseTabs').style.display = 'flex';
+    $(myRole === 'admin' ? '#adminTabs' : '#nurseTabs').style.display = 'flex';
     showView('caseload');
   } else {
     $('#patientTabs').style.display = 'flex';
@@ -2630,7 +2721,7 @@ async function boot(){
 function showAuth(){
   $('#authWrap').style.display='flex';
   $('#topbar').style.display='none'; $('#views').style.display='none';
-  $('#patientTabs').style.display='none';
+  $('#patientTabs').style.display='none'; $('#nurseTabs').style.display='none'; $('#adminTabs').style.display='none';
 }
 boot();
 
