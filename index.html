@@ -720,10 +720,14 @@
     <section class="view" data-view="progress">
       <div class="kic">Outcome tracking</div>
       <div class="h">Your progress</div>
-      <div class="counts" id="progStats">
-        <div class="c"><div class="n" id="statCheckins">—</div><div class="l">Check-ins</div></div>
-        <div class="c"><div class="n" id="statDays">—</div><div class="l">Days tracked</div></div>
-        <div class="c"><div class="n" id="statPhotos">—</div><div class="l">Photos</div></div>
+      <div class="counts counts-tap" id="progStats">
+        <div class="c" data-pv="checkins"><div class="n" id="statCheckins">—</div><div class="l">Check-ins</div></div>
+        <div class="c" data-pv="days"><div class="n" id="statDays">—</div><div class="l">Days tracked</div></div>
+        <div class="c" data-pv="photos"><div class="n" id="statPhotos">—</div><div class="l">Photos</div></div>
+      </div>
+      <div class="card" id="progDrillCard" style="display:none">
+        <div class="rep-h" id="progDrillH"></div>
+        <div id="progDrill"></div>
       </div>
       <div class="card">
         <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Confidence &amp; quality of life</div><span class="pill t" id="qolPill">Building…</span></div>
@@ -2193,8 +2197,49 @@ function renderWeekDelta(data){
   }
   el.innerHTML = html; el.style.display = '';
 }
+let progView = null, progRows = [];
+function renderProgDrill(){
+  const card = $('#progDrillCard'); if(!card) return;
+  if(!progView){ card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const body = $('#progDrill');
+  if(progView === 'checkins'){
+    $('#progDrillH').textContent = `Your check-ins (${progRows.length})`;
+    body.innerHTML = progRows.length ? progRows.map(r => rowHtml(r, false)).join('') : '<div class="empty">No check-ins yet.</div>';
+  } else if(progView === 'days'){
+    const by = {};
+    progRows.forEach(r => { const k = ymdLocal(r.created_at); by[k] = (by[k]||0) + 1; });
+    const days = Object.entries(by).sort((a,b) => a[0] < b[0] ? 1 : -1);
+    $('#progDrillH').textContent = `Days you checked in (${days.length})`;
+    body.innerHTML = days.length ? days.map(([k,n]) =>
+      `<div class="rr"><span class="nm">${niceDay(k)}</span><span class="mt">${n} check-in${n!==1?'s':''}</span><span class="tr"></span></div>`).join('')
+      : '<div class="empty">No days tracked yet.</div>';
+  } else if(progView === 'photos'){
+    $('#progDrillH').textContent = 'Your photos';
+    body.innerHTML = '<div class="empty">Loading…</div>';
+    loadProgressPhotos();
+  }
+}
+async function loadProgressPhotos(){
+  const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ascending:false}).limit(24);
+  if(progView !== 'photos') return;   // user switched away while loading
+  const body = $('#progDrill');
+  if(error){ body.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(!data.length){ body.innerHTML = '<div class="empty">No photos yet.</div>'; return; }
+  $('#progDrillH').textContent = `Your photos (${data.length})`;
+  const signed = await signedUrls(data.map(r => r.path));
+  const grid = document.createElement('div'); grid.className = 'photodiary';
+  body.innerHTML = ''; body.appendChild(grid);
+  renderPhotoGrid(grid, data, signed, false);
+}
 async function loadProgress(){
   loadSizeTrend();
+  progView = null; progRows = []; $('#progDrillCard').style.display = 'none';
+  document.querySelectorAll('#progStats .c').forEach(c => c.onclick = () => {
+    progView = (progView === c.dataset.pv) ? null : c.dataset.pv;
+    document.querySelectorAll('#progStats .c').forEach(x => x.classList.toggle('active', x.dataset.pv === progView));
+    renderProgDrill();
+  });
   $('#qolChart').innerHTML = ''; $('#qolLegend').innerHTML = '<span class="muted">Loading your trend…</span>';
   $('#qolWeek').style.display = 'none'; $('#dimCard').style.display = 'none';
   $('#streakText').textContent = 'Loading…'; $('#streakRing').innerHTML = ringSvg(0);
@@ -2212,9 +2257,11 @@ async function loadProgress(){
   }
   // at-a-glance counts
   $('#statCheckins').textContent = data.length;
+  progRows = data.slice().reverse();   // newest-first for the drill
   const d0 = new Date(data[0].created_at); d0.setHours(0,0,0,0);
   const dNow = new Date(); dNow.setHours(0,0,0,0);
   $('#statDays').textContent = Math.round((dNow - d0)/864e5) + 1;
+  if(progView) renderProgDrill();   // refresh drill if one was open
   // wellbeing trend (last 10 check-ins, oldest→newest)
   const recent = data.slice(-10);
   const scores = recent.map(wellbeing);
