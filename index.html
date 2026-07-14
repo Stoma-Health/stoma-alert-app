@@ -229,6 +229,12 @@
   .chkPill:active{background:var(--wash);}
   .chkPill .chev{font-size:11px;color:var(--mist);transition:transform .18s ease;}
   .chkPill.open .chev{transform:rotate(180deg);}
+  .chkPill--primary{background:var(--teal);color:#fff;border-color:var(--teal);font-weight:700;padding:9px 18px;margin:6px 0 12px;}
+  .chkPill--primary:active{background:var(--teal-deep);}
+  .chkPill--primary .chkLbl{font-size:13.5px;}
+  .chkPill--primary svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;}
+  .pill.soon{background:var(--wash);color:var(--slate);border:1px solid var(--line);font-weight:700;}
+  .btn .pill.soon{background:rgba(255,255,255,.18);color:#fff;border-color:transparent;}
   .chkList.collapsed{display:none;}
   .pmodal{position:fixed;inset:0;z-index:60;background:rgba(10,14,20,.72);display:none;align-items:flex-end;justify-content:center;}
   .pmodal.on{display:flex;}
@@ -505,10 +511,23 @@
       <div class="kic">Daily check-in</div>
       <div class="h">How are things today?</div>
       <div id="interviewForm"></div>
-      <label class="fl">Anything to add for your nurse? (optional)</label>
-      <textarea class="input" id="note" rows="2" placeholder="e.g. skin a little sore this morning"></textarea>
-      <button class="btn" id="submitCheckin">Share with care team
+
+      <!-- Update: saves today's check-in (the working action) -->
+      <button class="chkPill chkPill--primary" id="submitCheckin" type="button">
+        <span class="chkLbl">Update</span>
         <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+      <!-- Note for nurse — collapsible, not yet live -->
+      <button class="chkPill" id="notePill" type="button" aria-expanded="false" aria-controls="noteWrap">
+        <span class="chkLbl">Anything to add for your nurse?</span>
+        <span class="pill soon">Coming soon</span><span class="chev">▾</span></button>
+      <div class="chkList collapsed" id="noteWrap" style="margin-top:2px">
+        <textarea class="input" id="note" rows="2" placeholder="e.g. skin a little sore this morning"></textarea>
+      </div>
+
+      <!-- Share with care team — not yet live -->
+      <button class="btn" id="shareCareTeam" type="button" disabled style="margin-top:12px">Share with care team
+        <span class="pill soon">Coming soon</span></button>
     </section>
 
     <!-- PATIENT: DIARY / HISTORY -->
@@ -1141,10 +1160,12 @@ $('#submitCheckin').onclick = async () => {
   });
   $('#submitCheckin').disabled = false;
   if(error){ toast('Error: '+error.message); return; }
-  toast('Shared with your care team ✓');
-  $('#homeStatus').textContent = 'Check-in shared — thank you';
+  toast('Check-in updated ✓');
+  $('#homeStatus').textContent = 'Check-in saved — thank you';
   showView('history');
 };
+// note-for-nurse: collapsible box (feature not yet live)
+wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurse?', hide:'Anything to add for your nurse?'});
 
 // ---------- patient profile (Part A) ----------
 async function loadProfile(){
