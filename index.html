@@ -780,7 +780,14 @@
       <div class="kic">Nurse portal</div>
       <div class="h">Reports &amp; audit</div>
       <div class="cl-intro">A summary of caseload activity — <b>for monitoring and record-keeping, not diagnosis.</b></div>
-      <div class="counts" id="repTop"></div>
+      <div class="counts counts-tap" id="repTop"></div>
+      <button class="chkPill" id="repCalPill" type="button" aria-expanded="false" aria-controls="repCal" style="margin-bottom:6px"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
+      <div class="cal chkList collapsed" id="repCal"></div>
+      <div class="rep-card">
+        <div class="rep-h" id="repDrillH">Per-patient summary</div>
+        <input class="input" id="repSearch" type="search" placeholder="Search by patient name…" autocomplete="off" style="margin-bottom:10px">
+        <div class="rep-table" id="repDrill"></div>
+      </div>
       <div class="rep-card">
         <div class="rep-h">Caseload status</div>
         <div class="rep-bar" id="repBar"></div>
@@ -789,11 +796,6 @@
       <div class="rep-card">
         <div class="rep-h">Check-ins · last 7 days</div>
         <div class="rep-spark" id="repSpark"></div>
-      </div>
-      <div class="rep-card">
-        <div class="rep-h">Per-patient summary</div>
-        <input class="input" id="repSearch" type="search" placeholder="Search by patient name…" autocomplete="off" style="margin-bottom:10px">
-        <div class="rep-table" id="repTable"></div>
       </div>
       <button class="btn" id="exportCsv">⤓ Export check-ins (CSV)</button>
       <button class="btn ghost" id="refreshReports">Refresh</button>
@@ -2631,10 +2633,11 @@ $('#caseSearch').oninput = renderCaseList;
 // ---------- nurse reports & audit ----------
 let reportRows = [];
 async function loadReports(){
-  $('#repTable').innerHTML = '<div class="empty">Loading…</div>';
+  $('#repDrill').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(500);
-  if(error){ $('#repTable').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  if(error){ $('#repDrill').innerHTML = `<div class="empty">${error.message}</div>`; return; }
   reportRows = data;
+  repView = 'patients'; repDate = null;
   const groups = {};
   data.forEach(r => { const k = r.patient_email || r.patient_name || '?'; (groups[k] = groups[k] || []).push(r); });
   const pts = Object.entries(groups).map(([k, rows]) => {
@@ -2643,10 +2646,16 @@ async function loadReports(){
   });
   let red=0,a=0,g=0; pts.forEach(p => { const rk = caseRank(p); if(rk===0)red++; else if(rk===1)a++; else g++; });
   const wk = data.filter(r => (Date.now() - new Date(r.created_at)) < 7*86400000).length;
-  $('#repTop').innerHTML = `
-    <div class="c"><div class="n" style="color:var(--teal)">${pts.length}</div><div class="l">Patients</div></div>
-    <div class="c"><div class="n" style="color:var(--teal)">${data.length}</div><div class="l">Check-ins</div></div>
-    <div class="c"><div class="n" style="color:var(--teal)">${wk}</div><div class="l">This week</div></div>`;
+  repTiles = [
+    { rv:'patients', n:pts.length,   l:'Patients' },
+    { rv:'checkins', n:data.length,  l:'Check-ins' },
+    { rv:'week',     n:wk,           l:'This week' },
+  ];
+  renderRepTiles();
+  // collapsible calendar — pick a day to see that day's check-ins
+  const calItems = data.map(r => ({ ts:r.created_at, colour: colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) }));
+  repCal = mountCalendar($('#repCal'), calItems, dayKey => { repDate = dayKey; repView = dayKey ? 'date' : 'patients'; renderRepTiles(); renderRepDrill(); });
+  wireChkPill($('#repCalPill'), $('#repCal'), { show:'Show calendar', hide:'Hide calendar' });
   const tot = Math.max(1, red+a+g);
   $('#repBar').innerHTML = `<span class="r" style="width:${red/tot*100}%"></span><span class="a" style="width:${a/tot*100}%"></span><span class="g" style="width:${g/tot*100}%"></span>`;
   $('#repLegend').innerHTML = `
@@ -2660,18 +2669,49 @@ async function loadReports(){
   $('#repSpark').innerHTML = days.map(x => `<div class="col"><div class="bar" style="height:${Math.round(x.n/mx*100)}%">${x.n?`<b>${x.n}</b>`:''}</div><div class="dy">${x.d.toLocaleDateString('en-GB',{weekday:'short'}).slice(0,2)}</div></div>`).join('');
   pts.sort((p,q) => caseRank(p) - caseRank(q) || q.count - p.count);
   repAll = pts;
-  renderRepTable();
+  renderRepDrill();
 }
-let repAll = [];
-function renderRepTable(){
-  const el = $('#repTable'); if(!el) return;
-  if(!repAll.length){ el.innerHTML = '<div class="empty">No check-ins yet.</div>'; return; }
+let repAll = [], repView = 'patients', repDate = null, repCal = null, repTiles = [];
+function renderRepTiles(){
+  $('#repTop').innerHTML = repTiles.map(t =>
+    `<div class="c${(repView===t.rv && !repDate)?' active':''}" data-rv="${t.rv}"><div class="n" style="color:var(--teal)">${t.n}</div><div class="l">${t.l}</div></div>`).join('');
+  $('#repTop').querySelectorAll('.c').forEach(c => c.onclick = () => {
+    repView = c.dataset.rv; repDate = null; if(repCal) repCal.clear(); renderRepTiles(); renderRepDrill();
+  });
+}
+function patientRow(p){
+  const c = colourFor(Math.min(p.latest.output,p.latest.skin,p.latest.comfort,p.latest.mood)), t = p.trend;
+  return `<div class="rr"><span class="dot ${c}"></span><span class="nm">${esc(p.name)}</span><span class="mt">${p.count} check-in${p.count>1?'s':''} · ${relTime(p.latest.created_at)}</span><span class="tr ${t.dir}">${t.ar} ${t.lbl}</span></div>`;
+}
+function checkinRow(r){
+  const c = colourFor(Math.min(r.output,r.skin,r.comfort,r.mood));
+  const when = new Date(r.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const flags = ivFlags(r.details).map(x => x.t);
+  const sub = flags.length ? flags.slice(0,2).join(' · ') : 'No issues reported';
+  return `<div class="rr"><span class="dot ${c}"></span><span class="nm">${esc(r.patient_name||r.patient_email||'Patient')}</span><span class="mt">${when}</span><span class="tr">${esc(sub)}</span></div>`;
+}
+function renderRepDrill(){
+  const el = $('#repDrill'); if(!el) return;
   const q = ($('#repSearch')?.value || '').trim().toLowerCase();
+  const nameOf = r => (r.patient_name || r.patient_email || '').toLowerCase();
+  if(repDate){
+    const rows = reportRows.filter(r => ymdLocal(r.created_at) === repDate && (!q || nameOf(r).includes(q)));
+    $('#repDrillH').textContent = `Check-ins on ${niceDay(repDate)} (${rows.length})`;
+    el.innerHTML = rows.length ? rows.map(checkinRow).join('') : `<div class="empty">No check-ins on this day${q?' matching “'+esc(q)+'”':''}.</div>`;
+    return;
+  }
+  if(repView === 'checkins' || repView === 'week'){
+    let rows = repView === 'week' ? reportRows.filter(r => (Date.now() - new Date(r.created_at)) < 7*86400000) : reportRows;
+    if(q) rows = rows.filter(r => nameOf(r).includes(q));
+    $('#repDrillH').textContent = (repView === 'week' ? "This week's check-ins" : 'All check-ins') + ` (${rows.length})`;
+    el.innerHTML = rows.length ? rows.map(checkinRow).join('') : `<div class="empty">No check-ins${q?' matching “'+esc(q)+'”':''}.</div>`;
+    return;
+  }
+  // default: per-patient summary
+  $('#repDrillH').textContent = 'Per-patient summary';
+  if(!repAll.length){ el.innerHTML = '<div class="empty">No check-ins yet.</div>'; return; }
   const pts = q ? repAll.filter(p => (p.name||'').toLowerCase().includes(q)) : repAll;
-  el.innerHTML = pts.length ? pts.map(p => {
-    const c = colourFor(Math.min(p.latest.output,p.latest.skin,p.latest.comfort,p.latest.mood)), t = p.trend;
-    return `<div class="rr"><span class="dot ${c}"></span><span class="nm">${esc(p.name)}</span><span class="mt">${p.count} check-in${p.count>1?'s':''} · ${relTime(p.latest.created_at)}</span><span class="tr ${t.dir}">${t.ar} ${t.lbl}</span></div>`;
-  }).join('') : `<div class="empty">No patients matching “${esc(q)}”.</div>`;
+  el.innerHTML = pts.length ? pts.map(patientRow).join('') : `<div class="empty">No patients matching “${esc(q)}”.</div>`;
 }
 function exportCsv(){
   if(!reportRows.length){ toast('Nothing to export yet'); return; }
@@ -2686,7 +2726,7 @@ function exportCsv(){
   toast('CSV exported ✓');
 }
 $('#refreshReports').onclick = loadReports;
-$('#repSearch').oninput = renderRepTable;
+$('#repSearch').oninput = renderRepDrill;
 $('#exportCsv').onclick = exportCsv;
 
 // ---------- admin: supplies overview (reorder demand by supplier × product) ----------
