@@ -467,7 +467,7 @@
       </div>
       <button class="statuscard" id="startCheckin" style="display:block;width:100%;text-align:left;border:none;cursor:pointer;font:inherit">
         <div class="big" id="homeStatus">Ready for your check-in</div>
-        <div class="smt">A 60-second check-in keeps you in the loop.</div>
+        <div class="smt" id="homeSub">A 60-second check-in keeps you in the loop.</div>
         <div class="row" style="justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;font-weight:700;font-size:14px;color:#fff">Start today's check-in
           <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       </button>
@@ -525,7 +525,7 @@
     <!-- PATIENT: CHECK-IN -->
     <section class="view" data-view="checkin">
       <div class="kic">Daily check-in</div>
-      <div class="h">How are things today?</div>
+      <div class="h" id="checkinHeading">How are things today?</div>
       <div id="interviewForm"></div>
 
       <!-- Update: saves today's check-in (the working action) -->
@@ -652,7 +652,7 @@
       <div class="h">Your supplies</div>
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your supplier</div>
-        <div class="ssub" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
+        <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
         <div class="suppliers" id="supplierPicker"></div>
         <a id="supplierOpen" class="sup-open attn" target="_blank" rel="noopener noreferrer" style="display:none">Open website ↗</a>
         <a id="supplierAdvice" class="sup-advice" target="_blank" rel="noopener noreferrer">Advice &amp; support ↗</a>
@@ -827,9 +827,47 @@
     <section class="view" data-view="acontent">
       <div class="kic">Admin</div>
       <div class="h">Content</div>
-      <div class="cl-intro">Manage the words and lists patients see. <b>Editor coming in the next build.</b></div>
-      <div class="rep-card"><div class="rep-h">On the way</div>
-        <div class="ssub" style="line-height:1.6">Editable home &amp; check-in copy · supplier list · reorder products · product-helper FAQ · learning articles. Say the word and I'll wire these to save.</div>
+      <div class="cl-intro">Edit what patients see. Each section saves on its own and applies for everyone.</div>
+      <div id="acStatus"></div>
+
+      <div class="rep-card">
+        <div class="rep-h">App copy</div>
+        <label class="fl">Home check-in subtitle</label>
+        <input class="input" id="acHomeSub">
+        <label class="fl">Check-in heading</label>
+        <input class="input" id="acCheckinHeading">
+        <label class="fl">Supplier picker help</label>
+        <input class="input" id="acSupplierHelp">
+        <button class="btn" data-acsave="copy">Save copy</button>
+      </div>
+
+      <div class="rep-card">
+        <div class="rep-h">Suppliers</div>
+        <div class="ssub" style="margin-bottom:8px">One per line — the options patients choose from on the Supplies screen.</div>
+        <textarea class="input" id="acSuppliers" rows="9"></textarea>
+        <button class="btn" data-acsave="suppliers">Save suppliers</button>
+      </div>
+
+      <div class="rep-card">
+        <div class="rep-h">Reorder &amp; products</div>
+        <label class="fl">Default reorder item</label>
+        <input class="input" id="acReorderItem">
+        <label class="fl">Product checklist (patient profile) — one per line</label>
+        <textarea class="input" id="acProducts" rows="9"></textarea>
+        <button class="btn" data-acsave="products">Save reorder &amp; products</button>
+      </div>
+
+      <div class="rep-card">
+        <div class="rep-h">Product-helper FAQ</div>
+        <div id="acFaqList"></div>
+        <button class="btn ghost" id="acFaqAdd" style="margin-bottom:10px">+ Add question</button>
+        <button class="btn" data-acsave="faq">Save FAQ</button>
+      </div>
+
+      <div class="rep-card">
+        <div class="rep-h">Learning articles</div>
+        <div id="acGuideList"></div>
+        <button class="btn" data-acsave="guides">Save articles</button>
       </div>
     </section>
 
@@ -921,7 +959,7 @@ const IV_WARN = new Set(['Weakness','Nausea','Itchy','Warm / hot','Enlarged','Na
 
 // ---------- patient profile schema (Part A) ----------
 const PROFILE_TYPES = ['Ileostomy','Colostomy','Urostomy'];
-const PROFILE_PRODUCTS = [
+let PROFILE_PRODUCTS = [
   'Stoma bags','Sealing paste (with alcohol)','Sealing paste (alcohol-free)','Strip paste',
   'Barrier cream / paste','Sealing ring','Healing powder','Protective wipe (second skin)',
   'Protective spray (alcohol-free)','Skin cleansing wipes','Skin cleanser','Skin cleansing foam',
@@ -1036,6 +1074,7 @@ function showView(name){
   if(name==='reports') loadReports();
   if(name==='nmessages') loadThreadList();
   if(name==='asupplies') loadAdminSupplies();
+  if(name==='acontent') loadAdminContent();
 }
 $('#startCheckin').onclick = () => showView('checkin');
 document.querySelectorAll('#nurseTabs .tab').forEach(t => t.onclick = () => showView(t.dataset.nview));
@@ -2179,8 +2218,8 @@ async function loadProgress(){
 }
 
 // ---------- supplies / reorders (live) ----------
-const REORDER_ITEM = 'Drainable pouch · 60mm';
-const SUPPLIERS = ['Fittleworth','Coloplast Charter','SecuriCare','Amcare','Bullen','Respond','Salts Healthcare','Medilink','Other'];
+let REORDER_ITEM = 'Drainable pouch · 60mm';
+let SUPPLIERS = ['Fittleworth','Coloplast Charter','SecuriCare','Amcare','Bullen','Respond','Salts Healthcare','Medilink','Other'];
 const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering page
   'Fittleworth':'https://www.fittleworth.com/order-online/',
   'Coloplast Charter':'https://www.coloplastcharter.co.uk/products-and-samples/',
@@ -2270,7 +2309,7 @@ $('#reorderBtn').onclick = async () => {
 };
 
 // ---------- product support triage ----------
-const FAQ = {
+let FAQ = {
   'Leaks':        { q:'My bag keeps leaking', a:`Most leaks come down to fit. Re-measure your stoma (it changes size in the early weeks), check the baseplate hole matches with no skin showing, and warm the baseplate in your hands before applying to help it seal. A barrier ring or paste can fill any dips or creases. If leaks keep happening, your supplier can reassess your template — and message your nurse if the skin is getting sore.` },
   'Sore skin':    { q:'Sore skin around my stoma', a:`Sore skin is usually from leakage or an appliance that doesn't fit snugly. Clean gently with warm water (no soaps or creams that leave residue), dry fully before reapplying, and check the hole isn't cut too big. ⚠️ If the skin stays red, broken or weepy for more than 48 hours, please message your nurse.` },
   'Ballooning':   { q:'Ballooning / trapped wind', a:`Ballooning is gas filling the bag. A bag with an integrated filter helps a lot, and you can release gas via the outlet on a drainable bag. Eating slowly and easing off very gassy foods (fizzy drinks, beans) can reduce it. Your supplier can recommend filtered options.` },
@@ -2309,7 +2348,7 @@ $('#optSupplier').onclick = openSupplierSite;
 $('#optNurse').onclick = () => showView('messages');
 
 // ---------- education library (content in-app, completion in Supabase) ----------
-const GUIDES = [
+let GUIDES = [
   { id:'skin-care', cat:'Skin care', theme:'t1', icon:'▶', minutes:4, type:'video', note:'Recommended',
     body:`<h4>Why skin care matters</h4><p>Healthy skin around your stoma (the peristomal skin) is the foundation of a comfortable, leak-free routine. A little daily care prevents most soreness before it starts.</p>
     <h4>A simple daily routine</h4><ul><li>Gently clean the skin with warm water and a soft cloth — no soaps, wipes or creams that leave a residue.</li><li>Pat completely dry before applying a new appliance; moisture stops it sticking.</li><li>Measure your stoma every week or two in the early period — it changes size as swelling settles.</li><li>Cut or mould the baseplate to fit snugly, with no skin exposed and no pressure on the stoma.</li></ul>
@@ -2771,6 +2810,135 @@ async function loadAdminSupplies(){
 }
 $('#asupRefresh').onclick = loadAdminSupplies;
 
+// ---------- admin: content editor (prototype; edits persisted in site_content) ----------
+const CONTENT_DEFAULTS = {
+  copy: {
+    homeSub: 'A 60-second check-in keeps you in the loop.',
+    checkinHeading: 'How are things today?',
+    supplierHelp: 'Choose who delivers your stoma products.',
+  },
+  suppliers: SUPPLIERS.slice(),
+  products: PROFILE_PRODUCTS.slice(),
+  reorderItem: REORDER_ITEM,
+  faq: Object.entries(FAQ).map(([k,v]) => ({ k, q:v.q, a:v.a })),
+  guides: GUIDES.map(g => ({ id:g.id, cat:g.cat, note:g.note, body:g.body })),
+};
+let CONTENT = JSON.parse(JSON.stringify(CONTENT_DEFAULTS));
+const linesOf = s => s.split('\n').map(x => x.trim()).filter(Boolean);
+
+function applyContent(){
+  const setTxt = (id,v) => { const el = $('#'+id); if(el && v!=null && v!=='') el.textContent = v; };
+  setTxt('homeSub', CONTENT.copy.homeSub);
+  setTxt('checkinHeading', CONTENT.copy.checkinHeading);
+  setTxt('supplierHelp', CONTENT.copy.supplierHelp);
+  if(Array.isArray(CONTENT.suppliers) && CONTENT.suppliers.length) SUPPLIERS = CONTENT.suppliers.slice();
+  if(Array.isArray(CONTENT.products) && CONTENT.products.length) PROFILE_PRODUCTS = CONTENT.products.slice();
+  if(CONTENT.reorderItem) REORDER_ITEM = CONTENT.reorderItem;
+  if(Array.isArray(CONTENT.faq) && CONTENT.faq.length){
+    const o = {}; CONTENT.faq.forEach(f => { if(f.k) o[f.k] = { q:f.q||'', a:f.a||'' }; });
+    if(Object.keys(o).length) FAQ = o;
+  }
+  if(Array.isArray(CONTENT.guides)) CONTENT.guides.forEach(gc => {
+    const g = GUIDES.find(x => x.id === gc.id);
+    if(g){ if(gc.cat) g.cat = gc.cat; if(gc.note) g.note = gc.note; if(gc.body) g.body = gc.body; }
+  });
+}
+async function loadContent(){
+  try {
+    const { data, error } = await sb.from('site_content').select('key,value');
+    if(!error && data) data.forEach(row => {
+      if(row.key === 'copy' && row.value) CONTENT.copy = { ...CONTENT.copy, ...row.value };
+      else if(row.key in CONTENT && row.value != null) CONTENT[row.key] = row.value;
+    });
+  } catch(_e){ /* table not set up yet → keep defaults */ }
+  applyContent();
+}
+async function saveContent(key, value){
+  const { error } = await sb.from('site_content').upsert(
+    { key, value, updated_at: new Date().toISOString() }, { onConflict:'key' });
+  return error;
+}
+
+let acFaqDraft = [], acGuideDraft = [];
+function loadAdminContent(){
+  $('#acHomeSub').value = CONTENT.copy.homeSub || '';
+  $('#acCheckinHeading').value = CONTENT.copy.checkinHeading || '';
+  $('#acSupplierHelp').value = CONTENT.copy.supplierHelp || '';
+  $('#acSuppliers').value = (CONTENT.suppliers || []).join('\n');
+  $('#acReorderItem').value = CONTENT.reorderItem || '';
+  $('#acProducts').value = (CONTENT.products || []).join('\n');
+  acFaqDraft = (CONTENT.faq || []).map(f => ({ ...f }));
+  acGuideDraft = (CONTENT.guides || []).map(g => ({ ...g }));
+  renderAcFaq(); renderAcGuides();
+}
+function syncAcFaqFromDom(){
+  acFaqDraft = [...$('#acFaqList').querySelectorAll('[data-faqrow]')].map(row => ({
+    k: row.querySelector('[data-fk]').value.trim(),
+    q: row.querySelector('[data-fq]').value.trim(),
+    a: row.querySelector('[data-fa]').value.trim(),
+  }));
+}
+function renderAcFaq(){
+  $('#acFaqList').innerHTML = acFaqDraft.map((f,i) => `
+    <div data-faqrow style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--wash)">
+      <label class="fl">Label (chip)</label><input class="input" data-fk value="${esc(f.k||'')}">
+      <label class="fl">Question</label><input class="input" data-fq value="${esc(f.q||'')}">
+      <label class="fl">Answer</label><textarea class="input" data-fa rows="3">${esc(f.a||'')}</textarea>
+      <button class="btn ghost" data-faqdel="${i}" style="margin:0">Remove</button>
+    </div>`).join('') || '<div class="ssub" style="margin-bottom:10px">No questions yet.</div>';
+  $('#acFaqList').querySelectorAll('[data-faqdel]').forEach(b => b.onclick = () => {
+    syncAcFaqFromDom(); acFaqDraft.splice(+b.dataset.faqdel, 1); renderAcFaq();
+  });
+}
+function renderAcGuides(){
+  $('#acGuideList').innerHTML = acGuideDraft.map(g => `
+    <div data-guiderow data-gid="${esc(g.id)}" style="border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--wash)">
+      <div style="font-weight:700;font-size:12.5px;margin-bottom:6px">${esc(GUIDE_TITLES[g.id] || g.id)}</div>
+      <label class="fl">Category label</label><input class="input" data-gcat value="${esc(g.cat||'')}">
+      <label class="fl">Note</label><input class="input" data-gnote value="${esc(g.note||'')}">
+      <label class="fl">Body (HTML)</label><textarea class="input" data-gbody rows="6">${esc(g.body||'')}</textarea>
+    </div>`).join('');
+}
+function syncAcGuidesFromDom(){
+  acGuideDraft = [...$('#acGuideList').querySelectorAll('[data-guiderow]')].map(row => ({
+    id: row.dataset.gid,
+    cat: row.querySelector('[data-gcat]').value.trim(),
+    note: row.querySelector('[data-gnote]').value.trim(),
+    body: row.querySelector('[data-gbody]').value,
+  }));
+}
+$('#acFaqAdd').onclick = () => { syncAcFaqFromDom(); acFaqDraft.push({ k:'', q:'', a:'' }); renderAcFaq(); };
+document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async () => {
+  const sec = btn.dataset.acsave; btn.disabled = true;
+  let err = null;
+  if(sec === 'copy'){
+    CONTENT.copy = { homeSub:$('#acHomeSub').value.trim(), checkinHeading:$('#acCheckinHeading').value.trim(), supplierHelp:$('#acSupplierHelp').value.trim() };
+    err = await saveContent('copy', CONTENT.copy);
+  } else if(sec === 'suppliers'){
+    CONTENT.suppliers = linesOf($('#acSuppliers').value);
+    err = await saveContent('suppliers', CONTENT.suppliers);
+  } else if(sec === 'products'){
+    CONTENT.reorderItem = $('#acReorderItem').value.trim();
+    CONTENT.products = linesOf($('#acProducts').value);
+    err = await saveContent('reorderItem', CONTENT.reorderItem) || await saveContent('products', CONTENT.products);
+  } else if(sec === 'faq'){
+    syncAcFaqFromDom(); CONTENT.faq = acFaqDraft.filter(f => f.k);
+    err = await saveContent('faq', CONTENT.faq);
+  } else if(sec === 'guides'){
+    syncAcGuidesFromDom(); CONTENT.guides = acGuideDraft;
+    err = await saveContent('guides', CONTENT.guides);
+  }
+  btn.disabled = false;
+  if(err){
+    toast('Save failed: ' + err.message);
+    $('#acStatus').innerHTML = `<div class="empty" style="padding:12px">Couldn't save — ${esc(err.message)}. Run migration 0010 (site_content) in Supabase.</div>`;
+    return;
+  }
+  $('#acStatus').innerHTML = '';
+  applyContent();
+  toast('Saved ✓');
+});
+
 // ---------- boot / routing ----------
 async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
@@ -2779,6 +2947,7 @@ async function boot(){
   myUid = u.id;
   myRole = u.user_metadata?.role || 'patient';
   myName = u.user_metadata?.full_name || u.email.split('@')[0];
+  await loadContent();
   $('#authWrap').style.display = 'none';
   $('#topbar').style.display = 'flex';
   $('#views').style.display = 'block';
