@@ -2008,6 +2008,13 @@ function rowHtml(r, withName){
   </div>`;
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+// name search: match the start of the full name or any word in it (not any substring) —
+// so "ke" matches "Kevin" but not "Sankey". q is expected already trimmed + lowercased.
+function nameMatches(name, q){
+  if(!q) return true;
+  const n = String(name||'').toLowerCase();
+  return n.startsWith(q) || n.split(/[\s\-]+/).some(w => w.startsWith(q));
+}
 
 // ---------- reusable month calendar ----------
 const ymdLocal = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`; };
@@ -2605,7 +2612,7 @@ function renderCaseList(){
   // base = patients in scope (date + name), before the band filter — counts reflect this
   let base = caseAll;
   if(caseDate) base = base.filter(onDay);
-  if(q) base = base.filter(p => (p.name||'').toLowerCase().includes(q));
+  if(q) base = base.filter(p => nameMatches(p.name, q));
   renderCounts(base);
   // admin with nothing chosen → prompt instead of a long list
   if(!caseIsNurse && caseFilter === null && !caseDate && !q){
@@ -2738,14 +2745,14 @@ function renderRepDrill(){
   const q = ($('#repSearch')?.value || '').trim().toLowerCase();
   const nameOf = r => (r.patient_name || r.patient_email || '').toLowerCase();
   if(repDate){
-    const rows = reportRows.filter(r => ymdLocal(r.created_at) === repDate && (!q || nameOf(r).includes(q)));
+    const rows = reportRows.filter(r => ymdLocal(r.created_at) === repDate && nameMatches(nameOf(r), q));
     $('#repDrillH').textContent = `Check-ins on ${niceDay(repDate)} (${rows.length})`;
     el.innerHTML = rows.length ? rows.map(checkinRow).join('') : `<div class="empty">No check-ins on this day${q?' matching “'+esc(q)+'”':''}.</div>`;
     return;
   }
   if(repView === 'checkins' || repView === 'week'){
     let rows = repView === 'week' ? reportRows.filter(r => (Date.now() - new Date(r.created_at)) < 7*86400000) : reportRows;
-    if(q) rows = rows.filter(r => nameOf(r).includes(q));
+    if(q) rows = rows.filter(r => nameMatches(nameOf(r), q));
     $('#repDrillH').textContent = (repView === 'week' ? "This week's check-ins" : 'All check-ins') + ` (${rows.length})`;
     el.innerHTML = rows.length ? rows.map(checkinRow).join('') : `<div class="empty">No check-ins${q?' matching “'+esc(q)+'”':''}.</div>`;
     return;
@@ -2753,7 +2760,7 @@ function renderRepDrill(){
   // default: per-patient summary
   $('#repDrillH').textContent = 'Per-patient summary';
   if(!repAll.length){ el.innerHTML = '<div class="empty">No check-ins yet.</div>'; return; }
-  const pts = q ? repAll.filter(p => (p.name||'').toLowerCase().includes(q)) : repAll;
+  const pts = q ? repAll.filter(p => nameMatches(p.name, q)) : repAll;
   el.innerHTML = pts.length ? pts.map(patientRow).join('') : `<div class="empty">No patients matching “${esc(q)}”.</div>`;
 }
 function exportCsv(){
