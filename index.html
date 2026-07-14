@@ -2227,8 +2227,10 @@ function renderProgDrill(){
     progRows.forEach(r => { const k = ymdLocal(r.created_at); by[k] = (by[k]||0) + 1; });
     const days = Object.entries(by).sort((a,b) => a[0] < b[0] ? 1 : -1);
     $('#progDrillH').textContent = `Days you checked in (${days.length})`;
+    const WD = ['Sun','Mon','Tue','Wed','Thur','Fri','Sat'];
     body.innerHTML = days.length ? progCapList(days, ([k,n]) => {
-      const label = new Date(k+'T00:00').toLocaleDateString('en-GB',{ weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      const d = new Date(k+'T00:00');
+      const label = `${WD[d.getDay()]} ${d.getDate()} ${d.toLocaleDateString('en-GB',{ month:'long' })} ${d.getFullYear()}`;
       return `<div class="rr"><span class="nm">${label} - ${n} check-in${n!==1?'s':''}</span></div>`;
     }, 'days') : '<div class="empty">No days tracked yet.</div>';
     progWireMore(body);
