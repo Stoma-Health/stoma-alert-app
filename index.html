@@ -765,8 +765,8 @@
     <!-- NURSE: CASELOAD -->
     <section class="view" data-view="caseload">
       <div class="kic" id="caseKic">Nurse portal</div>
-      <div class="h">Today's caseload</div>
-      <div class="cl-intro">Tap a group to open those patients, search by name, or pick a date — <b>flagged for review, not diagnosed.</b></div>
+      <div class="h" id="caseH">Today's caseload</div>
+      <div class="cl-intro" id="caseIntro">Tap a group to open those patients, search by name, or pick a date — <b>flagged for review, not diagnosed.</b></div>
       <div class="counts counts-tap" id="counts"></div>
       <input class="input" id="caseSearch" type="search" placeholder="Search by patient name…" autocomplete="off" style="margin-bottom:12px">
       <button class="chkPill" id="casePill" type="button" aria-expanded="false" aria-controls="caseCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
@@ -2513,7 +2513,6 @@ function caseRow(p){
     </div></div>`;
 }
 async function loadCaseload(){
-  caseFilter = null; caseDate = null;
   $('#caseloadList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
   if(error){ $('#caseloadList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
@@ -2528,41 +2527,57 @@ async function loadCaseload(){
     return { key:k, name, latest: rows[0], count: rows.length, first, trend: caseTrend(rows) };
   });
   pts.sort((a,b) => caseRank(a) - caseRank(b) || (new Date(b.latest.created_at) - new Date(a.latest.created_at)));
-  let red=0,a=0,g=0; pts.forEach(p => { const rk = caseRank(p); if(rk===0)red++; else if(rk===1)a++; else g++; });
-  $('#counts').innerHTML = `
-    <div class="c" data-band="0"><div class="n" style="color:var(--red)">${red}</div><div class="l">For review</div></div>
-    <div class="c" data-band="1"><div class="n" style="color:var(--amber)">${a}</div><div class="l">Watch</div></div>
-    <div class="c" data-band="2"><div class="n" style="color:var(--green)">${g}</div><div class="l">Settled</div></div>`;
-  $('#counts').querySelectorAll('.c').forEach(c => c.onclick = () => {
-    const b = +c.dataset.band; caseFilter = (caseFilter === b) ? null : b; renderCaseList();
-  });
   caseAll = pts;
+  caseIsNurse = (typeof myRole !== 'undefined' && myRole === 'nurse');
+  caseFilter = null;
+  caseDate = caseIsNurse ? ymdLocal(new Date()) : null;   // nurse: default to today; admin: no default list
+  $('#caseKic').textContent = caseIsNurse ? 'Nurse portal' : 'Admin';
+  $('#caseH').textContent = caseIsNurse ? "Today's caseload" : 'Patients';
+  $('#caseIntro').innerHTML = caseIsNurse
+    ? 'Patients who checked in today — <b>flagged for review, not diagnosed.</b> Use the calendar to look back.'
+    : 'Tap a group to open those patients, search by name, or pick a date — <b>flagged for review, not diagnosed.</b>';
   // cross-patient calendar (collapsed) — day colour = worst check-in that day; picking a day filters patients
   const calItems = data.map(r => ({ ts:r.created_at, colour: colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) }));
   caseCal = mountCalendar($('#caseCal'), calItems, dayKey => { caseDate = dayKey; renderCaseList(); });
   wireChkPill($('#casePill'), $('#caseCal'), { show:'Show calendar', hide:'Hide calendar' });
-  $('#caseKic').textContent = (typeof myRole !== 'undefined' && myRole === 'admin') ? 'Admin' : 'Nurse portal';
   renderCaseList();
 }
-let caseAll = [], caseFilter = null, caseDate = null, caseCal = null;
+let caseAll = [], caseFilter = null, caseDate = null, caseCal = null, caseIsNurse = false;
+function renderCounts(base){
+  const b = [0,0,0]; base.forEach(p => b[caseRank(p)]++);
+  const cols = ['var(--red)','var(--amber)','var(--green)'], labels = ['For review','Watch','Settled'];
+  $('#counts').innerHTML = b.map((n,i) =>
+    `<div class="c${i===caseFilter?' active':''}" data-band="${i}"><div class="n" style="color:${cols[i]}">${n}</div><div class="l">${labels[i]}</div></div>`).join('');
+  $('#counts').querySelectorAll('.c').forEach(c => c.onclick = () => {
+    const bd = +c.dataset.band; caseFilter = (caseFilter === bd) ? null : bd; renderCaseList();
+  });
+}
 function renderCaseList(){
   const el = $('#caseloadList'); if(!el) return;
-  document.querySelectorAll('#counts .c').forEach(c => c.classList.toggle('active', +c.dataset.band === caseFilter));
-  if(!caseAll.length){ el.innerHTML = '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>'; return; }
+  if(!caseAll.length){ $('#counts').innerHTML=''; el.innerHTML = '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>'; return; }
   const q = ($('#caseSearch')?.value || '').trim().toLowerCase();
-  let pts = caseAll;
-  if(caseDate) pts = pts.filter(p => p.rows ? p.rows.some(r => ymdLocal(r.created_at) === caseDate)
-                                            : (casePatients[p.key]?.rows || []).some(r => ymdLocal(r.created_at) === caseDate));
-  if(q) pts = pts.filter(p => (p.name||'').toLowerCase().includes(q));
-  if(caseFilter !== null) pts = pts.filter(p => caseRank(p) === caseFilter);
-  if(caseFilter === null && !caseDate && !q){
+  const onDay = p => (casePatients[p.key]?.rows || []).some(r => ymdLocal(r.created_at) === caseDate);
+  // base = patients in scope (date + name), before the band filter — counts reflect this
+  let base = caseAll;
+  if(caseDate) base = base.filter(onDay);
+  if(q) base = base.filter(p => (p.name||'').toLowerCase().includes(q));
+  renderCounts(base);
+  // admin with nothing chosen → prompt instead of a long list
+  if(!caseIsNurse && caseFilter === null && !caseDate && !q){
     el.innerHTML = '<div class="empty" style="padding:22px 8px">Tap a group above, search a name, or pick a date to see patients.</div>';
     return;
   }
-  const dateNote = caseDate ? `<div class="histfilter" style="margin-bottom:10px">Check-ins on <b>${niceDay(caseDate)}</b> · ${pts.length} patient${pts.length!==1?'s':''}<button data-caseclear>Clear date</button></div>` : '';
+  const pts = caseFilter !== null ? base.filter(p => caseRank(p) === caseFilter) : base;
+  const isToday = caseDate === ymdLocal(new Date());
+  const showClear = !(caseIsNurse && isToday);   // nurse's resting state is today — no button needed
+  const dateNote = caseDate
+    ? `<div class="histfilter" style="margin-bottom:10px">${isToday?'Today':'Check-ins on <b>'+niceDay(caseDate)+'</b>'} · ${pts.length} patient${pts.length!==1?'s':''}${showClear?`<button data-caseclear>${caseIsNurse?'Back to today':'Clear date'}</button>`:''}</div>`
+    : '';
   el.innerHTML = dateNote + (pts.length ? pts.map(caseRow).join('')
     : `<div class="empty">No patients match.</div>`);
-  const clr = el.querySelector('[data-caseclear]'); if(clr) clr.onclick = () => { caseDate = null; if(caseCal) caseCal.clear(); renderCaseList(); };
+  const clr = el.querySelector('[data-caseclear]'); if(clr) clr.onclick = () => {
+    caseDate = caseIsNurse ? ymdLocal(new Date()) : null; if(caseCal) caseCal.clear(); renderCaseList();
+  };
   el.querySelectorAll('.cl-row').forEach(row => row.onclick = () => openPatientDetail(row.dataset.key));
 }
 // nurse → tap a caseload patient → see the scoring data behind the flag
