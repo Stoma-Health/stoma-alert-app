@@ -255,6 +255,10 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
 .foot-bottom{display:flex;justify-content:space-between;gap:1rem;padding-top:1.4rem;flex-wrap:wrap;font-size:12.5px;color:rgba(255,255,255,.45);}
 .foot-bottom .med-device{font-style:italic;max-width:64ch;}
 
+/* LOGO + REAL APP SCREENS */
+.brand img{height:46px;width:auto;display:block;}
+.phone.has-img::after{display:none;}
+.phone .screen img{width:100%;height:100%;object-fit:cover;object-position:center top;}
 .reveal{animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0s);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}.reveal{animation:none;opacity:1;transform:none;}}
@@ -266,14 +270,12 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
 <header class="nav" id="topnav">
   <div class="wrap nav-row">
     <a class="brand" href="#top" aria-label="Stoma Alert home">
-      <span class="brand-mark" aria-hidden="true">S</span>
-      <span class="brand-name">Stoma Alert</span>
+      <img src="stoma-assets/logo.jpg" alt="Stoma Alert" />
     </a>
     <button class="nav-toggle" aria-expanded="false" aria-label="Open menu" onclick="document.getElementById('topnav').classList.toggle('open'); this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true');">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h16M3 11h16M3 16h16"/></svg>
     </button>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#features">The app</a>
       <a href="#journey">Your journey</a>
       <a href="#supplies">Supplies</a>
       <a href="#care-team">Your care team</a>
@@ -296,64 +298,21 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
         Check in each day, keep a photo diary you can share with your nurse, track how things are going,
         and reorder your supplies without lifting a phone call. Support and reassurance, from your pocket.
       </p>
-      <div class="hero-cta reveal" style="--d:.3s">
-        <a class="btn btn-primary" href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener">Open the app <span class="arr" aria-hidden="true">→</span></a>
-        <a class="btn btn-ghost" href="#features">See what it does</a>
-      </div>
       <p class="hero-note reveal" style="--d:.4s"><strong>Works on any phone.</strong> Open it in your browser, then add it to your home screen — no app store needed.</p>
     </div>
 
-    <div class="hero-phones reveal" style="--d:.35s" aria-hidden="true">
-      <!-- left: supplies/reorder -->
-      <div class="phone tilt-l">
-        <div class="screen">
-          <div class="scr-status"><span>9:41</span><span>▲ ● ▮</span></div>
-          <div class="scr-head"><span class="k">Supplies</span><h5>Your supplies</h5></div>
-          <div class="scr-body">
-            <div class="reord-mini">
-              <div class="rm-item"><span class="sw"></span><span class="tx"><b>Drainable pouch</b><span>Cut to size · 40 mm</span></span><span class="qty">×30</span></div>
-              <div class="rm-item"><span class="sw"></span><span class="tx"><b>Barrier rings</b><span>Standard</span></span><span class="qty">×20</span></div>
-              <div class="rm-item"><span class="sw"></span><span class="tx"><b>Adhesive remover</b><span>Spray</span></span><span class="qty">×1</span></div>
-            </div>
-            <div class="scr-btn">One-tap reorder →</div>
-          </div>
-        </div>
+    <div class="hero-phones reveal" style="--d:.35s">
+      <!-- left: daily check-in questions -->
+      <div class="phone tilt-l has-img">
+        <div class="screen"><img src="stoma-assets/screen-checkin.jpg" alt="Stoma Alert app — daily check-in questions" loading="lazy" /></div>
       </div>
-      <!-- front: check-in -->
-      <div class="phone front">
-        <div class="screen">
-          <div class="scr-status"><span>9:41</span><span>▲ ● ▮</span></div>
-          <div class="scr-head"><span class="k">Daily check-in</span><h5>How are you today?</h5></div>
-          <div class="scr-body">
-            <div class="scr-label">Today I feel</div>
-            <div class="feelrow"><div class="feel">🙁</div><div class="feel">😐</div><div class="feel on">🙂</div><div class="feel">😀</div></div>
-            <div class="scr-label">Today my stoma is</div>
-            <div class="chips">
-              <span class="chip on">Pink &amp; healthy</span><span class="chip">Sore</span>
-              <span class="chip">Swollen</span><span class="chip">Bleeding</span>
-            </div>
-            <div class="scr-label">Today my abdomen is</div>
-            <div class="chips">
-              <span class="chip on">Comfortable</span><span class="chip">Tender</span><span class="chip">Bloated</span>
-            </div>
-            <div class="scr-btn">Continue →</div>
-          </div>
-        </div>
+      <!-- front: home / today's check-in -->
+      <div class="phone front has-img">
+        <div class="screen"><img src="stoma-assets/screen-home.jpg" alt="Stoma Alert app home screen — ready for your check-in" /></div>
       </div>
-      <!-- right: photo diary -->
-      <div class="phone tilt-r">
-        <div class="screen">
-          <div class="scr-status"><span>9:41</span><span>▲ ● ▮</span></div>
-          <div class="scr-head"><span class="k">Photo diary</span><h5>Add to your diary</h5></div>
-          <div class="scr-body" style="display:flex;flex-direction:column;">
-            <div class="cam">
-              <div class="cam-guide"><div class="cam-inner"></div></div>
-              <div class="cam-line"></div>
-              <div class="cam-cap"></div>
-            </div>
-            <div class="cam-hint">Line the guide up, capture — then share it with your nurse</div>
-          </div>
-        </div>
+      <!-- right: your progress -->
+      <div class="phone tilt-r has-img">
+        <div class="screen"><img src="stoma-assets/screen-progress.jpg" alt="Stoma Alert app — your progress and outcome tracking" loading="lazy" /></div>
       </div>
     </div>
   </div>
