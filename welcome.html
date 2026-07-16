@@ -245,7 +245,7 @@ section.alt{background:var(--paper-alt);}
 
 /* FOOTER */
 footer{background:#081522;color:rgba(255,255,255,.6);padding:2rem 0 1.25rem;font-size:14px;}
-.foot-top{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,.08);align-items:center;}
+.foot-top{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:1.5rem;align-items:start;}
 @media (max-width:760px){.foot-top{grid-template-columns:1fr 1fr;}}
 @media (max-width:480px){.foot-top{grid-template-columns:1fr;}}
 .foot-top h5{font-family:var(--body);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mint);margin:0 0 .55rem;font-weight:500;}
@@ -258,8 +258,8 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:2rem 0 1.25rem;font
 .foot-brand p{max-width:34ch;font-size:13.5px;line-height:1.2;margin-top:0;color:rgba(255,255,255,.68);}
 .foot-support{display:flex;flex-wrap:wrap;gap:1rem;padding:1.4rem 0;align-items:center;color:rgba(255,255,255,.55);font-size:12.5px;border-bottom:1px solid rgba(255,255,255,.08);}
 .foot-support .chip{display:inline-flex;padding:.4rem .85rem;border:1px solid rgba(255,255,255,.14);border-radius:999px;font-size:11.5px;color:rgba(255,255,255,.75);}
-.foot-bottom{display:flex;justify-content:space-between;gap:1rem;padding-top:1rem;flex-wrap:wrap;font-size:12.5px;color:rgba(255,255,255,.45);}
-.foot-bottom .med-device{font-style:italic;max-width:64ch;}
+.med-device{font-style:italic;font-size:12px;line-height:1.35;margin-top:1rem;max-width:52ch;color:rgba(255,255,255,.42);}
+.foot-copy{margin-top:1rem;font-size:12px;color:rgba(255,255,255,.42);}
 
 /* LOGO + REAL APP SCREENS */
 .brand img{height:92px;width:auto;display:block;}
@@ -577,9 +577,12 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:2rem 0 1.25rem;font
 <footer>
   <div class="wrap">
     <div class="foot-top">
-      <div class="foot-brand">
-        <a class="brand" href="#top"><img src="stoma-assets/logo.jpg" alt="Stoma Alert" /></a>
-        <p>A digital support app for people living with a stoma and their care teams. Independent, patient-first, now being introduced to the UK.</p>
+      <div>
+        <div class="foot-brand">
+          <a class="brand" href="#top"><img src="stoma-assets/logo.jpg" alt="Stoma Alert" /></a>
+          <p>A digital support app for people living with a stoma and their care teams. Independent, patient-first, now being introduced to the UK.</p>
+        </div>
+        <div class="med-device">Stoma Alert is a support and record-keeping app for people with a stoma and their care teams. It helps you record and share information. It does not diagnose, and it does not replace the advice of your stoma nurse or doctor.</div>
       </div>
       <div>
         <h5>Legal</h5>
@@ -591,12 +594,8 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:2rem 0 1.25rem;font
         <p style="color:rgba(255,255,255,.68)">Stoma Alert Ltd<br>Little Tillingham, Rye<br>England, TN31 7EL</p>
         <p style="margin:0"><a href="mailto:contact@stoma-alert.eu">contact@stoma-alert.eu</a></p>
         <p style="color:rgba(255,255,255,.68);margin:.2rem 0 0">Tel 00000 000000</p>
+        <p class="foot-copy">© 2026 Stoma Alert Ltd</p>
       </div>
-    </div>
-
-    <div class="foot-bottom">
-      <div class="med-device">Stoma Alert is a support and record-keeping app for people with a stoma and their care teams. It helps you record and share information. It does not diagnose, and it does not replace the advice of your stoma nurse or doctor.</div>
-      <div>© 2026 Stoma Alert Ltd</div>
     </div>
   </div>
 </footer>
