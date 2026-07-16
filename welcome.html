@@ -256,9 +256,9 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
 .foot-bottom .med-device{font-style:italic;max-width:64ch;}
 
 /* LOGO + REAL APP SCREENS */
-.brand img{height:46px;width:auto;display:block;}
+.brand img{height:92px;width:auto;display:block;}
 .phone.has-img::after{display:none;}
-.phone .screen img{width:100%;height:100%;object-fit:cover;object-position:center top;}
+.phone .screen img{width:100%;height:100%;object-fit:contain;object-position:center top;background:#fff;}
 .reveal{animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0s);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}.reveal{animation:none;opacity:1;transform:none;}}
