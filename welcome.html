@@ -255,40 +255,6 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
 .foot-bottom{display:flex;justify-content:space-between;gap:1rem;padding-top:1.4rem;flex-wrap:wrap;font-size:12.5px;color:rgba(255,255,255,.45);}
 .foot-bottom .med-device{font-style:italic;max-width:64ch;}
 
-/* HOW TO USE — steps (merged from stoma-alert.eu) */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
-@media(max-width:900px){.steps{grid-template-columns:1fr 1fr;}}
-@media(max-width:600px){.steps{grid-template-columns:1fr;}}
-.step{position:relative;background:var(--paper);border:1px solid var(--rule);border-top:3px solid var(--blue);border-radius:var(--radius);padding:1.8rem 1.5rem;transition:transform .2s,box-shadow .2s,border-color .2s;}
-.step:hover{transform:translateY(-2px);box-shadow:var(--shadow-lift);border-color:var(--blue);}
-.snum{width:38px;height:38px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:16px;margin-bottom:1rem;}
-.step h3{font-size:1.1rem;font-weight:600;margin:0 0 .45rem;letter-spacing:-0.01em;}
-.step p{font-size:14px;color:var(--ink-2);margin:0;line-height:1.55;}
-.step .step-cta{display:inline-flex;align-items:center;gap:.35rem;margin-top:.9rem;font-size:13px;font-weight:600;color:var(--blue);border-bottom:1px solid var(--blue-soft);}
-.step .step-cta:hover{border-color:var(--blue);}
-/* STORE */
-.store-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
-@media(max-width:760px){.store-grid{grid-template-columns:1fr;}}
-.store-card{border:1px solid var(--rule);border-radius:var(--radius);padding:2rem 1.8rem;background:var(--paper);display:flex;flex-direction:column;}
-.store-card.stick{border-top:3px solid var(--purple);}
-.store-card.points{border-top:3px solid var(--blue);}
-.store-card .kic{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.7rem;}
-.store-card.stick .kic{color:var(--purple);}
-.store-card.points .kic{color:var(--blue);}
-.store-card h3{font-size:1.3rem;font-weight:600;margin:0 0 .6rem;letter-spacing:-0.01em;}
-.store-card p{font-size:14.5px;color:var(--ink-2);margin:0 0 1.2rem;line-height:1.55;}
-.store-card .btn{margin-top:auto;align-self:flex-start;}
-.btn-purple{background:var(--purple);color:#fff;}
-.btn-purple:hover{background:#8c3f75;color:#fff;transform:translateY(-1px);}
-.btn-blue{background:var(--blue);color:#fff;}
-.btn-blue:hover{background:#0072cf;color:#fff;transform:translateY(-1px);}
-/* APP STORE BADGES */
-.stores{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.2rem;}
-.store-badge{display:inline-flex;align-items:center;gap:.6rem;padding:.7rem 1.1rem;border-radius:12px;background:var(--navy);color:#fff;font-size:13px;transition:background .15s,transform .15s;}
-.store-badge:hover{background:var(--navy-2);color:#fff;transform:translateY(-1px);}
-.store-badge .bt{display:flex;flex-direction:column;line-height:1.1;}
-.store-badge .bt small{font-size:9.5px;opacity:.8;letter-spacing:.04em;}
-.store-badge .bt b{font-size:14px;font-weight:600;}
 .reveal{animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0s);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}.reveal{animation:none;opacity:1;transform:none;}}
@@ -307,10 +273,11 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h16M3 11h16M3 16h16"/></svg>
     </button>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#benefits">Benefits</a>
-      <a href="#howto">How to use</a>
+      <a href="#features">The app</a>
+      <a href="#journey">Your journey</a>
       <a href="#supplies">Supplies</a>
       <a href="#care-team">Your care team</a>
+      <a href="#roadmap">What's next</a>
       <a class="nav-cta" href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener">Open the app <span class="arr" aria-hidden="true">→</span></a>
     </nav>
   </div>
@@ -642,103 +609,6 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
   </div>
 </section>
 
-<!-- BENEFITS & FEATURES (merged from stoma-alert.eu) -->
-<section class="alt" id="benefits">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="sec-num">◆</div>
-      <div class="sec-head-text">
-        <span class="eyebrow" style="color:var(--blue)">Why it's worth it</span>
-        <h2>Benefits &amp; <em>features</em></h2>
-        <p class="lede">Stoma Alert improves the comfort of life after stoma surgery and makes day-to-day stoma care easier, for patients and their care teams alike.</p>
-      </div>
-    </div>
-    <div class="feat-grid">
-      <div class="feat">
-        <div class="feat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div>
-        <h3>Ease of access</h3>
-        <p>24/7 access to the system from your phone and computer, whenever you need it.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        <h3>Convenient consultations</h3>
-        <p>An e-consultation using just your phone and a photo taken with the Stoma Stick template.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></div>
-        <h3>Quick response</h3>
-        <p>With an urgent e-consultation you receive medical recommendations and next steps within 12 hours.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <h3>Database of contacts</h3>
-        <p>Doctors, ostomy nurses and medical facilities, all kept in one place on your phone.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-        <h3>Knowledge base</h3>
-        <p>Ostomy guides, medical articles and FAQs, written to be clear and genuinely useful.</p>
-      </div>
-      <div class="feat">
-        <div class="feat-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.9 1.11V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 6 9.4l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 12 4.6V4.5a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 2.9 1.11l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1z"/></svg></div>
-        <h3>Convenience</h3>
-        <p>All your key information, data and settings together at your fingertips.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW TO USE (merged from stoma-alert.eu) -->
-<section id="howto">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="sec-num">◆</div>
-      <div class="sec-head-text">
-        <span class="eyebrow" style="color:var(--blue)">How to use</span>
-        <h2>Only six <em>easy steps</em></h2>
-        <p class="lede">Stoma Alert is patient-friendly. You are only a few steps away from your first consultation.</p>
-      </div>
-    </div>
-    <div class="steps">
-      <div class="step">
-        <div class="snum">1</div>
-        <h3>Get the app</h3>
-        <p>Open Stoma Alert straight in your browser, or download it on your phone from Google Play or the App Store.</p>
-        <div class="stores">
-          <a class="store-badge" href="https://play.google.com/store/apps/details?id=com.tul.ia.stom.stompat.phin.stompat.stompat" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3.5v17l9.5-8.5L3 3.5zm11.3 6.9L5.9 2.9l10.2 5.9-1.8 1.6zm3.4 1.6 2.6 1.5c.9.5.9 1.6 0 2.1l-2.6 1.5-2-1.8 2-1.8-2-1.5 2 .5zM5.9 21.1l8.4-7.5 1.8 1.6L5.9 21.1z"/></svg><span class="bt"><small>Get it on</small><b>Google Play</b></span></a>
-          <a class="store-badge" href="https://apps.apple.com/pl/app/stoma-alert/id1635044735" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.7c0-2 1.6-3 1.7-3-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.6 0-1.6-.7-2.6-.7-1.3 0-2.6.8-3.3 2-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.5 2 1 0 1.3-.6 2.5-.6s1.5.6 2.5.6c1 0 1.7-1 2.4-2 .5-.7.7-1.4.7-1.4s-1.4-.6-1.4-2.4zM14.6 6.3c.5-.7.9-1.6.8-2.5-.8 0-1.7.5-2.3 1.2-.5.6-.9 1.5-.8 2.4.9.1 1.7-.4 2.3-1.1z"/></svg><span class="bt"><small>Download on the</small><b>App Store</b></span></a>
-        </div>
-      </div>
-      <div class="step">
-        <div class="snum">2</div>
-        <h3>Register</h3>
-        <p>Fill out and submit the registration form to activate your account. Our staff verify your details and call or email you; once approved, you get full access and instructions on how to proceed.</p>
-        <a class="step-cta" href="https://stoma-alert.eu/en/register-for-the-app/" target="_blank" rel="noopener">Register for the app →</a>
-      </div>
-      <div class="step">
-        <div class="snum">3</div>
-        <h3>Get the equipment</h3>
-        <p>For the best results, use the Stoma Stick with its special template. It helps you take images with the right parameters, so medical staff can assess them precisely.</p>
-      </div>
-      <div class="step">
-        <div class="snum">4</div>
-        <h3>Consultation credit</h3>
-        <p>You can also use Stoma Alert free of charge, ask at your clinic (primary health care) whether it runs the Stoma Alert programme.</p>
-      </div>
-      <div class="step">
-        <div class="snum">5</div>
-        <h3>Choose your doctor &amp; nurse</h3>
-        <p>The app lists stoma doctors, nurses and facilities offering remote care. Choose yours, or, if your clinic uses Stoma Alert, they are assigned to that clinic.</p>
-      </div>
-      <div class="step">
-        <div class="snum">6</div>
-        <h3>Send your e-consultation</h3>
-        <p>Answer the questions in the app, take a photo or video of your stoma with the Stoma Stick, check the details and send. You then receive your medical or nursing recommendations back in the app.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- CTA -->
 <section class="cta-band" id="get-involved">
   <div class="wrap cta-band-inner">
@@ -774,18 +644,17 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       </div>
       <div>
         <h5>The app</h5>
-        <a href="#benefits">Benefits &amp; features</a>
-        <a href="#howto">How to use</a>
+        <a href="#features">Features</a>
+        <a href="#journey">Your journey</a>
         <a href="#supplies">Supplies</a>
         <a href="#care-team">Your care team</a>
+        <a href="#roadmap">What's next</a>
         <a href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener">Open the app →</a>
       </div>
       <div>
         <h5>Company</h5>
-        <p style="color:rgba(255,255,255,.68)">Stoma Alert Ltd · United Kingdom<br>Little Tillingham</p>
+        <p style="color:rgba(255,255,255,.68)">Stoma Alert Ltd<br>Little Tillingham<br>United Kingdom</p>
         <p><a href="mailto:virginia.filmer-sankey@stoma-alert.eu">virginia.filmer-sankey@stoma-alert.eu</a></p>
-        <p style="color:rgba(255,255,255,.68);margin-top:1rem">Manufacturer<br>PHIN MED Limited<br>73 Cornhill, EC3V 3QQ London, UK</p>
-        <p><a href="mailto:patient@stoma-alert.eu">patient@stoma-alert.eu</a></p>
       </div>
     </div>
 
