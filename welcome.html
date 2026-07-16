@@ -100,6 +100,17 @@ img,svg{display:block;max-width:100%;}
 .hero-note{margin-top:1.1rem;font-size:13.5px;color:var(--ink-muted);}
 .hero-note strong{color:var(--navy-2);font-weight:600;}
 
+/* DECORATIVE DISCS (watermark) */
+.disc{position:absolute;pointer-events:none;z-index:0;}
+.disc-hero{top:-160px;right:-120px;width:600px;height:600px;}
+.disc-supplies{bottom:-150px;left:-150px;width:300px;height:300px;}
+.disc-cta{top:-90px;right:-70px;width:420px;height:420px;}
+.hero-grid,.hero-ribbon{position:relative;z-index:1;}
+#supplies{position:relative;overflow:hidden;}
+#supplies .wrap{position:relative;z-index:1;}
+.cta-band-inner{z-index:1;}
+@media (max-width:900px){.disc-hero{width:340px;height:340px;top:-90px;right:-70px;}}
+
 /* PHONE MOCKUP */
 .hero-phones{position:relative;display:flex;justify-content:center;align-items:flex-end;gap:0;min-height:440px;}
 .phone{position:relative;width:216px;background:#0e1620;border-radius:34px;padding:8px;box-shadow:var(--shadow-lift);flex-shrink:0;}
@@ -218,7 +229,6 @@ section.alt{background:var(--paper-alt);}
 
 /* CTA BAND */
 .cta-band{position:relative;background:var(--navy);color:#fff;padding:clamp(.85rem,1.8vw,1.25rem) 0;overflow:hidden;}
-.cta-band::before{content:"";position:absolute;top:-100px;right:-100px;width:360px;height:360px;border:1px solid var(--mint);border-radius:50%;opacity:.35;}
 .cta-band-inner{position:relative;display:grid;grid-template-columns:1.3fr 1fr;gap:clamp(2rem,5vw,4rem);align-items:center;}
 @media (max-width:860px){.cta-band-inner{grid-template-columns:1fr;}}
 .cta-band h2{font-family:var(--display);font-weight:500;font-size:clamp(1rem,1.7vw,1.25rem);line-height:1.15;letter-spacing:-0.02em;color:#fff;margin:0 0 .75rem;}
@@ -285,6 +295,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:1.5rem 0 1rem;font-
 
 <!-- HERO -->
 <section class="hero" id="top">
+  <svg class="disc disc-hero" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="100" fill="#e5f2ec"/><circle cx="100" cy="100" r="66" fill="#cde7db"/><circle cx="100" cy="100" r="34" fill="#a9d8c2"/></svg>
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow reveal">The Stoma Alert app · UK</span>
@@ -431,6 +442,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:1.5rem 0 1rem;font-
 
 <!-- SUPPLIES / REORDER -->
 <section class="alt" id="supplies">
+  <svg class="disc disc-supplies" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="100" fill="#e5f2ec"/></svg>
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-num">04</div>
@@ -563,6 +575,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:1.5rem 0 1rem;font-
 
 <!-- CLOSING CTA -->
 <section class="cta-band">
+  <svg class="disc disc-cta" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="100" fill="#ffffff" opacity="0.06"/><circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.08"/></svg>
   <div class="wrap cta-band-inner">
     <div>
       <span class="eyebrow" style="color:var(--mint-2)">Get started</span>
