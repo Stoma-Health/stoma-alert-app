@@ -244,8 +244,8 @@ section.alt{background:var(--paper-alt);}
 .contact-card a:hover{color:var(--mint);border-color:var(--mint);}
 
 /* FOOTER */
-footer{background:#081522;color:rgba(255,255,255,.6);padding:2rem 0 1.25rem;font-size:14px;}
-.foot-top{display:grid;grid-template-columns:auto 1fr 1.3fr 1.3fr;gap:1.5rem;align-items:start;}
+footer{background:#081522;color:rgba(255,255,255,.6);padding:1.5rem 0 1rem;font-size:14px;}
+.foot-top{display:grid;grid-template-columns:auto 1fr 1.3fr 1.3fr;gap:1.25rem;align-items:start;}
 @media (max-width:760px){.foot-top{grid-template-columns:1fr 1fr;}}
 @media (max-width:480px){.foot-top{grid-template-columns:1fr;}}
 .foot-top h5{font-family:var(--body);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mint);margin:0 0 .55rem;font-weight:500;}
@@ -258,9 +258,10 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:2rem 0 1.25rem;font
 .foot-brand p{max-width:34ch;font-size:13.5px;line-height:1.2;margin-top:0;color:rgba(255,255,255,.68);}
 .foot-support{display:flex;flex-wrap:wrap;gap:1rem;padding:1.4rem 0;align-items:center;color:rgba(255,255,255,.55);font-size:12.5px;border-bottom:1px solid rgba(255,255,255,.08);}
 .foot-support .chip{display:inline-flex;padding:.4rem .85rem;border:1px solid rgba(255,255,255,.14);border-radius:999px;font-size:11.5px;color:rgba(255,255,255,.75);}
-.foot-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;margin-top:1.75rem;}
-.med-device{font-style:italic;font-size:12px;line-height:1.4;max-width:82ch;color:rgba(255,255,255,.42);}
-.foot-copy{margin:0;font-size:12px;white-space:nowrap;color:rgba(255,255,255,.42);}
+.foot-bottom{position:relative;margin-top:1.25rem;}
+.med-device{font-style:italic;font-size:12px;line-height:1.4;max-width:90ch;margin:0 auto;text-align:center;color:rgba(255,255,255,.42);}
+.foot-copy{position:absolute;right:0;bottom:0;margin:0;font-size:12px;white-space:nowrap;color:rgba(255,255,255,.42);}
+@media (max-width:600px){.foot-copy{position:static;text-align:center;margin-top:.75rem;}}
 .foot-social{display:flex;gap:.55rem;margin-top:0;}
 .foot-social a{width:32px;height:32px;border:1px solid rgba(255,255,255,.18);border-radius:50%;display:grid;place-items:center;color:rgba(255,255,255,.7);padding:0;}
 .foot-social a:hover{color:var(--navy);background:var(--mint);border-color:var(--mint);}
@@ -597,7 +598,6 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:2rem 0 1.25rem;font
         <h5>UK contact</h5>
         <p style="color:rgba(255,255,255,.68)">Stoma Alert Ltd<br>Little Tillingham, Rye<br>England, TN31 7EL</p>
         <p style="margin:0"><a href="mailto:contact@stoma-alert.eu">contact@stoma-alert.eu</a></p>
-        <p style="color:rgba(255,255,255,.68);margin:.2rem 0 0">Tel 00000 000000</p>
       </div>
       <div>
         <h5>Poland contact</h5>
