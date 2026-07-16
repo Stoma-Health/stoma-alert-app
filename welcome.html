@@ -102,9 +102,9 @@ img,svg{display:block;max-width:100%;}
 
 /* PAGE WATERMARK (spans whole page, behind content) */
 .page-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
-.page-watermark svg{position:absolute;opacity:.85;filter:blur(1.5px);}
-.page-watermark .pw-tr{top:-32vh;right:-18vw;width:min(2000px,145vw);height:auto;}
-.page-watermark .pw-bl{bottom:-30vh;left:-18vw;width:min(1500px,120vw);height:auto;}
+.page-watermark svg{position:absolute;opacity:.9;filter:blur(.4px);}
+.page-watermark .pw-tr{top:-30vh;right:-16vw;width:min(2000px,140vw);height:auto;}
+.page-watermark .pw-bl{bottom:-16vh;left:-12vw;width:min(760px,58vw);height:auto;}
 main,footer{position:relative;z-index:1;}
 
 /* PHONE MOCKUP */
@@ -268,7 +268,8 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:1.5rem 0 1rem;font-
 </head>
 <body>
 <div class="page-watermark" aria-hidden="true">
-  <svg class="pw-tr" viewBox="0 0 200 200"><circle cx="100" cy="100" r="100" fill="#e5f2ec"/><circle cx="100" cy="100" r="66" fill="#cde7db"/><circle cx="100" cy="100" r="34" fill="#a9d8c2"/></svg>
+  <svg class="pw-tr" viewBox="0 0 200 200"><g fill="none" stroke-width="1.5"><circle cx="152" cy="46" r="36" stroke="#a9d8c2"/><circle cx="152" cy="46" r="58" stroke="#bce0cf"/><circle cx="152" cy="46" r="80" stroke="#cde7db"/><circle cx="152" cy="46" r="102" stroke="#dcefe6"/><circle cx="152" cy="46" r="124" stroke="#e8f4ee"/></g></svg>
+  <svg class="pw-bl" viewBox="0 0 200 200"><g fill="none" stroke-width="1.6"><circle cx="44" cy="158" r="28" stroke="#dfe3ec"/><circle cx="44" cy="158" r="50" stroke="#e7eaf1"/><circle cx="44" cy="158" r="72" stroke="#eef0f5"/></g></svg>
 </div>
 <a class="skip-link" href="#main">Skip to main content</a>
 
