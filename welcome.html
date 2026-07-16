@@ -75,7 +75,7 @@ img,svg{display:block;max-width:100%;}
 .hero-grid{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(2rem,5vw,4rem);align-items:center;}
 @media (max-width:900px){.hero-grid{grid-template-columns:1fr;}}
 .eyebrow{font-family:var(--mono);font-size:14.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mint);font-weight:600;margin-bottom:1.4rem;display:block;}
-.hero h1{font-family:var(--display);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:500;line-height:1.1;letter-spacing:-0.02em;color:var(--navy);margin:0 0 1.2rem;}
+.hero h1{font-family:var(--display);font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:500;line-height:1.1;letter-spacing:-0.02em;color:var(--navy);margin:0 0 1.2rem;white-space:nowrap;}
 .hero h1 em{font-style:italic;font-weight:400;color:var(--mint);}
 .hero-lede{font-size:1rem;line-height:1.2;max-width:34em;color:var(--ink-2);margin:0 0 2rem;}
 .hero-cta{display:flex;gap:.75rem;flex-wrap:wrap;}
@@ -136,9 +136,10 @@ section.alt{background:var(--paper-alt);}
 .sec-head{display:grid;grid-template-columns:auto 1fr;gap:clamp(1.5rem,3vw,2.5rem);margin-bottom:clamp(2.25rem,4vw,3.25rem);align-items:start;}
 .sec-num{font-family:var(--display);font-weight:400;font-size:clamp(2.4rem,4.2vw,3rem);color:var(--mint);line-height:.85;letter-spacing:-0.03em;font-style:italic;}
 .sec-head-text{max-width:62ch;}
-.sec-head h2{font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:500;line-height:1.1;letter-spacing:-0.02em;margin:.1rem 0 .7rem;}
+.sec-head h2{font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:500;line-height:1.1;letter-spacing:-0.02em;margin:.1rem 0 .7rem;white-space:nowrap;}
 .sec-head h2 em{font-style:italic;font-weight:400;color:var(--mint);}
 .sec-head .lede{font-size:1rem;line-height:1.2;color:var(--ink-2);margin:0;}
+@media (max-width:900px){.sec-head h2{white-space:normal;}}
 @media (max-width:640px){.sec-head{grid-template-columns:1fr;gap:1rem;}}
 
 /* PRINCIPLE STRIP */
@@ -182,6 +183,7 @@ section.alt{background:var(--paper-alt);}
 @media (max-width:860px){.split{grid-template-columns:1fr;}}
 .split ul{list-style:none;padding:0;margin:1.25rem 0 0;display:flex;flex-direction:column;gap:.85rem;}
 .split li{position:relative;padding-left:1.75rem;font-size:15.5px;color:var(--ink-2);line-height:1.2;}
+.split>div>p{line-height:1.2;}
 .split li::before{content:"";position:absolute;left:0;top:.6em;width:14px;height:2px;background:var(--mint);}
 .console{background:#fff;border:1px solid var(--rule);border-radius:var(--radius);box-shadow:var(--shadow-card);overflow:hidden;}
 .console-top{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--rule);background:var(--paper-alt);}
@@ -292,7 +294,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow reveal">The Stoma Alert app · UK</span>
-      <h1 class="reveal" style="--d:.1s">Your stoma care, <em>in one App.</em></h1>
+      <h1 class="reveal" style="--d:.1s">Your stoma care, <em>in one App</em></h1>
       <p class="hero-lede reveal" style="--d:.2s">
         A digital companion for living with a stoma. Check in each day, keep a photo diary,
         reorder supplies without a phone call, and stay connected to a community who understand.
@@ -332,7 +334,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       <div class="sec-num">01</div>
       <div class="sec-head-text">
         <span class="eyebrow">What it is</span>
-        <h2>A calm, structured place to <em>manage life with a stoma</em>.</h2>
+        <h2>A calm, structured place to <em>manage life with a stoma</em></h2>
         <p class="lede">
           Between appointments, you manage a lot on your own: skin, comfort, supplies, the odd worry.
           Stoma Alert gives you a calm, structured place to keep track of it all, keep a clear record
@@ -404,7 +406,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       <div class="sec-num">03</div>
       <div class="sec-head-text">
         <span class="eyebrow">Your journey</span>
-        <h2>One companion, from pre-op to <em>everyday life</em>.</h2>
+        <h2>One companion, from pre-op to <em>everyday life</em></h2>
         <p class="lede">Living with a stoma changes through its stages, especially in the early weeks. Stoma Alert follows you through each one, so it becomes a daily habit rather than a one-off download.</p>
       </div>
     </div>
@@ -441,7 +443,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       <div class="sec-num">04</div>
       <div class="sec-head-text">
         <span class="eyebrow">Supplies, sorted</span>
-        <h2>Never run low, without the <em>phone-call faff</em>.</h2>
+        <h2>Never run low, without the <em>phone-call faff</em></h2>
         <p class="lede">In the UK most stoma appliances are free on NHS prescription and delivered to your door. Stoma Alert's job is simply to make the repeat effortless and send it to the supplier you already use.</p>
       </div>
     </div>
@@ -463,7 +465,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       <div class="sec-num">05</div>
       <div class="sec-head-text">
         <span class="eyebrow" style="color:var(--blue)">Phase 2 · coming next</span>
-        <h2>Your stoma nurse, <em>in the loop</em>.</h2>
+        <h2>Your stoma nurse, <em>in the loop</em></h2>
         <p class="lede">Coming in Phase 2: everything you record will be shareable with your stoma team through a simple portal, so when you want a professional eye on something, they'll have a clear picture in front of them. You capture and share; your nurse reviews and decides.</p>
       </div>
     </div>
@@ -503,7 +505,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       <div class="sec-num">06</div>
       <div class="sec-head-text">
         <span class="eyebrow">Where Stoma Alert is heading</span>
-        <h2>Build value now, <em>add depth over time</em>.</h2>
+        <h2>Build value now, <em>add depth over time</em></h2>
         <p class="lede">We're starting with the things that help every day, and building out the clinical and NHS layers deliberately, in step with the evidence and the right regulatory work. Here's the shape of it.</p>
       </div>
     </div>
@@ -553,7 +555,7 @@ footer{background:#081522;color:rgba(255,255,255,.6);padding:3.25rem 0 2rem;font
       <div class="sec-num">07</div>
       <div class="sec-head-text">
         <span class="eyebrow">The foundation</span>
-        <h2>A simple app, on a <em>serious foundation</em>.</h2>
+        <h2>A simple app, on a <em>serious foundation</em></h2>
         <p class="lede">Stoma Alert may start light, but it isn't a weekend project. It's built on years of clinical research, real hospital experience in Europe, and a patented imaging aid, so the everyday app you use today has real depth to grow into.</p>
       </div>
     </div>
