@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contact — Stoma Alert</title>
+<meta name="description" content="Get in touch with the Stoma Alert team. Send us a message, contact the UK team, or reach the manufacturer PHIN MED Limited." />
+<meta name="theme-color" content="#132658" />
+<style>
+:root{
+  --navy:#132658; --navy-2:#1c3d7a; --navy-3:#28539c;
+  --mint:#5cb894; --mint-2:#a9d8c2; --mint-soft:#e5f2ec;
+  --blue:#008bf8; --blue-soft:#e6f1fa; --purple:#a4508b; --purple-soft:#f4e9f0;
+  --paper:#FFFFFF; --paper-alt:#F5F8FA; --rule:#E2E8F0; --rule-strong:#CBD5E1;
+  --ink:#111827; --ink-2:#374151; --ink-muted:#64748B;
+  --display:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --body:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --gutter:clamp(1.25rem,4vw,2.5rem); --max:1240px;
+  --shadow-card:0 1px 2px rgba(13,33,55,.04),0 8px 24px rgba(13,33,55,.06);
+  --radius:10px;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+body{margin:0;font-family:var(--body);font-weight:400;font-size:17px;line-height:1.6;color:var(--ink-2);background:var(--paper);-webkit-font-smoothing:antialiased;}
+h1,h2,h3,h4{font-family:var(--display);color:var(--navy);font-weight:600;line-height:1.14;letter-spacing:-0.01em;margin:0 0 .5em;}
+p{margin:0 0 1.1em;}
+a{color:var(--navy);text-decoration:none;}
+a:hover{color:var(--blue);}
+button{font:inherit;cursor:pointer;}
+.wrap{max-width:var(--max);margin:0 auto;padding-left:var(--gutter);padding-right:var(--gutter);}
+.skip-link{position:absolute;left:-9999px;top:0;background:var(--navy);color:#fff;padding:.6rem 1rem;z-index:1000;}
+.skip-link:focus{left:1rem;top:1rem;}
+/* NAV */
+.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:saturate(140%) blur(8px);-webkit-backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--rule);}
+.nav-row{display:flex;align-items:center;gap:2rem;padding:.85rem 0;}
+.brand{display:inline-flex;align-items:center;gap:.65rem;color:var(--navy);flex-shrink:0;}
+.brand-mark{width:32px;height:32px;background:var(--mint);color:var(--navy);border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:18px;}
+.brand-name{font-family:var(--display);font-weight:600;font-size:19px;}
+.nav-links{display:flex;gap:1.5rem;margin-left:auto;align-items:center;}
+.nav-links a{color:var(--ink-2);font-size:14.5px;font-weight:500;}
+.nav-links a:hover{color:var(--navy);}
+.nav-cta{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.05rem;background:var(--navy);color:#fff !important;border-radius:999px;font-weight:500;font-size:14.5px;}
+.nav-cta:hover{background:var(--navy-2);}
+@media (max-width:760px){.nav-links a:not(.nav-cta){display:none;}}
+/* HERO */
+.chero{background:var(--navy);color:#fff;padding:clamp(2.75rem,6vw,4.25rem) 0 clamp(2.5rem,5vw,3.5rem);position:relative;overflow:hidden;}
+.chero::before{content:"";position:absolute;top:-120px;right:-120px;width:420px;height:420px;background:radial-gradient(circle at 30% 30%,rgba(0,139,248,.35),rgba(0,139,248,0) 70%);}
+.chero .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mint-2);font-weight:500;display:block;margin-bottom:1rem;}
+.chero h1{color:#fff;font-size:clamp(1.9rem,3.6vw,2.8rem);font-weight:500;letter-spacing:-0.02em;margin:0 0 .8rem;}
+.chero p{color:rgba(255,255,255,.82);max-width:52ch;font-size:clamp(1.02rem,1.3vw,1.15rem);margin:0;}
+/* LAYOUT */
+.contact-layout{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(2rem,4vw,3.5rem);padding:clamp(3rem,6vw,4.5rem) 0;}
+@media (max-width:900px){.contact-layout{grid-template-columns:1fr;}}
+.kic{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:.6rem;}
+/* FORM */
+.form-card{background:var(--paper);border:1px solid var(--rule);border-top:3px solid var(--blue);border-radius:var(--radius);padding:clamp(1.75rem,3vw,2.4rem);box-shadow:var(--shadow-card);}
+.form-card h2{font-size:1.5rem;font-weight:600;margin:0 0 1.3rem;}
+.field{margin-bottom:1.1rem;}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:.4rem;}
+.field input,.field select,.field textarea{width:100%;padding:.75rem .9rem;border:1px solid var(--rule-strong);border-radius:9px;font:inherit;font-size:15px;color:var(--ink);background:#fff;transition:border-color .15s,box-shadow .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft);}
+.field textarea{min-height:130px;resize:vertical;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 1.5rem;border-radius:999px;font-weight:600;font-size:15px;border:0;background:var(--blue);color:#fff;transition:background .15s,transform .15s;}
+.btn:hover{background:#0072cf;transform:translateY(-1px);}
+.form-note{font-size:12.5px;color:var(--ink-muted);margin:1rem 0 0;}
+/* SIDE CARDS */
+.side{display:flex;flex-direction:column;gap:1.25rem;}
+.info-card{border:1px solid var(--rule);border-radius:var(--radius);padding:1.6rem 1.5rem;background:var(--paper);}
+.info-card.uk{border-top:3px solid var(--mint);}
+.info-card.maker{border-top:3px solid var(--purple);}
+.info-card.staff{border-top:3px solid var(--blue);background:var(--paper-alt);}
+.info-card h3{font-size:1.12rem;font-weight:600;margin:0 0 .5rem;}
+.info-card p{font-size:14.5px;color:var(--ink-2);margin:0 0 .3rem;line-height:1.5;}
+.info-card a{color:var(--navy);border-bottom:1px solid var(--blue-soft);}
+.info-card a:hover{color:var(--blue);border-color:var(--blue);}
+.info-card .role{font-style:italic;color:var(--ink-muted);font-size:13.5px;}
+/* COMMUNITY */
+.community{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.6rem;}
+.comm-btn{display:inline-flex;align-items:center;gap:.55rem;padding:.65rem 1rem;border-radius:11px;font-size:13.5px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);}
+.comm-btn:hover{border-color:var(--navy);transform:translateY(-1px);}
+.comm-btn svg{flex:0 0 auto;}
+/* FOOTER */
+footer{background:#0b1a33;color:rgba(255,255,255,.6);padding:2.5rem 0 2rem;font-size:14px;}
+.foot-row{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center;}
+.foot-row .brand,.foot-row .brand-name{color:#fff;}
+.foot-row a{color:rgba(255,255,255,.7);}
+.foot-row a:hover{color:var(--mint);}
+.med-device{font-size:12.5px;font-style:italic;color:rgba(255,255,255,.5);max-width:70ch;margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.08);}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="nav">
+  <div class="wrap nav-row">
+    <a class="brand" href="stoma-alert-app-site.html" aria-label="Stoma Alert home">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span class="brand-name">Stoma Alert</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="stoma-alert-app-site.html#benefits">Benefits</a>
+      <a href="stoma-alert-app-site.html#howto">How to use</a>
+      <a href="stoma-alert-app-site.html#store">Store</a>
+      <a class="nav-cta" href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener">Open the app <span aria-hidden="true">→</span></a>
+    </nav>
+  </div>
+</header>
+
+<section class="chero">
+  <div class="wrap">
+    <span class="eyebrow">Contact</span>
+    <h1>We're here to help</h1>
+    <p>Have a question, some feedback, or want to bring Stoma Alert to your service? Send us a message, or use the details below.</p>
+  </div>
+</section>
+
+<main id="main">
+<div class="wrap">
+  <div class="contact-layout">
+
+    <!-- FORM -->
+    <div class="form-card">
+      <h2>Send us a message</h2>
+      <form id="contactForm" novalidate>
+        <div class="field">
+          <label for="cf-name">First name</label>
+          <input type="text" id="cf-name" name="name" autocomplete="given-name" required />
+        </div>
+        <div class="field">
+          <label for="cf-email">E-mail</label>
+          <input type="email" id="cf-email" name="email" autocomplete="email" required />
+        </div>
+        <div class="field">
+          <label for="cf-subject">Subject</label>
+          <select id="cf-subject" name="subject">
+            <option value="General enquiry">General enquiry</option>
+            <option value="Opinion">Opinion</option>
+            <option value="Error">Error</option>
+            <option value="Adverse outcome">Adverse outcome</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cf-content">Message</label>
+          <textarea id="cf-content" name="content" required></textarea>
+        </div>
+        <button class="btn" type="submit">Send message <span aria-hidden="true">→</span></button>
+        <p class="form-note">Your message opens in your email app, addressed to the UK team. We usually reply within two working days.</p>
+      </form>
+    </div>
+
+    <!-- SIDE -->
+    <aside class="side">
+      <div class="info-card uk">
+        <div class="kic">UK team</div>
+        <h3>Virginia Filmer-Sankey</h3>
+        <p class="role">Stoma Alert Ltd · United Kingdom</p>
+        <p><a href="mailto:virginia.filmer-sankey@stoma-alert.eu">virginia.filmer-sankey@stoma-alert.eu</a></p>
+        <p>07720 055978</p>
+        <p>Little Tillingham, United Kingdom</p>
+      </div>
+
+      <div class="info-card maker">
+        <div class="kic" style="color:var(--purple)">Manufacturer</div>
+        <h3>PHIN MED Limited</h3>
+        <p>73 Cornhill, EC3V 3QQ<br>London, United Kingdom</p>
+        <p><a href="mailto:patient@stoma-alert.eu">patient@stoma-alert.eu</a></p>
+      </div>
+
+      <div class="info-card staff">
+        <div class="kic">For medical staff</div>
+        <h3>Work with us</h3>
+        <p>We invite general surgeons and stoma nurses to join Stoma Alert, a telemedicine system built to give stoma patients greater access to specialist care.</p>
+        <p><a href="mailto:personel@stoma-alert.eu">personel@stoma-alert.eu</a></p>
+      </div>
+
+      <div class="info-card">
+        <div class="kic">Community</div>
+        <h3>Join others on the same journey</h3>
+        <p>Support and tips from people living with a stoma and their carers.</p>
+        <div class="community">
+          <a class="comm-btn" href="https://www.facebook.com/groups/501488602109177" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>
+            Facebook group
+          </a>
+          <a class="comm-btn" href="https://chat.whatsapp.com/J0S5cmprFsHFhfrVgeEl1W" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.94 1.38-.5.07-1.12.1-1.81-.11-.42-.13-.95-.31-1.64-.6-2.88-1.25-4.76-4.15-4.9-4.34-.14-.19-1.17-1.56-1.17-2.97 0-1.41.74-2.11 1-2.39.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.82 2 .89 2.14.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.93 1.94 1.22 2.22 1.36.28.14.44.12.6-.07.17-.19.69-.8.87-1.08.18-.28.36-.23.61-.14.24.09 1.55.73 1.82.86.27.14.44.21.51.32.07.12.07.66-.17 1.34z"/></svg>
+            WhatsApp group
+          </a>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <a class="brand" href="stoma-alert-app-site.html"><span class="brand-mark">S</span><span class="brand-name">Stoma Alert</span></a>
+      <div>
+        <a href="stoma-alert-app-site.html">Home</a> &nbsp;·&nbsp;
+        <a href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener">Open the app →</a>
+      </div>
+    </div>
+    <div class="med-device">Stoma Alert is a support and record-keeping app for people with a stoma and their care teams. It helps you record and share information, it does not diagnose, and it does not replace the advice of your stoma nurse or doctor.</div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('contactForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var name = document.getElementById('cf-name').value.trim();
+  var email = document.getElementById('cf-email').value.trim();
+  var subject = document.getElementById('cf-subject').value;
+  var content = document.getElementById('cf-content').value.trim();
+  if(!name || !email || !content){ alert('Please fill in your name, email and message.'); return; }
+  var body = content + '\n\n---\nFrom: ' + name + ' (' + email + ')';
+  var mailto = 'mailto:virginia.filmer-sankey@stoma-alert.eu'
+    + '?subject=' + encodeURIComponent('[Stoma Alert] ' + subject + ' — ' + name)
+    + '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
+});
+</script>
+</body>
+</html>
