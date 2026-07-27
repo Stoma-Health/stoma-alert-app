@@ -1302,8 +1302,13 @@ wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurs
 // Groups live in Supabase (community_groups), not in this file, so an admin can add
 // one from the table editor without a redeploy. Memberships are SELF-DECLARED:
 // Meta deprecated the Groups API, so no app can read someone's real Facebook groups.
-let commDirectory = [];      // [{id,name,url,platform,category,description,sort}]
-let commMine = new Set();    // group ids this patient has ticked
+// Directory rows are either kind 'group' (one joinable group, tickable) or
+// kind 'browse' (a Facebook group SEARCH — opens, never ticked). Browse rows exist
+// because we can't source URLs for groups we haven't joined; Facebook's own search
+// shows live results instead, and never goes stale.
+let commDirectory = [];      // [{id,name,url,platform,category,description,kind,sort}]
+let commMineRows = [];       // user_communities rows: directory ticks AND patient-added
+let commMine = new Set();    // group ids this patient has ticked (directory rows only)
 
 const COMM_ICONS = {
   facebook: { bg:'#e7f0ff', svg:'<svg width="21" height="21" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>' },
@@ -1329,17 +1334,27 @@ async function loadCommunities(){
   }
   commDirectory = dir.data || [];
   if(mine.error) console.error('user_communities read failed:', mine.error.message);
-  commMine = new Set((mine.data || []).map(r => r.group_id));
+  commMineRows = mine.data || [];
+  commMine = new Set(commMineRows.filter(r => r.group_id).map(r => r.group_id));
   renderMyCommunities();
 }
 
+// A membership row resolves either to a directory group or to the patient's own entry.
+function commResolve(row){
+  if(row.group_id){
+    const g = commDirectory.find(x => x.id === row.group_id);
+    return g ? { name:g.name, url:g.url, platform:g.platform, sub:g.description || 'Tap to open' } : null;
+  }
+  return { name:row.custom_name, url:row.custom_url, platform:row.platform || 'web', sub:'Added by you' };
+}
+
 function renderMyCommunities(){
-  const picked = commDirectory.filter(g => commMine.has(g.id));
+  const picked = commMineRows.map(commResolve).filter(Boolean);
   $('#myCommunities').innerHTML = picked.map(g => {
     const ic = commIcon(g.platform);
     return `<a class="card" href="${esc(g.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;margin-top:8px">
       <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
-      <div style="flex:1"><div style="font-weight:700;font-size:13.5px">${esc(g.name)}</div><div class="ssub">${esc(g.description || 'Tap to open')}</div></div>
+      <div style="flex:1"><div style="font-weight:700;font-size:13.5px">${esc(g.name)}</div><div class="ssub">${esc(g.sub)}</div></div>
       <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
     </a>`;
   }).join('');
@@ -1351,31 +1366,91 @@ function renderMyCommunities(){
 }
 
 function renderCommList(){
-  if(!commDirectory.length){
-    $('#commList').innerHTML = '<div class="commempty">No groups in the directory yet. An admin can add them in Supabase → community_groups.</div>';
-    return;
-  }
   const cats = [...new Set(commDirectory.map(g => g.category || 'General'))];
-  $('#commList').innerHTML = cats.map(cat => {
+  const mineCustom = commMineRows.filter(r => !r.group_id);
+  // An empty directory must NOT short-circuit — the patient can still add their
+  // own groups, and that's the whole point before the directory is seeded.
+  $('#commList').innerHTML = (commDirectory.length
+    ? cats.map(cat => {
     const rows = commDirectory.filter(g => (g.category || 'General') === cat).map(g => {
       const ic = commIcon(g.platform);
+      const inner = `<span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
+        <span style="flex:1"><span class="commname">${esc(g.name)}</span>${g.description ? `<span class="ssub" style="display:block">${esc(g.description)}</span>` : ''}</span>`;
+      // 'browse' opens Facebook's group search — you can't "be a member of" a search,
+      // so it gets an open arrow rather than a tick.
+      if(g.kind === 'browse'){
+        return `<a class="commrow" href="${esc(g.url)}" target="_blank" rel="noopener" style="text-decoration:none">
+          <span class="commtick" style="border:none;background:none"><svg viewBox="0 0 24 24" style="opacity:1;stroke:var(--mist)" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+          ${inner}</a>`;
+      }
       return `<button class="commrow${commMine.has(g.id) ? ' on' : ''}" data-comm="${esc(g.id)}">
         <span class="commtick"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-        <span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
-        <span style="flex:1"><span class="commname">${esc(g.name)}</span>${g.description ? `<span class="ssub" style="display:block">${esc(g.description)}</span>` : ''}</span>
-      </button>`;
+        ${inner}</button>`;
     }).join('');
     return `<div class="commcat">${esc(cat)}</div>${rows}`;
-  }).join('');
+  }).join('')
+    : '<div class="commempty">No groups in the directory yet — you can still add your own below.</div>')
+  // patient's own groups, plus the form to add one
+  + `<div class="commcat">Your own groups</div>`
+  + (mineCustom.length ? mineCustom.map(r => {
+      const ic = commIcon(r.platform || 'web');
+      return `<div class="commrow on" style="cursor:default">
+        <span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
+        <span style="flex:1"><span class="commname">${esc(r.custom_name)}</span><span class="ssub" style="display:block">Added by you</span></span>
+        <button class="btn danger" data-commdel="${esc(r.id)}" style="flex:0 0 auto;width:auto;padding:6px 11px;font-size:11.5px;box-shadow:none">Remove</button>
+      </div>`;
+    }).join('') : '<div class="commempty">Already in a group? Once you\'ve joined, copy its link and add it here so it sits on your home screen.</div>')
+  + `<div style="margin-top:10px">
+      <input class="input" id="commAddName" placeholder="Group name — e.g. Ileostomy UK" maxlength="80">
+      <input class="input" id="commAddUrl" placeholder="Paste the group link (https://…)" style="margin-top:8px" inputmode="url">
+      <button class="btn" id="commAddBtn" style="margin-top:8px">Add this group</button>
+    </div>`;
+
   $('#commList').querySelectorAll('[data-comm]').forEach(b => b.onclick = () => toggleCommunity(b.dataset.comm, b));
+  $('#commList').querySelectorAll('[data-commdel]').forEach(b => b.onclick = () => removeCustomCommunity(b.dataset.commdel));
+  $('#commAddBtn').onclick = addCustomCommunity;
+}
+
+// Which platform a pasted link belongs to, for the icon.
+function commPlatformOf(url){
+  if(/(^|\.)facebook\.com$|(^|\.)fb\.(com|me)$/i.test(url.hostname)) return 'facebook';
+  if(/(^|\.)whatsapp\.com$/i.test(url.hostname)) return 'whatsapp';
+  return 'web';
+}
+
+async function addCustomCommunity(){
+  const name = $('#commAddName').value.trim();
+  const raw  = $('#commAddUrl').value.trim();
+  if(!name || !raw){ toast('Add both a name and a link'); return; }
+  let url;
+  // Only http/https may ever reach an href. Blocks javascript: and data: links.
+  try { url = new URL(raw); } catch { toast("That doesn't look like a link"); return; }
+  if(url.protocol !== 'http:' && url.protocol !== 'https:'){ toast('Links must start with https://'); return; }
+
+  const { data, error } = await sb.from('user_communities').insert({
+    user_id: myUid, custom_name: name, custom_url: url.href, platform: commPlatformOf(url)
+  }).select().single();
+  if(error){ console.error('addCustomCommunity failed:', error.message); toast("Couldn't add that — try again"); return; }
+
+  commMineRows.push(data);
+  $('#commAddName').value = ''; $('#commAddUrl').value = '';
+  renderMyCommunities(); renderCommList();
+  toast('Added ✓');
+}
+
+async function removeCustomCommunity(id){
+  const { error } = await sb.from('user_communities').delete().eq('id', id).eq('user_id', myUid);
+  if(error){ console.error('removeCustomCommunity failed:', error.message); toast("Couldn't remove that — try again"); return; }
+  commMineRows = commMineRows.filter(r => r.id !== id);
+  renderMyCommunities(); renderCommList();
 }
 
 async function toggleCommunity(id, btn){
   const joining = !commMine.has(id);
   // optimistic: the tick should feel instant, but roll back if the write fails
   btn.classList.toggle('on', joining);
-  const { error } = joining
-    ? await sb.from('user_communities').insert({ user_id: myUid, group_id: id })
+  const { data, error } = joining
+    ? await sb.from('user_communities').insert({ user_id: myUid, group_id: id }).select().single()
     : await sb.from('user_communities').delete().eq('group_id', id).eq('user_id', myUid);
   if(error){
     btn.classList.toggle('on', !joining);
@@ -1383,7 +1458,8 @@ async function toggleCommunity(id, btn){
     toast("Couldn't save that — try again");
     return;
   }
-  joining ? commMine.add(id) : commMine.delete(id);
+  if(joining){ commMine.add(id); commMineRows.push(data); }
+  else { commMine.delete(id); commMineRows = commMineRows.filter(r => r.group_id !== id); }
   renderMyCommunities();
 }
 
