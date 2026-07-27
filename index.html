@@ -251,11 +251,8 @@
   .commcat{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mist);margin:14px 0 7px;}
   .commrow{display:flex;align-items:center;gap:11px;width:100%;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px;cursor:pointer;text-align:left;font:inherit;color:inherit;}
   .commrow:active{transform:scale(.995);}
-  .commrow.on{border-color:var(--teal);background:var(--teal-soft);}
-  .commtick{flex:0 0 auto;width:21px;height:21px;border-radius:7px;border:1.8px solid var(--line);background:var(--paper);display:flex;align-items:center;justify-content:center;}
-  .commrow.on .commtick{background:var(--teal);border-color:var(--teal);}
-  .commtick svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:3;opacity:0;}
-  .commrow.on .commtick svg{opacity:1;}
+  .commopen{flex:0 0 auto;width:21px;height:21px;display:flex;align-items:center;justify-content:center;}
+  .commopen svg{width:14px;height:14px;stroke:var(--mist);fill:none;stroke-width:2;}
   .commname{font-weight:700;font-size:13px;line-height:1.3;}
   .commempty{font-size:12.5px;color:var(--mist);line-height:1.55;padding:2px 0 4px;}
 
@@ -492,10 +489,9 @@
 
       <!-- Community — directory-driven; groups live in Supabase, not in this file -->
       <div class="kic" style="margin-top:20px">Community</div>
-      <div id="myCommunities"></div>
       <button class="card" id="browseCommunities" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
         <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#172446" stroke-width="1.9"><circle cx="9" cy="8" r="3"/><path d="M2.5 19c0-3.1 2.9-4.8 6.5-4.8s6.5 1.7 6.5 4.8" stroke-linecap="round"/><circle cx="17.5" cy="7" r="2.4"/><path d="M16 13.4c3.1.2 5.5 1.8 5.5 4.6" stroke-linecap="round"/></svg></span>
-        <div style="flex:1"><div style="font-weight:700;font-size:13.5px" id="browseCommunitiesTitle">Find your communities</div><div class="ssub" id="browseCommunitiesSub">Pick the groups you're part of</div></div>
+        <div style="flex:1"><div style="font-weight:700;font-size:13.5px" id="browseCommunitiesTitle">Find your communities</div><div class="ssub" id="browseCommunitiesSub">Support groups and people who get it</div></div>
         <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
       </button>
       <button class="card" data-go="learn" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
@@ -951,7 +947,7 @@
     <div class="pmbox">
       <div class="kic">Community</div>
       <div class="h" style="font-size:19px;margin-bottom:6px">Find your communities</div>
-      <p style="font-size:12.5px;color:var(--slate);line-height:1.55;margin-bottom:12px">Tick the groups you're already part of, or want to join. They'll show on your home screen so they're one tap away. Nothing is shared with these groups, and no Facebook or WhatsApp sign-in is needed.</p>
+      <p style="font-size:12.5px;color:var(--slate);line-height:1.55;margin-bottom:12px">Tap any group to open it and join. Nothing is shared with these groups, and no sign-in is needed here. Groups are run by others, not by Stoma Alert.</p>
       <div id="commList"></div>
       <button class="btn ghost" id="commClose" style="margin-top:12px">Done</button>
     </div>
@@ -1307,8 +1303,7 @@ wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurs
 // because we can't source URLs for groups we haven't joined; Facebook's own search
 // shows live results instead, and never goes stale.
 let commDirectory = [];      // [{id,name,url,platform,category,description,kind,sort}]
-let commMineRows = [];       // user_communities rows: directory ticks AND patient-added
-let commMine = new Set();    // group ids this patient has ticked (directory rows only)
+let commMineRows = [];       // the patient's OWN added groups only
 
 const COMM_ICONS = {
   facebook: { bg:'#e7f0ff', svg:'<svg width="21" height="21" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>' },
@@ -1318,51 +1313,40 @@ const COMM_ICONS = {
 const commIcon = p => COMM_ICONS[p] || COMM_ICONS.web;
 // esc() is the shared HTML-escape helper declared further down (hoisted).
 
+const commQuery = withCatSort => {
+  let q = sb.from('community_groups').select('*').eq('active', true);
+  // cat_sort orders the CATEGORIES (WhatsApp first); sort orders within one.
+  if(withCatSort) q = q.order('cat_sort');
+  return q.order('category').order('sort');
+};
+
 async function loadCommunities(){
-  const [dir, mine] = await Promise.all([
-    sb.from('community_groups').select('*').eq('active', true).order('category').order('sort'),
-    sb.from('user_communities').select('group_id')
+  let [dir, mine] = await Promise.all([
+    commQuery(true),
+    // only the patient's own added groups — directory rows are open-only now
+    sb.from('user_communities').select('*').is('group_id', null)
   ]);
+  // 42703 = column does not exist: migration 0013 hasn't been applied yet. Fall
+  // back to alphabetical categories rather than showing an error, so deploying
+  // ahead of the migration is safe. WhatsApp-first starts working once it runs.
+  if(dir.error?.code === '42703'){
+    console.warn('cat_sort missing (run migration 0013) — ordering categories alphabetically');
+    dir = await commQuery(false);
+  }
   if(dir.error){
-    // Almost always "migration 0011 not applied yet". Say so rather than showing
-    // an empty Community section that looks like there are no groups.
+    // Almost always "migrations not applied yet". Say so rather than opening an
+    // empty sheet that looks like there are no groups.
     console.error('community_groups unavailable:', dir.error.message);
-    $('#myCommunities').innerHTML =
-      '<div class="card" style="margin-top:8px"><div class="commempty">Communities aren\'t set up on this database yet. Run migration <b>0011_communities.sql</b> in Supabase → SQL Editor.</div></div>';
-    $('#browseCommunities').style.display = 'none';
+    $('#browseCommunitiesSub').textContent = 'Not set up yet — run the community migrations';
     return;
   }
   commDirectory = dir.data || [];
   if(mine.error) console.error('user_communities read failed:', mine.error.message);
   commMineRows = mine.data || [];
-  commMine = new Set(commMineRows.filter(r => r.group_id).map(r => r.group_id));
-  renderMyCommunities();
-}
-
-// A membership row resolves either to a directory group or to the patient's own entry.
-function commResolve(row){
-  if(row.group_id){
-    const g = commDirectory.find(x => x.id === row.group_id);
-    return g ? { name:g.name, url:g.url, platform:g.platform, sub:g.description || 'Tap to open' } : null;
-  }
-  return { name:row.custom_name, url:row.custom_url, platform:row.platform || 'web', sub:'Added by you' };
-}
-
-function renderMyCommunities(){
-  const picked = commMineRows.map(commResolve).filter(Boolean);
-  $('#myCommunities').innerHTML = picked.map(g => {
-    const ic = commIcon(g.platform);
-    return `<a class="card" href="${esc(g.url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;margin-top:8px">
-      <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
-      <div style="flex:1"><div style="font-weight:700;font-size:13.5px">${esc(g.name)}</div><div class="ssub">${esc(g.sub)}</div></div>
-      <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
-    </a>`;
-  }).join('');
-  const n = picked.length;
-  $('#browseCommunitiesTitle').textContent = n ? 'Manage your communities' : 'Find your communities';
-  $('#browseCommunitiesSub').textContent  = n
-    ? `${n} group${n>1?'s':''} · tap to add or remove`
-    : "Pick the groups you're part of";
+  const n = commDirectory.length;
+  $('#browseCommunitiesSub').textContent = n
+    ? `${n} group${n>1?'s':''} · support from people who get it`
+    : 'Support groups and people who get it';
 }
 
 function renderCommList(){
@@ -1374,18 +1358,13 @@ function renderCommList(){
     ? cats.map(cat => {
     const rows = commDirectory.filter(g => (g.category || 'General') === cat).map(g => {
       const ic = commIcon(g.platform);
-      const inner = `<span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
-        <span style="flex:1"><span class="commname">${esc(g.name)}</span>${g.description ? `<span class="ssub" style="display:block">${esc(g.description)}</span>` : ''}</span>`;
-      // 'browse' opens Facebook's group search — you can't "be a member of" a search,
-      // so it gets an open arrow rather than a tick.
-      if(g.kind === 'browse'){
-        return `<a class="commrow" href="${esc(g.url)}" target="_blank" rel="noopener" style="text-decoration:none">
-          <span class="commtick" style="border:none;background:none"><svg viewBox="0 0 24 24" style="opacity:1;stroke:var(--mist)" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
-          ${inner}</a>`;
-      }
-      return `<button class="commrow${commMine.has(g.id) ? ' on' : ''}" data-comm="${esc(g.id)}">
-        <span class="commtick"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>
-        ${inner}</button>`;
+      // Every directory row simply opens the group. No ticking, nothing stored:
+      // the patient goes straight to Facebook/WhatsApp and joins there.
+      return `<a class="commrow" href="${esc(g.url)}" target="_blank" rel="noopener" style="text-decoration:none">
+        <span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
+        <span style="flex:1"><span class="commname">${esc(g.name)}</span>${g.description ? `<span class="ssub" style="display:block">${esc(g.description)}</span>` : ''}</span>
+        <span class="commopen"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></span>
+      </a>`;
     }).join('');
     return `<div class="commcat">${esc(cat)}</div>${rows}`;
   }).join('')
@@ -1394,19 +1373,21 @@ function renderCommList(){
   + `<div class="commcat">Your own groups</div>`
   + (mineCustom.length ? mineCustom.map(r => {
       const ic = commIcon(r.platform || 'web');
-      return `<div class="commrow on" style="cursor:default">
-        <span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
-        <span style="flex:1"><span class="commname">${esc(r.custom_name)}</span><span class="ssub" style="display:block">Added by you</span></span>
+      // The row opens the group; Remove sits alongside and must not follow the link.
+      return `<div class="commrow" style="padding-right:8px">
+        <a href="${esc(r.custom_url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;flex:1;text-decoration:none;color:inherit;min-width:0">
+          <span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
+          <span style="flex:1;min-width:0"><span class="commname">${esc(r.custom_name)}</span><span class="ssub" style="display:block">Added by you</span></span>
+        </a>
         <button class="btn danger" data-commdel="${esc(r.id)}" style="flex:0 0 auto;width:auto;padding:6px 11px;font-size:11.5px;box-shadow:none">Remove</button>
       </div>`;
-    }).join('') : '<div class="commempty">Already in a group? Once you\'ve joined, copy its link and add it here so it sits on your home screen.</div>')
+    }).join('') : '<div class="commempty">In a group that isn\'t listed? Once you\'ve joined, copy its link and add it here so it\'s always to hand.</div>')
   + `<div style="margin-top:10px">
       <input class="input" id="commAddName" placeholder="Group name — e.g. Ileostomy UK" maxlength="80">
       <input class="input" id="commAddUrl" placeholder="Paste the group link (https://…)" style="margin-top:8px" inputmode="url">
       <button class="btn" id="commAddBtn" style="margin-top:8px">Add this group</button>
     </div>`;
 
-  $('#commList').querySelectorAll('[data-comm]').forEach(b => b.onclick = () => toggleCommunity(b.dataset.comm, b));
   $('#commList').querySelectorAll('[data-commdel]').forEach(b => b.onclick = () => removeCustomCommunity(b.dataset.commdel));
   $('#commAddBtn').onclick = addCustomCommunity;
 }
@@ -1434,7 +1415,7 @@ async function addCustomCommunity(){
 
   commMineRows.push(data);
   $('#commAddName').value = ''; $('#commAddUrl').value = '';
-  renderMyCommunities(); renderCommList();
+  renderCommList();
   toast('Added ✓');
 }
 
@@ -1442,26 +1423,9 @@ async function removeCustomCommunity(id){
   const { error } = await sb.from('user_communities').delete().eq('id', id).eq('user_id', myUid);
   if(error){ console.error('removeCustomCommunity failed:', error.message); toast("Couldn't remove that — try again"); return; }
   commMineRows = commMineRows.filter(r => r.id !== id);
-  renderMyCommunities(); renderCommList();
+  renderCommList();
 }
 
-async function toggleCommunity(id, btn){
-  const joining = !commMine.has(id);
-  // optimistic: the tick should feel instant, but roll back if the write fails
-  btn.classList.toggle('on', joining);
-  const { data, error } = joining
-    ? await sb.from('user_communities').insert({ user_id: myUid, group_id: id }).select().single()
-    : await sb.from('user_communities').delete().eq('group_id', id).eq('user_id', myUid);
-  if(error){
-    btn.classList.toggle('on', !joining);
-    console.error('toggleCommunity failed:', error.message);
-    toast("Couldn't save that — try again");
-    return;
-  }
-  if(joining){ commMine.add(id); commMineRows.push(data); }
-  else { commMine.delete(id); commMineRows = commMineRows.filter(r => r.group_id !== id); }
-  renderMyCommunities();
-}
 
 $('#browseCommunities').onclick = () => { renderCommList(); $('#commModal').classList.add('on'); };
 $('#commClose').onclick = () => $('#commModal').classList.remove('on');
