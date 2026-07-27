@@ -1313,14 +1313,26 @@ const COMM_ICONS = {
 const commIcon = p => COMM_ICONS[p] || COMM_ICONS.web;
 // esc() is the shared HTML-escape helper declared further down (hoisted).
 
+const commQuery = withCatSort => {
+  let q = sb.from('community_groups').select('*').eq('active', true);
+  // cat_sort orders the CATEGORIES (WhatsApp first); sort orders within one.
+  if(withCatSort) q = q.order('cat_sort');
+  return q.order('category').order('sort');
+};
+
 async function loadCommunities(){
-  const [dir, mine] = await Promise.all([
-    // cat_sort orders the CATEGORIES (WhatsApp first), sort orders within one.
-    sb.from('community_groups').select('*').eq('active', true)
-      .order('cat_sort').order('category').order('sort'),
+  let [dir, mine] = await Promise.all([
+    commQuery(true),
     // only the patient's own added groups — directory rows are open-only now
     sb.from('user_communities').select('*').is('group_id', null)
   ]);
+  // 42703 = column does not exist: migration 0013 hasn't been applied yet. Fall
+  // back to alphabetical categories rather than showing an error, so deploying
+  // ahead of the migration is safe. WhatsApp-first starts working once it runs.
+  if(dir.error?.code === '42703'){
+    console.warn('cat_sort missing (run migration 0013) — ordering categories alphabetically');
+    dir = await commQuery(false);
+  }
   if(dir.error){
     // Almost always "migrations not applied yet". Say so rather than opening an
     // empty sheet that looks like there are no groups.
