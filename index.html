@@ -1381,11 +1381,14 @@ function renderCommList(){
         </a>
         <button class="btn danger" data-commdel="${esc(r.id)}" style="flex:0 0 auto;width:auto;padding:6px 11px;font-size:11.5px;box-shadow:none">Remove</button>
       </div>`;
-    }).join('') : '<div class="commempty">In a group that isn\'t listed? Once you\'ve joined, copy its link and add it here so it\'s always to hand.</div>')
-  + `<div style="margin-top:10px">
+    }).join('') : '')
+  // Instructions sit above the form and show ALWAYS, not just when the list is
+  // empty — someone adding their second group needs them as much as their first.
+  + `<div class="commempty">Already in a Facebook or WhatsApp group that isn't listed? Paste its link below and it'll be saved here.</div>
+    <div style="margin-top:10px">
       <input class="input" id="commAddName" placeholder="Group name — e.g. Ileostomy UK" maxlength="80">
-      <input class="input" id="commAddUrl" placeholder="Paste the group link (https://…)" style="margin-top:8px" inputmode="url">
-      <button class="btn" id="commAddBtn" style="margin-top:8px">Add this group</button>
+      <input class="input" id="commAddUrl" placeholder="Paste the Facebook or WhatsApp link" style="margin-top:8px" inputmode="url">
+      <button class="btn" id="commAddBtn" style="margin-top:8px">Add group</button>
     </div>`;
 
   $('#commList').querySelectorAll('[data-commdel]').forEach(b => b.onclick = () => removeCustomCommunity(b.dataset.commdel));
