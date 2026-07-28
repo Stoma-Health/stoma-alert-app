@@ -255,9 +255,13 @@
   .commopen svg{width:14px;height:14px;stroke:var(--mist);fill:none;stroke-width:2;}
   .commname{font-weight:700;font-size:13px;line-height:1.3;}
   .commempty{font-size:12.5px;color:var(--mist);line-height:1.55;padding:2px 0 4px;}
-  .commcatbtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;padding:14px 2px 7px;cursor:pointer;font:inherit;}
-  .commcount{display:inline-block;background:var(--wash);color:var(--slate);border-radius:100px;padding:1px 7px;font-size:10px;margin-left:4px;letter-spacing:0;}
-  .commchev{width:16px;height:16px;stroke:var(--mist);fill:none;stroke-width:2.2;transition:transform .18s ease;}
+  /* NB: never `font:inherit` here — it wipes the font-size that .commcat sets. */
+  .commcatbtn{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;padding:13px 2px 6px;cursor:pointer;
+    font-family:var(--ui);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1877F2;}
+  .commcatbtn .cathead{display:flex;align-items:center;gap:6px;min-width:0;}
+  .commcatbtn .catlogo{width:13px;height:13px;flex:0 0 auto;}
+  .commcount{display:inline-block;background:var(--wash);color:var(--slate);border-radius:100px;padding:1px 6px;font-size:9px;margin-left:3px;letter-spacing:0;}
+  .commchev{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;transition:transform .18s ease;opacity:.75;}
   .commchev.open{transform:rotate(180deg);}
 
   /* messaging */
@@ -1316,6 +1320,14 @@ const COMM_ICONS = {
   web:      { bg:'var(--teal-soft)', svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#172446" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>' }
 };
 const commIcon = p => COMM_ICONS[p] || COMM_ICONS.web;
+
+// Small mono logos + brand tints for the collapsible category headings.
+const COMM_TINT = { facebook:'#1877F2', whatsapp:'#1EA855', web:'var(--slate)' };
+const COMM_LOGOS = {
+  facebook: '<svg class="catlogo" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>',
+  whatsapp: '<svg class="catlogo" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.94 1.38-.5.07-1.12.1-1.81-.11-.42-.13-.95-.31-1.64-.6-2.88-1.25-4.76-4.15-4.9-4.34-.14-.19-1.17-1.56-1.17-2.97 0-1.41.74-2.11 1-2.39.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.82 2 .89 2.14.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.93 1.94 1.22 2.22 1.36.28.14.44.12.6-.07.17-.19.69-.8.87-1.08.18-.28.36-.23.61-.14.24.09 1.55.73 1.82.86.27.14.44.21.51.32.07.12.07.66-.17 1.34z"/></svg>',
+  web:      '<svg class="catlogo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>'
+};
 // esc() is the shared HTML-escape helper declared further down (hoisted).
 
 const commQuery = withCatSort => {
@@ -1363,10 +1375,12 @@ function renderCommList(){
   const addBlock =
     `<div class="commcat">Add your own group</div>
      <div class="commempty">Already in a Facebook or WhatsApp group that isn't listed? Paste its link below and it'll be saved here.</div>
-     <div style="margin-top:10px">
-       <input class="input" id="commAddName" placeholder="Group name — e.g. Ileostomy UK" maxlength="80">
-       <input class="input" id="commAddUrl" placeholder="Paste the Facebook or WhatsApp link" style="margin-top:8px" inputmode="url">
-       <button class="btn" id="commAddBtn" style="margin-top:8px">Add group</button>
+     <div style="margin-top:12px">
+       <label class="fl" for="commAddName">Group name</label>
+       <input class="input" id="commAddName" placeholder="e.g. Ileostomy UK" maxlength="80">
+       <label class="fl" for="commAddUrl" style="margin-top:12px">Paste the Facebook or WhatsApp link</label>
+       <input class="input" id="commAddUrl" placeholder="https://www.facebook.com/groups/…" inputmode="url">
+       <button class="btn" id="commAddBtn" style="margin-top:12px">Add group</button>
      </div>`
     + (mineCustom.length ? `<div class="commcat">Your groups</div>` + mineCustom.map(r => {
         const ic = commIcon(r.platform || 'web');
@@ -1398,8 +1412,13 @@ function renderCommList(){
     // a collapsed section still tells you it's worth opening.
     const n = commDirectory.filter(g => (g.category || 'General') === cat).length;
     const open = commCatOpen.has(cat);
-    return `<button class="commcat commcatbtn" data-cat="${esc(cat)}" aria-expanded="${open}">
-        <span>${esc(cat)} <span class="commcount">${n}</span></span>
+    // Colour and logo come from the platform in that category, so a WhatsApp
+    // section reads green rather than pretending to be Facebook.
+    const plats = [...new Set(commDirectory.filter(g => (g.category || 'General') === cat).map(g => g.platform))];
+    const plat  = plats.length === 1 ? plats[0] : 'web';
+    const tint  = COMM_TINT[plat] || COMM_TINT.web;
+    return `<button class="commcat commcatbtn" data-cat="${esc(cat)}" aria-expanded="${open}" style="color:${tint}">
+        <span class="cathead">${COMM_LOGOS[plat] || COMM_LOGOS.web}<span>${esc(cat)}</span> <span class="commcount">${n}</span></span>
         <svg class="commchev${open ? ' open' : ''}" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <div data-catrows="${esc(cat)}"${open ? '' : ' style="display:none"'}>${rows}</div>`;
