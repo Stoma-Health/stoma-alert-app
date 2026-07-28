@@ -1352,9 +1352,31 @@ async function loadCommunities(){
 function renderCommList(){
   const cats = [...new Set(commDirectory.map(g => g.category || 'General'))];
   const mineCustom = commMineRows.filter(r => !r.group_id);
-  // An empty directory must NOT short-circuit — the patient can still add their
-  // own groups, and that's the whole point before the directory is seeded.
-  $('#commList').innerHTML = (commDirectory.length
+
+  // Add-your-own goes FIRST: a patient who already has a group shouldn't scroll
+  // past the whole directory to find the box they need.
+  const addBlock =
+    `<div class="commcat">Add your own group</div>
+     <div class="commempty">Already in a Facebook or WhatsApp group that isn't listed? Paste its link below and it'll be saved here.</div>
+     <div style="margin-top:10px">
+       <input class="input" id="commAddName" placeholder="Group name — e.g. Ileostomy UK" maxlength="80">
+       <input class="input" id="commAddUrl" placeholder="Paste the Facebook or WhatsApp link" style="margin-top:8px" inputmode="url">
+       <button class="btn" id="commAddBtn" style="margin-top:8px">Add group</button>
+     </div>`
+    + (mineCustom.length ? `<div class="commcat">Your groups</div>` + mineCustom.map(r => {
+        const ic = commIcon(r.platform || 'web');
+        // The row opens the group; Remove sits alongside and must not follow the link.
+        return `<div class="commrow" style="padding-right:8px">
+          <a href="${esc(r.custom_url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;flex:1;text-decoration:none;color:inherit;min-width:0">
+            <span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
+            <span style="flex:1;min-width:0"><span class="commname">${esc(r.custom_name)}</span><span class="ssub" style="display:block">Added by you</span></span>
+          </a>
+          <button class="btn danger" data-commdel="${esc(r.id)}" style="flex:0 0 auto;width:auto;padding:6px 11px;font-size:11.5px;box-shadow:none">Remove</button>
+        </div>`;
+      }).join('') : '');
+
+  // An empty directory must NOT short-circuit — the add block above still stands.
+  $('#commList').innerHTML = addBlock + (commDirectory.length
     ? cats.map(cat => {
     const rows = commDirectory.filter(g => (g.category || 'General') === cat).map(g => {
       const ic = commIcon(g.platform);
@@ -1368,28 +1390,7 @@ function renderCommList(){
     }).join('');
     return `<div class="commcat">${esc(cat)}</div>${rows}`;
   }).join('')
-    : '<div class="commempty">No groups in the directory yet — you can still add your own below.</div>')
-  // patient's own groups, plus the form to add one
-  + `<div class="commcat">Your own groups</div>`
-  + (mineCustom.length ? mineCustom.map(r => {
-      const ic = commIcon(r.platform || 'web');
-      // The row opens the group; Remove sits alongside and must not follow the link.
-      return `<div class="commrow" style="padding-right:8px">
-        <a href="${esc(r.custom_url)}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;flex:1;text-decoration:none;color:inherit;min-width:0">
-          <span class="ic" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${ic.bg};flex:0 0 auto">${ic.svg}</span>
-          <span style="flex:1;min-width:0"><span class="commname">${esc(r.custom_name)}</span><span class="ssub" style="display:block">Added by you</span></span>
-        </a>
-        <button class="btn danger" data-commdel="${esc(r.id)}" style="flex:0 0 auto;width:auto;padding:6px 11px;font-size:11.5px;box-shadow:none">Remove</button>
-      </div>`;
-    }).join('') : '')
-  // Instructions sit above the form and show ALWAYS, not just when the list is
-  // empty — someone adding their second group needs them as much as their first.
-  + `<div class="commempty">Already in a Facebook or WhatsApp group that isn't listed? Paste its link below and it'll be saved here.</div>
-    <div style="margin-top:10px">
-      <input class="input" id="commAddName" placeholder="Group name — e.g. Ileostomy UK" maxlength="80">
-      <input class="input" id="commAddUrl" placeholder="Paste the Facebook or WhatsApp link" style="margin-top:8px" inputmode="url">
-      <button class="btn" id="commAddBtn" style="margin-top:8px">Add group</button>
-    </div>`;
+    : '<div class="commempty">No groups in the directory yet.</div>');
 
   $('#commList').querySelectorAll('[data-commdel]').forEach(b => b.onclick = () => removeCustomCommunity(b.dataset.commdel));
   $('#commAddBtn').onclick = addCustomCommunity;
