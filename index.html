@@ -668,6 +668,15 @@
         <span style="font-size:17px">☎️</span>
         <div style="font-size:11.5px;color:var(--slate);line-height:1.45">Colostomy UK Stoma Helpline · 9am–10pm, 365 days a year<br><a href="tel:08003284257" style="color:var(--teal-deep);font-weight:700;text-decoration:none">0800 328 4257</a></div>
       </div>
+      <div class="card" style="margin-top:-2px">
+        <div style="font-size:12.5px;font-weight:700;margin-bottom:6px">Useful support</div>
+        <div style="font-size:11.5px;color:var(--slate);line-height:1.55">
+          <a href="https://www.colostomyuk.org/" target="_blank" rel="noopener noreferrer" style="color:var(--teal-deep);font-weight:600;text-decoration:none">Colostomy UK</a> ·
+          <a href="https://www.bladderandbowel.org/" target="_blank" rel="noopener noreferrer" style="color:var(--teal-deep);font-weight:600;text-decoration:none">Bladder &amp; Bowel Community</a> ·
+          <a href="https://crohnsandcolitis.org.uk/" target="_blank" rel="noopener noreferrer" style="color:var(--teal-deep);font-weight:600;text-decoration:none">Crohn's &amp; Colitis UK</a><br>
+          <a href="tel:116123" style="color:var(--teal-deep);font-weight:700;text-decoration:none">Samaritans 116 123</a> · free, 24/7 crisis support
+        </div>
+      </div>
       <div id="guideList"></div>
     </section>
 
@@ -2708,22 +2717,65 @@ let GUIDES = [
       ['Diet after stoma surgery', 'Coloplast Stoma Care', 'https://www.youtube.com/c/ColoplastStomaCare'],
     ]},
   { id:'appliance', cat:'Appliance & fitting', theme:'t3', icon:'📖', minutes:4, type:'read', note:'Confidence',
-    body:`<h4>A secure, comfortable fit</h4><p>The right fit is the single biggest factor in confidence — it prevents leaks and protects your skin.</p>
-    <h4>Measure, then measure again</h4><ul><li>Measure your stoma regularly, especially in the first four to six weeks — it changes shape and size as the swelling settles.</li><li>Re-measure whenever you get leaks or soreness, or after a change in weight.</li><li>Use the measuring guide or template supplied with your bags; your stoma nurse can give you one. Cut or select the aperture so only 1–2 mm of skin shows.</li></ul>
-    <h4>Getting it on well</h4><ul><li>Warm the baseplate slightly in your hands so it moulds to your body.</li><li>Smooth from the centre outwards, then hold your hand over it for a minute — warmth helps it seal.</li><li>Empty a drainable pouch when it's about a third full to avoid dragging.</li><li>Consider a barrier ring or paste if you have dips or creases around the stoma.</li></ul>
-    <div class="nb">If you're getting repeated leaks, your stoma nurse can reassess your template and product choice — it's usually an easy fix.</div>`},
+    body:`<h4>Basic change kit</h4><p>Keep the basics together so a bag change feels routine rather than frantic: a new bag or baseplate, a measuring guide, scissors if it is not pre-cut, dry wipes or kitchen roll, warm water, a disposal bag, adhesive remover spray, and a mirror.</p>
+    <h4>Measure, then measure again</h4><ul><li><b>Measure your stoma regularly</b>, especially in the first four to six weeks — it changes shape and size as swelling settles.</li><li>Re-measure whenever you get leaks or soreness, or after a change in weight.</li><li>Use the measuring guide or template supplied with your bags. Your stoma nurse can provide one. Cut or select the aperture so only 1–2 mm of skin shows.</li></ul>
+    <h4>Change routine</h4><ul><li>Remove the old bag slowly, from the top down.</li><li>Clean the stoma and surrounding skin with warm water.</li><li>Dry fully before fitting the new bag.</li><li>Press gently all the way round to seal, then hold for a moment to warm the adhesive.</li></ul>
+    <h4>Choosing the right setup</h4><ul><li><b>One-piece</b> systems are simpler and lower-profile.</li><li><b>Two-piece</b> systems let you change the bag while keeping the baseplate on.</li><li>Ask your stoma nurse which suits your routine and dexterity best.</li></ul>
+    <div class="nb">Frequent leaks, ballooning, or a bag that will not stick are signs the fit or product needs reviewing — book a stoma-nurse review rather than living with it.</div>`,
+    links:[
+      ['Changing a stoma appliance', 'Colostomy UK', 'https://www.colostomyuk.org/changing-stoma-appliance/'],
+      ['Guidelines for changing your stoma appliance (PDF)', 'Royal Devon NHS', 'https://www.royaldevon.nhs.uk/media/jd0pfjvz/guidelines-for-changing-your-stoma-appliance-rd-e-18-212-003.pdf'],
+      ['How to measure, cut and fit a stoma bag', 'CliniMed', 'https://www.clinimed.co.uk/stoma-care/living-with-a-stoma/stoma-customisation/'],
+      ['Managing your stoma bag', 'Coloplast UK', 'https://www.coloplast.co.uk/stoma/people-with-a-stoma/living-with-a-stoma/managing-your-stoma-bag/'],
+    ],
+    videos:[
+      ['Stoma care video guides', 'Coloplast Stoma Care', 'https://www.youtube.com/c/ColoplastStomaCare'],
+      ['Ostomy application and care videos', 'Convatec', 'https://www.convatec.com/ostomy-care/right-after-surgery/using-your-product/ostomy-care-video-gallery/'],
+      ['How to change a stoma bag — step by step', 'YouTube', 'https://www.youtube.com/results?search_query=how+to+change+a+stoma+bag+step+by+step'],
+    ]},
   { id:'activity', cat:'Activity & lifestyle', theme:'t4', icon:'📖', minutes:6, type:'read', note:'Getting back to it',
-    body:`<h4>Returning to activity</h4><p>Most people return to the activities they love. Build up gradually and let comfort be your guide.</p>
-    <h4>Moving well</h4><ul><li>Start with gentle walking and increase as your energy returns.</li><li>Avoid heavy lifting in the early weeks while your abdomen heals — ask when it's safe to progress.</li><li>Support wear or high-waisted clothing can add confidence for sport and swimming.</li></ul>
-    <div class="nb">Ask your stoma nurse before resuming heavy lifting or contact sport, particularly within the first weeks after surgery.</div>`},
+    body:`<h4>Early recovery</h4><p>Start with short daily walks and build up the distance gradually. Avoid heavy lifting for about the first three months while you rebuild core strength.</p>
+    <h4>Getting back to normal life</h4><ul><li>Once healed, there is very little you cannot do — walking, swimming, cycling, gym work, dancing, gardening, and even contact sport with your stoma team's sign-off.</li><li>Swimming is usually straightforward: bags are waterproof, the adhesive holds in water, and you do not need a special bag. Pop a filter cover on before you get in, and do not swim with an open wound, staples, or a drain in place.</li><li>Comfortable swimwear does most of the confidence work.</li></ul>
+    <h4>Support and routine</h4><ul><li>A firmly fitted ostomy belt or support wear helps hold the bag during sport and heavier activity, and can reduce hernia risk.</li><li>If you are returning to work, ease back in, know where the accessible toilets are, and keep a spare change kit at your desk or in your bag.</li><li>Build strength gradually and listen to your body — stop if you feel pain or unwell.</li></ul>
+    <div class="nb">Check with your stoma nurse before starting a new regime, particularly for core or abdominal work, because of parastomal hernia risk.</div>`,
+    links:[
+      ['Exercise — Active Ostomates', 'Colostomy UK', 'https://www.colostomyuk.org/information/exercise/'],
+      ['Swimming', 'Colostomy UK', 'https://www.colostomyuk.org/active-ostomates/swimming/'],
+      ['Physical activity with a stoma', 'SecuriCare', 'https://www.securicaremedical.co.uk/advice-and-support/stoma-care/physical-activity-with-a-stoma'],
+      ['Swimming, running, cycling and other exercise', 'Coloplast Charter', 'https://www.coloplastcharter.co.uk/advice-and-support/life-with-a-stoma/daily-life-with-a-stoma/physical-activity-with-a-stoma/swimming-running-cycling-and-other-exercise-with-a-stoma/'],
+    ],
+    videos:[
+      ['Active Ostomates campaign clips', 'Colostomy UK', 'https://www.colostomyuk.org/information/exercise/'],
+    ]},
   { id:'wellbeing', cat:'Emotional wellbeing', theme:'t5', icon:'📖', minutes:5, type:'read', note:'You’re not alone',
-    body:`<h4>Adjusting takes time</h4><p>A stoma is a big change, and a mix of feelings — relief, frustration, low days — is completely normal. Your confidence grows with your routine.</p>
-    <h4>Things that help</h4><ul><li>Connect with others — stoma communities and charities are a great source of practical reassurance.</li><li>Let trusted people in; sharing how you feel lightens it.</li><li>Mark small wins — a leak-free week, a first swim, a meal out.</li></ul>
-    <div class="nb">If low mood, anxiety or sleep problems persist, please talk to your stoma nurse or GP — support is available and effective.</div>`},
+    body:`<h4>What you are feeling is common</h4><p>A stoma changes routines, relationships, confidence, and body image. Worries about leaks, odour, or how you look are extremely common — and completely valid.</p>
+    <h4>What helps most</h4><ul><li>You are not alone: connecting with other ostomates through support groups, peer communities, or moderated social channels is one of the most consistently helpful things people report.</li><li>Psychological support is not always offered routinely with stoma care, so it is fine to ask your GP or stoma nurse for a referral, or to seek counselling directly.</li><li>Small confidence wins matter: a reliable change routine, discreet products, and knowing your triggers all reduce anxiety.</li></ul>
+    <div class="nb">Do not struggle in silence. If low mood, anxiety, or isolation persists, reach out early. Crisis support: Samaritans — 116 123 or jo@samaritans.org.</div>`,
+    links:[
+      ['Mental health support after stoma surgery', 'Colostomy UK', 'https://www.colostomyuk.org/mental-health-support-after-stoma-surgery-dont-struggle-in-silence/'],
+      ['Supporting mental health with a stoma', 'Colostomy UK', 'https://www.colostomyuk.org/dear-nurse-living-well-supporting-mental-health-with-a-stoma/'],
+      ['Emotional wellbeing guide', 'CliniMed', 'https://www.clinimed.co.uk/resources/emotional-wellbeing-stoma-guide/'],
+      ['Psychological well-being', 'Salts Well-Being Hub', 'https://www.salts.co.uk/well-being-hub/living-with-a-stoma'],
+      ['Living with a stoma: the emotional impact', 'Counselling Directory', 'https://www.counselling-directory.org.uk/articles/living-with-a-stoma-the-emotional-impact'],
+    ],
+    videos:[
+      ['Lived-experience and peer-story videos', 'Colostomy UK', 'https://www.colostomyuk.org/mental-health-support-after-stoma-surgery-dont-struggle-in-silence/'],
+    ]},
   { id:'travel', cat:'Travel', theme:'t6', icon:'📖', minutes:5, type:'read', note:'Go further',
-    body:`<h4>Travelling with confidence</h4><p>A stoma needn't hold back your travel plans — a little preparation is all it takes.</p>
-    <h4>Pack smart</h4><ul><li>Take roughly twice the supplies you think you'll need, split across bags.</li><li>Keep a day's supplies in your hand luggage, and ask about a travel certificate for security.</li><li>In hot climates, store appliances out of direct heat and stay extra hydrated.</li></ul>
-    <div class="nb">Your stoma nurse can provide a travel certificate and tips for longer trips or different climates.</div>`},
+    body:`<h4>Before you travel</h4><p>Colostomy UK provides a downloadable travel certificate, endorsed by the Civil Aviation Authority, that explains your stoma and supplies to security staff. Get it signed by your GP for it to be valid, and carry it through airport security.</p>
+    <h4>Pack for the real world</h4><ul><li>Pack roughly double the supplies you would normally use for the trip length, and keep most of them in your hand luggage in case checked bags go missing.</li><li>Keep a ready-to-use change kit easy to reach.</li><li>Consider pre-cut bags for travel, and pack scissors in the hold if you use cut-to-fit.</li></ul>
+    <h4>Flying and being away</h4><ul><li>Cabin pressure can make a bag balloon with gas, which is more common with a colostomy. Avoid gas-producing food and drink the day before and during flights, and empty the bag before boarding.</li><li>Travel insurance should include both the stoma and the underlying condition that led to it.</li><li>Abroad, carry supplies in their original packaging, take a list of product codes, know how to say stoma or ostomy locally, and be cautious with tap water and ice where hygiene is uncertain.</li></ul>
+    <div class="nb">If you are unsure about longer trips, flying, or hot climates, ask your stoma nurse for practical travel advice before you go.</div>`,
+    links:[
+      ['Travel advice and travel certificate', 'Colostomy UK', 'https://www.colostomyuk.org/information/travel-advice/'],
+      ['Travel with a stoma', 'NaTHNaC / TravelHealthPro', 'https://travelhealthpro.org.uk/factsheet/85/stomas-and-travel'],
+      ['Travelling with a stoma', 'Bladder & Bowel Community', 'https://www.bladderandbowel.org/stoma/travelling-with-a-stoma/'],
+      ['Travelling and flying with a stoma', 'Fittleworth', 'https://www.fittleworth.com/advice-centre/stoma/travel-advice/'],
+      ['How to travel with a stoma', 'Convatec', 'https://www.convatec.com/en-gb/stoma-care/meplus-patient-support/stoma-travel-tips/'],
+    ],
+    videos:[
+      ['Travel tips clips for people with a stoma', 'Convatec / Coloplast', 'https://www.youtube.com/results?search_query=stoma+travel+tips+coloplast+convatec'],
+    ]},
 ];
 let guideDone = new Set();
 let curGuide = null;
