@@ -1347,7 +1347,10 @@ const NURSE_MESSAGING_ENABLED = false;
 // shows live results instead, and never goes stale.
 let commDirectory = [];      // [{id,name,url,platform,category,description,kind,sort}]
 let commMineRows = [];       // the patient's OWN added groups only
-let commCatOpen = new Set(); // categories the patient has expanded this session
+// The add-your-own form and the patient's own list collapse like a category,
+// so they reuse the same open-set and the same toggle handler.
+const ADD_KEY = '__add', MINE_KEY = '__mine';
+let commCatOpen = new Set([ADD_KEY, MINE_KEY]); // sections the patient has expanded this session
 
 const COMM_ICONS = {
   facebook: { bg:'#e7f0ff', svg:'<svg width="21" height="21" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>' },
@@ -1407,17 +1410,32 @@ function renderCommList(){
 
   // Add-your-own goes FIRST: a patient who already has a group shouldn't scroll
   // past the whole directory to find the box they need.
+  // Both of these collapse the same way the directory categories do, so a
+  // patient who has already added their groups can fold the form away.
+  const addOpen  = commCatOpen.has(ADD_KEY);
+  const mineOpen = commCatOpen.has(MINE_KEY);
   const addBlock =
-    `<div class="commcat">Add your own group</div>
-     <div class="commempty">Already in a group that isn't listed? Paste its link below and it'll be saved here.</div>
-     <div style="margin-top:12px">
-       <label class="fl" for="commAddName">Group name</label>
-       <input class="input" id="commAddName" placeholder="e.g. Ileostomy UK" maxlength="80">
-       <label class="fl" for="commAddUrl" style="margin-top:12px">Paste your social link (Facebook, WhatsApp, Slack etc)</label>
-       <input class="input" id="commAddUrl" placeholder="https://www.facebook.com/groups/…" inputmode="url">
-       <button class="btn" id="commAddBtn" style="margin-top:12px">Add group</button>
+    `<button class="commcat commcatbtn" data-cat="${ADD_KEY}" aria-expanded="${addOpen}">
+       <span class="cathead"><span>Add your own group/app</span></span>
+       <svg class="commchev${addOpen ? ' open' : ''}" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+     </button>
+     <div data-catrows="${ADD_KEY}"${addOpen ? '' : ' style="display:none"'}>
+       <div class="commempty">Already in a group or using an app that isn't listed? Paste its link below and it'll be saved here.</div>
+       <div style="margin-top:12px">
+         <label class="fl" for="commAddName">Group or app name</label>
+         <input class="input" id="commAddName" placeholder="e.g. Ileostomy UK" maxlength="80">
+         <label class="fl" for="commAddUrl" style="margin-top:12px">Paste your link (Facebook, WhatsApp, Slack, an app etc)</label>
+         <input class="input" id="commAddUrl" placeholder="https://www.facebook.com/groups/…" inputmode="url">
+         <button class="btn" id="commAddBtn" style="margin-top:12px">Add group/app</button>
+       </div>
      </div>`
-    + (mineCustom.length ? `<div class="commcat">Your groups</div>` + mineCustom.map(r => {
+    + (mineCustom.length
+      ? `<button class="commcat commcatbtn" data-cat="${MINE_KEY}" aria-expanded="${mineOpen}">
+           <span class="cathead"><span>Your groups/apps</span> <span class="commcount">${mineCustom.length}</span></span>
+           <svg class="commchev${mineOpen ? ' open' : ''}" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+         </button>
+         <div data-catrows="${MINE_KEY}"${mineOpen ? '' : ' style="display:none"'}>`
+      + mineCustom.map(r => {
         const ic = commIcon(r.platform || 'web');
         // The row opens the group; Remove sits alongside and must not follow the link.
         return `<div class="commrow" style="padding-right:8px">
@@ -1427,7 +1445,8 @@ function renderCommList(){
           </a>
           <button class="btn danger" data-commdel="${esc(r.id)}" style="flex:0 0 auto;width:auto;padding:6px 11px;font-size:11.5px;box-shadow:none">Remove</button>
         </div>`;
-      }).join('') : '');
+      }).join('') + '</div>'
+      : '');
 
   // An empty directory must NOT short-circuit — the add block above still stands.
   $('#commList').innerHTML = addBlock + (commDirectory.length
@@ -2683,7 +2702,7 @@ if(!NURSE_MESSAGING_ENABLED) $('#optNurse').classList.add('locked');
 
 // ---------- education library (content in-app, completion in Supabase) ----------
 let GUIDES = [
-  { id:'skin-care', cat:'Skin care', theme:'t1', icon:'▶', minutes:4, type:'video', note:'Recommended',
+  { id:'skin-care', cat:'Skin care', theme:'t1', icon:'📖', minutes:4, type:'read', note:'Recommended',
     body:`<h4>Why skin care matters</h4><p>Healthy skin around your stoma (the peristomal skin) should look just like the skin on the rest of your tummy. Red, sore, itchy or weepy skin usually means output is getting underneath the flange — act early and most problems stay small.</p>
     <h4>A simple daily routine</h4><ul><li>Clean with <b>warm water only</b>. Avoid perfumed soap, lotions, creams, baby powder, baby wipes and anything containing alcohol — they leave a residue that stops the bag sticking.</li><li><b>Dry the skin fully</b> before applying a new bag. A good seal needs dry skin, and it reduces the risk of fungal infection.</li><li>Check the <b>fit</b>: the aperture should sit snugly, with no more than 1–2 mm of skin showing. A gap lets output touch the skin; too tight can rub the stoma.</li><li>Remove the flange slowly, from the top down. An adhesive remover spray helps prevent skin stripping.</li><li>Don't over-shave the hair around your stoma — it can cause folliculitis. Trim carefully if you need to.</li></ul>
     <div class="nb">Persistent soreness, bleeding, a rash, lumps, or a change in the colour of your stoma — contact your stoma nurse.</div>`,
