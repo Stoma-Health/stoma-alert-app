@@ -325,7 +325,9 @@
   .opt.locked .chev{opacity:.4;}
   .opt .ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
   .opt .ic svg{width:20px;height:20px;fill:none;stroke-width:2;}
-  .opt .t{font-size:14px;font-weight:700;color:var(--ink);} .opt .d{font-size:11.5px;color:var(--mist);}
+  .opt .copy{flex:1;min-width:0;padding-right:8px;}
+  .opt .t{display:block;font-size:14px;font-weight:700;line-height:1.2;color:var(--ink);margin-bottom:4px;}
+  .opt .d{display:block;font-size:11.5px;line-height:1.35;color:var(--mist);}
   .opt .chev{margin-left:auto;color:var(--mist);font-size:18px;}
   .sup-open{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;
     background:var(--teal-soft);color:var(--teal-deep);border:1.5px solid var(--teal);border-radius:13px;
@@ -711,17 +713,17 @@
 
       <button class="opt" id="optAI">
         <span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/><circle cx="9" cy="10" r="1"/><circle cx="12.5" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg></span>
-        <span><span class="t">Quick help</span><span class="d">Instant answers to common product questions</span></span>
+        <span class="copy"><span class="t">Quick help</span><span class="d">Instant answers to common product questions</span></span>
         <span class="chev">›</span>
       </button>
       <button class="opt" id="optSupplier">
         <span class="ic" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" stroke="#c98a17"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/><path d="M4 7l8 4 8-4" stroke-linejoin="round"/></svg></span>
-        <span><span class="t" id="optSupplierName">Contact your supplier</span><span class="d">Stock, fitting, returns &amp; product advice</span></span>
+        <span class="copy"><span class="t" id="optSupplierName">Contact your supplier</span><span class="d">Stock, fitting, returns &amp; product advice</span></span>
         <span class="chev">›</span>
       </button>
       <button class="opt" id="optNurse">
         <span class="ic" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" stroke="#4f9d7b"><path d="M12 21s-7-4.6-9.2-9.4C1.2 8 3 4.5 6.4 4.5c2 0 3.4 1.2 4.2 2.6.8-1.4 2.2-2.6 4.2-2.6 3.4 0 5.2 3.5 3.6 7.1C19 16.4 12 21 12 21Z" stroke-linejoin="round"/></svg></span>
-        <span style="flex:1;min-width:0"><span class="t">Message your nurse</span><span class="d">For symptoms or anything clinical</span></span>
+        <span class="copy"><span class="t">Message your nurse</span><span class="d">For symptoms or anything clinical</span></span>
         <span class="pill soon" style="flex:0 0 auto">Coming soon</span>
         <span class="chev">›</span>
       </button>
