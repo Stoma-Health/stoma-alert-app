@@ -305,6 +305,12 @@
   .guidebody p{font-size:13px;color:var(--slate);margin-bottom:10px;}
   .guidebody ul{margin:0 0 10px 18px;} .guidebody li{font-size:13px;color:var(--slate);margin-bottom:5px;}
   .guidebody .nb{font-size:12px;color:var(--teal-deep);background:var(--teal-soft);border:1px solid rgba(10,138,143,.18);border-radius:10px;padding:10px 12px;margin-top:4px;}
+  .guidebody ul.reslist{list-style:none;margin:0 0 10px;}
+  .guidebody ul.reslist li{margin-bottom:8px;line-height:1.35;}
+  .guidebody ul.reslist a{color:var(--teal-deep);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(10,138,143,.35);}
+  .guidebody ul.reslist .src{display:block;font-size:11px;color:var(--mist);margin-top:1px;}
+  .guidebody .helpline{font-size:12px;color:var(--slate);text-align:center;line-height:1.5;margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;}
+  .guidebody .helpline a{color:var(--teal-deep);font-weight:700;text-decoration:none;}
 
   /* product support */
   .prod{display:flex;gap:12px;align-items:center;}
@@ -657,6 +663,10 @@
       <div class="card" style="display:flex;align-items:center;gap:10px">
         <span style="font-size:17px">🎯</span>
         <div style="font-size:11.5px;color:var(--slate)"><b style="color:var(--ink)" id="guideCount">0 of 0</b> guides completed</div>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:10px;margin-top:-2px">
+        <span style="font-size:17px">☎️</span>
+        <div style="font-size:11.5px;color:var(--slate);line-height:1.45">Colostomy UK Stoma Helpline · 9am–10pm, 365 days a year<br><a href="tel:08003284257" style="color:var(--teal-deep);font-weight:700;text-decoration:none">0800 328 4257</a></div>
       </div>
       <div id="guideList"></div>
     </section>
@@ -2665,17 +2675,42 @@ if(!NURSE_MESSAGING_ENABLED) $('#optNurse').classList.add('locked');
 // ---------- education library (content in-app, completion in Supabase) ----------
 let GUIDES = [
   { id:'skin-care', cat:'Skin care', theme:'t1', icon:'▶', minutes:4, type:'video', note:'Recommended',
-    body:`<h4>Why skin care matters</h4><p>Healthy skin around your stoma (the peristomal skin) is the foundation of a comfortable, leak-free routine. A little daily care prevents most soreness before it starts.</p>
-    <h4>A simple daily routine</h4><ul><li>Gently clean the skin with warm water and a soft cloth — no soaps, wipes or creams that leave a residue.</li><li>Pat completely dry before applying a new appliance; moisture stops it sticking.</li><li>Measure your stoma every week or two in the early period — it changes size as swelling settles.</li><li>Cut or mould the baseplate to fit snugly, with no skin exposed and no pressure on the stoma.</li></ul>
-    <div class="nb">Speak to your stoma nurse if the skin stays red, sore, weepy or itchy for more than a day or two — early help keeps small issues small.</div>`},
+    body:`<h4>Why skin care matters</h4><p>Healthy skin around your stoma (the peristomal skin) should look just like the skin on the rest of your tummy. Red, sore, itchy or weepy skin usually means output is getting underneath the flange — act early and most problems stay small.</p>
+    <h4>A simple daily routine</h4><ul><li>Clean with <b>warm water only</b>. Avoid perfumed soap, lotions, creams, baby powder, baby wipes and anything containing alcohol — they leave a residue that stops the bag sticking.</li><li><b>Dry the skin fully</b> before applying a new bag. A good seal needs dry skin, and it reduces the risk of fungal infection.</li><li>Check the <b>fit</b>: the aperture should sit snugly, with no more than 1–2 mm of skin showing. A gap lets output touch the skin; too tight can rub the stoma.</li><li>Remove the flange slowly, from the top down. An adhesive remover spray helps prevent skin stripping.</li><li>Don't over-shave the hair around your stoma — it can cause folliculitis. Trim carefully if you need to.</li></ul>
+    <div class="nb">Persistent soreness, bleeding, a rash, lumps, or a change in the colour of your stoma — contact your stoma nurse.</div>`,
+    links:[
+      ['Skin care', 'Colostomy UK', 'https://www.colostomyuk.org/information/skincare/'],
+      ['Sore skin & leakage', 'Colostomy UK', 'https://www.colostomyuk.org/information/stoma-problems/sore-skinleakage/'],
+      ['Stoma skincare', 'Bladder & Bowel Community', 'https://www.bladderandbowel.org/stoma/stoma-skincare/'],
+      ['Overcoming skin irritation', 'Coloplast UK', 'https://www.coloplast.co.uk/stoma/people-with-a-stoma/living-with-a-stoma/irritated-sore-skin/'],
+      ['Caring for the skin around the stoma', 'CliniMed', 'https://www.clinimed.co.uk/stoma-care/living-with-a-stoma/how-to-care-for-skin-around-the-stoma/'],
+      ['Peristomal skin care', 'Convatec me+', 'https://www.convatec.com/en-gb/stoma-care/meplus-patient-support/peristomal-skin-care/'],
+    ],
+    videos:[
+      ['Skin care & application clips', 'Coloplast Stoma Care', 'https://www.youtube.com/c/ColoplastStomaCare'],
+      ['Ostomy care video gallery', 'Convatec', 'https://www.convatec.com/ostomy-care/right-after-surgery/using-your-product/ostomy-care-video-gallery/'],
+    ]},
   { id:'diet', cat:'Diet & hydration', theme:'t2', icon:'📖', minutes:5, type:'read', note:'Early recovery',
-    body:`<h4>Eating in your first weeks</h4><p>There's no single "stoma diet". The aim early on is to reintroduce foods gradually and notice how your body responds.</p>
-    <h4>Helpful habits</h4><ul><li>Eat smaller meals more often, and chew well.</li><li>Add new foods one at a time so you can spot what suits you.</li><li>Stay well hydrated — especially with an ileostomy, where fluids and salts are lost more easily.</li></ul>
-    <h4>Settling output</h4><p>Foods like ripe banana, white rice, oats and smooth peanut butter can help thicken output; very fibrous or fizzy foods may loosen it.</p>
-    <div class="nb">Speak to your stoma nurse or a dietitian if you have ongoing high output, cramping or blockages.</div>`},
+    body:`<h4>Eating in your first weeks</h4><p>For the first six to eight weeks after surgery, a low-fibre (low-residue) diet reduces the risk of a blockage while things are still swollen. After that, reintroduce foods <b>one at a time</b> so you can see how you react.</p>
+    <h4>Helpful habits</h4><ul><li>Small, regular meals beat large infrequent ones. Chew well and eat at a steady pace.</li><li>Common causes of wind and odour: beans, onions, cabbage, sprouts, fizzy drinks and beer.</li><li>If you have an ileostomy, foods that can cause a blockage include nuts, sweetcorn, mushrooms, celery, skins and pips, and dried fruit. Small amounts, well chewed.</li></ul>
+    <h4>Hydration — especially with an ileostomy</h4><p>An ileostomy can lose an extra 800–1,000 ml of fluid a day, and dehydration can come on quickly. Watch for increased thirst, a dry mouth, dark or reduced urine, headaches, cramps, or dizziness when you stand.</p>
+    <ul><li>Counter-intuitively, lots of plain water, tea, coffee, juice or fizzy drinks can make a high-output ileostomy worse.</li><li>An oral rehydration solution such as St Mark's solution replaces salt and water far more effectively — ask your stoma nurse or dietitian if your output is high.</li><li>Ileostomates can run low on iron, B12, magnesium and folate. Ask for a blood test rather than supplementing on your own.</li></ul>
+    <div class="nb">Speak to your stoma nurse or a dietitian if you have ongoing high output, cramping or blockages.</div>`,
+    links:[
+      ['Diet', 'Colostomy UK', 'https://www.colostomyuk.org/information/diet/'],
+      ['Stomas and hydration', 'Colostomy UK', 'https://www.colostomyuk.org/information/stomas-and-hydration/'],
+      ['Dietary advice for people with a stoma', 'Fittleworth', 'https://www.fittleworth.com/advice-centre/stoma/dietary-advice-for-people-living-with-a-stoma/'],
+      ["St Mark's solution (oral rehydration)", 'Royal Free London NHS', 'https://www.royalfree.nhs.uk/patients-and-visitors/patient-information-leaflets/st-marks-solution'],
+      ['Signs of dehydration with an ileostomy', 'Oakmed', 'https://www.oakmed.co.uk/help-advice/advice-articles/signs-of-dehydration-when-you-have-an-ileostomy/'],
+      ['Food and drink with a stoma', 'Coloplast', 'https://www.coloplast.us/ostomy/people-with-an-ostomy/living-with-a-stoma/food-and-beverage/'],
+    ],
+    videos:[
+      ['Diet after stoma surgery', 'Coloplast Stoma Care', 'https://www.youtube.com/c/ColoplastStomaCare'],
+    ]},
   { id:'appliance', cat:'Appliance & fitting', theme:'t3', icon:'📖', minutes:4, type:'read', note:'Confidence',
     body:`<h4>A secure, comfortable fit</h4><p>The right fit is the single biggest factor in confidence — it prevents leaks and protects your skin.</p>
-    <h4>Getting it right</h4><ul><li>Warm the baseplate slightly in your hands so it moulds to your body.</li><li>Smooth from the centre outwards, then hold your hand over it for a minute — warmth helps it seal.</li><li>Empty a drainable pouch when it's about a third full to avoid dragging.</li><li>Consider a barrier ring or paste if you have dips or creases around the stoma.</li></ul>
+    <h4>Measure, then measure again</h4><ul><li>Measure your stoma regularly, especially in the first four to six weeks — it changes shape and size as the swelling settles.</li><li>Re-measure whenever you get leaks or soreness, or after a change in weight.</li><li>Use the measuring guide or template supplied with your bags; your stoma nurse can give you one. Cut or select the aperture so only 1–2 mm of skin shows.</li></ul>
+    <h4>Getting it on well</h4><ul><li>Warm the baseplate slightly in your hands so it moulds to your body.</li><li>Smooth from the centre outwards, then hold your hand over it for a minute — warmth helps it seal.</li><li>Empty a drainable pouch when it's about a third full to avoid dragging.</li><li>Consider a barrier ring or paste if you have dips or creases around the stoma.</li></ul>
     <div class="nb">If you're getting repeated leaks, your stoma nurse can reassess your template and product choice — it's usually an easy fix.</div>`},
   { id:'activity', cat:'Activity & lifestyle', theme:'t4', icon:'📖', minutes:6, type:'read', note:'Getting back to it',
     body:`<h4>Returning to activity</h4><p>Most people return to the activities they love. Build up gradually and let comfort be your guide.</p>
@@ -2714,13 +2749,27 @@ async function loadLearn(){
   $('#guideList').querySelectorAll('.edu').forEach(el => el.onclick = () => openGuide(el.dataset.guide));
 }
 const GUIDE_TITLES = {'skin-care':'Caring for the skin around your stoma','diet':'Eating well in your first weeks','appliance':'Getting a secure, comfortable fit','activity':'Returning to activity & exercise','wellbeing':'Adjusting — looking after your head, too','travel':'Travelling with confidence'};
+// Curated external reading/viewing plus the standing safety line and helpline,
+// appended to every guide so the wording stays identical across topics.
+const HELPLINE = { label:'Colostomy UK Stoma Helpline', number:'0800 328 4257', hours:'9am–10pm, 365 days a year' };
+function linkBlock(title, rows){
+  if(!rows || !rows.length) return '';
+  return `<h4>${title}</h4><ul class="reslist">` + rows.map(([t, src, url]) =>
+    `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${esc(t)}</a> <span class="src">${esc(src)}</span></li>`).join('') + '</ul>';
+}
+function guideResources(g){
+  return linkBlock('Trusted reading', g.links)
+    + linkBlock('Watch', g.videos)
+    + `<div class="nb">This is general guidance, not a substitute for advice from your stoma care nurse. If something changes or worsens, contact your stoma team.</div>
+       <div class="helpline">${HELPLINE.label}<br><a href="tel:${HELPLINE.number.replace(/\s/g,'')}">${HELPLINE.number}</a> · ${HELPLINE.hours}</div>`;
+}
 function openGuide(id){
   const g = GUIDES.find(x => x.id === id); if(!g) return;
   curGuide = id;
   $('#guideCat').textContent = g.cat;
   $('#guideTitle').textContent = GUIDE_TITLES[id];
   $('#guideMeta').textContent = `${g.minutes} min ${g.type}`;
-  $('#guideBody').innerHTML = g.body;
+  $('#guideBody').innerHTML = g.body + guideResources(g);
   setGuideBtn(guideDone.has(id));
   showView('guide');
 }
