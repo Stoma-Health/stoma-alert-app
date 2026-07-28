@@ -319,6 +319,10 @@
   .sup:active{transform:scale(.97);}
   .opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:10px;cursor:pointer;font-family:var(--ui);}
   .opt:active{transform:scale(.995);}
+  /* not-yet-launched: still legible, clearly not ready */
+  .locked{opacity:.62;}
+  .locked:active{transform:none;}
+  .opt.locked .chev{opacity:.4;}
   .opt .ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
   .opt .ic svg{width:20px;height:20px;fill:none;stroke-width:2;}
   .opt .t{font-size:14px;font-weight:700;color:var(--ink);} .opt .d{font-size:11.5px;color:var(--mist);}
@@ -1086,6 +1090,8 @@ $('#logoutBtn').onclick = async () => { await sb.auth.signOut(); location.reload
 document.querySelectorAll('#patientTabs .tab').forEach(t =>
   t.onclick = () => showView(t.dataset.view));
 function showView(name){
+  // Belt and braces: even if a link is added later, the screen can't open.
+  if(name==='messages' && !NURSE_MESSAGING_ENABLED){ toast('Messaging your nurse is coming soon'); return; }
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   const sec = document.querySelector(`.view[data-view="${name}"]`); if(sec) sec.classList.add('on');
   document.querySelectorAll('#patientTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.view===name));
@@ -1303,6 +1309,10 @@ $('#submitCheckin').onclick = async () => {
 };
 // note-for-nurse: collapsible box (feature not yet live)
 wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurse?', hide:'Anything to add for your nurse?'});
+// Nurse messaging is built but not launched. Flip to true to switch it on
+// everywhere: both entry points and the route guard read this one flag.
+const NURSE_MESSAGING_ENABLED = false;
+
 // ---------- community directory ----------
 // Groups live in Supabase (community_groups), not in this file, so an admin can add
 // one from the table editor without a redeploy. Memberships are SELF-DECLARED:
@@ -2611,8 +2621,8 @@ function showFaq(key){
   const el = $('#faqAnswer');
   el.style.display = 'block';
   el.innerHTML = `<div class="msg them" style="max-width:100%"><span class="sender">Product helper · ${esc(f.q)}</span>${esc(f.a)}</div>
-    <div style="display:flex;gap:8px;margin-top:4px"><button class="btn ghost" id="faqNurse" style="flex:1;padding:10px">Message nurse</button><button class="btn ghost" id="faqSupplier" style="flex:1;padding:10px">My supplier</button></div>`;
-  $('#faqNurse').onclick = () => showView('messages');
+    <div style="display:flex;gap:8px;margin-top:4px"><button class="btn ghost${NURSE_MESSAGING_ENABLED ? '' : ' locked'}" id="faqNurse" style="flex:1;padding:10px;flex-wrap:wrap;gap:5px">Message nurse${NURSE_MESSAGING_ENABLED ? '' : '<span class="pill soon">Coming soon</span>'}</button><button class="btn ghost" id="faqSupplier" style="flex:1;padding:10px">My supplier</button></div>`;
+  $('#faqNurse').onclick = () => { if(!NURSE_MESSAGING_ENABLED){ toast('Messaging your nurse is coming soon'); return; } showView('messages'); };
   $('#faqSupplier').onclick = openSupplierSite;
   el.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
@@ -2625,7 +2635,8 @@ function renderSupport(){
 $('#supportBack').onclick = () => showView('supplies');
 $('#optAI').onclick = () => { $('#supportAI').style.display = 'block'; renderFaqChips(); $('#supportAI').scrollIntoView({ behavior:'smooth', block:'nearest' }); };
 $('#optSupplier').onclick = openSupplierSite;
-$('#optNurse').onclick = () => showView('messages');
+$('#optNurse').onclick = () => { if(!NURSE_MESSAGING_ENABLED){ toast('Messaging your nurse is coming soon'); return; } showView('messages'); };
+if(!NURSE_MESSAGING_ENABLED) $('#optNurse').classList.add('locked');
 
 // ---------- education library (content in-app, completion in Supabase) ----------
 let GUIDES = [
