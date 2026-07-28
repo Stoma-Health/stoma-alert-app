@@ -6,7 +6,8 @@ create table if not exists public.patient_profile (
   user_id        uuid primary key default auth.uid() references auth.users(id) on delete cascade,
   patient_name   text,
   patient_email  text,
-  stoma_type     text check (stoma_type in ('Ileostomy','Colostomy','Urostomy')),
+  stoma_type     text check (stoma_type in ('Ileostomy','Colostomy','Urostomy','Jejunostomy')),
+  stoma_duration text check (stoma_duration in ('Temporary','Permanent')),
   stoma_date     date,
   products       jsonb not null default '[]'::jsonb,
   updated_at     timestamptz not null default now()

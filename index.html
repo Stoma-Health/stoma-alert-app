@@ -533,6 +533,8 @@
       <div class="card">
         <div class="qh">Type of stoma</div>
         <div class="chipset" id="pfStomaType"></div>
+        <div class="qh" style="margin-top:14px">Is your stoma temporary or permanent?</div>
+        <div class="chipset" id="pfStomaDuration"></div>
         <label class="fl" style="margin-top:14px">Date of stoma creation</label>
         <input class="input" id="pfStomaDate" type="date" style="margin-bottom:0">
       </div>
@@ -999,7 +1001,8 @@ const IV_BAD  = new Set(['Fever','Vomiting','Abdominal pain','Clearly protruding
 const IV_WARN = new Set(['Weakness','Nausea','Itchy','Warm / hot','Enlarged','Narrowed','Moderate','Slight']);
 
 // ---------- patient profile schema (Part A) ----------
-const PROFILE_TYPES = ['Ileostomy','Colostomy','Urostomy'];
+const PROFILE_TYPES = ['Ileostomy','Colostomy','Urostomy','Jejunostomy'];
+const PROFILE_DURATIONS = ['Temporary','Permanent'];
 let PROFILE_PRODUCTS = [
   'Stoma bags','Sealing paste (with alcohol)','Sealing paste (alcohol-free)','Strip paste',
   'Barrier cream / paste','Sealing ring','Healing powder','Protective wipe (second skin)',
@@ -1010,7 +1013,7 @@ let PROFILE_PRODUCTS = [
 
 const colourFor = v => v <= 2 ? 'r' : (v === 3 ? 'a' : 'g');
 let iv = {};        // current self-interview answers
-let profileState = { stoma_type:null, products:[] };
+let profileState = { stoma_type:null, stoma_duration:null, products:[] };
 
 // small HTML builders for the interview form
 const subh = t => `<div style="font-size:12px;font-weight:600;color:var(--slate);margin-bottom:8px">${t}</div>`;
@@ -1495,7 +1498,11 @@ async function loadProfile(){
   const u = (await sb.auth.getUser()).data.user; if(!u) return;
   $('#pfEmail').value = u.email;
   const { data } = await sb.from('patient_profile').select('*').eq('user_id', u.id).maybeSingle();
-  profileState = { stoma_type: data?.stoma_type || null, products: Array.isArray(data?.products) ? data.products.slice() : [] };
+  profileState = {
+    stoma_type: data?.stoma_type || null,
+    stoma_duration: data?.stoma_duration || null,
+    products: Array.isArray(data?.products) ? data.products.slice() : [],
+  };
   $('#pfName').value = data?.patient_name || u.user_metadata?.full_name || '';
   $('#pfStomaDate').value = data?.stoma_date || '';
   renderProfileControls();
@@ -1503,11 +1510,17 @@ async function loadProfile(){
 function renderProfileControls(){
   $('#pfStomaType').innerHTML = PROFILE_TYPES.map(t =>
     `<div class="selchip ${profileState.stoma_type === t ? 'on' : ''}" data-pftype data-val="${t}">${t}</div>`).join('');
+  $('#pfStomaDuration').innerHTML = PROFILE_DURATIONS.map(t =>
+    `<div class="selchip ${profileState.stoma_duration === t ? 'on' : ''}" data-pfduration data-val="${t}">${t}</div>`).join('');
   $('#pfProducts').innerHTML = PROFILE_PRODUCTS.map(p =>
     `<div class="selchip ${profileState.products.includes(p) ? 'on' : ''}" data-pfprod data-val="${esc(p)}">${esc(p)}</div>`).join('');
   $('#pfStomaType').querySelectorAll('[data-pftype]').forEach(c => c.onclick = () => {
     $('#pfStomaType').querySelectorAll('[data-pftype]').forEach(x => x.classList.remove('on'));
     c.classList.add('on'); profileState.stoma_type = c.dataset.val;
+  });
+  $('#pfStomaDuration').querySelectorAll('[data-pfduration]').forEach(c => c.onclick = () => {
+    $('#pfStomaDuration').querySelectorAll('[data-pfduration]').forEach(x => x.classList.remove('on'));
+    c.classList.add('on'); profileState.stoma_duration = c.dataset.val;
   });
   $('#pfProducts').querySelectorAll('[data-pfprod]').forEach(c => c.onclick = () => {
     if(c.classList.toggle('on')) profileState.products.push(c.dataset.val);
@@ -1517,11 +1530,12 @@ function renderProfileControls(){
 async function updateProfileSub(){
   try {
     const u = (await sb.auth.getUser()).data.user; if(!u) return;
-    const { data } = await sb.from('patient_profile').select('stoma_type,products').eq('user_id', u.id).maybeSingle();
+    const { data } = await sb.from('patient_profile').select('stoma_type,stoma_duration,products').eq('user_id', u.id).maybeSingle();
     const el = $('#profileSub'); if(!el) return;
     if(data && data.stoma_type){
       const n = Array.isArray(data.products) ? data.products.length : 0;
-      el.textContent = `${data.stoma_type} · ${n} product${n === 1 ? '' : 's'} · tap to edit`;
+      const duration = data.stoma_duration ? ` · ${data.stoma_duration}` : '';
+      el.textContent = `${data.stoma_type}${duration} · ${n} product${n === 1 ? '' : 's'} · tap to edit`;
     } else el.textContent = 'Tap to add your details';
   } catch(e){}
 }
@@ -1534,6 +1548,7 @@ $('#pfSave').onclick = async () => {
     patient_name: $('#pfName').value.trim() || null,
     patient_email: u.email,
     stoma_type: profileState.stoma_type,
+    stoma_duration: profileState.stoma_duration,
     stoma_date: $('#pfStomaDate').value || null,
     products: profileState.products,
     updated_at: new Date().toISOString(),
