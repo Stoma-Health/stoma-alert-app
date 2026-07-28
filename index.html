@@ -698,8 +698,8 @@
         <button class="btn ghost" id="supportChatBtn">Product support chat</button>
         <div class="supplier"><span style="font-size:15px">🚚</span> Delivered by <b style="color:var(--ink)" id="supplierLine">&nbsp;your chosen DAC supplier</b></div>
       </div>
-      <div class="kic" style="margin-top:18px">Recent requests</div>
-      <div id="reorderList"></div>
+      <button class="chkPill" id="reorderHistPill" type="button" aria-expanded="false" aria-controls="reorderWrap" style="margin-top:18px"><span class="chkLbl">Recent requests</span><span class="chev">▾</span></button>
+      <div class="chkList collapsed" id="reorderWrap"><div id="reorderList"></div></div>
     </section>
 
     <!-- PATIENT: PRODUCT SUPPORT TRIAGE -->
@@ -2570,6 +2570,9 @@ async function loadSupplies(){
   mySupplier = user?.user_metadata?.supplier || null;
   renderSuppliers();
   $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Loading…</div>';
+  // Wire the toggle BEFORE the query: on the error path we return early, and an
+  // unwired pill would trap the error message inside a section that won't open.
+  wireChkPill($('#reorderHistPill'), $('#reorderWrap'), {show:'Recent requests', hide:'Recent requests'});
   const { data, error } = await sb.from('reorders').select('*').order('created_at',{ascending:false}).limit(10);
   if(error){
     $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Reorder history unavailable — run the reorders table setup.</div>';
@@ -2577,6 +2580,10 @@ async function loadSupplies(){
   }
   $('#reorderList').innerHTML = data.length ? data.map(reorderRow).join('')
     : '<div class="empty" style="padding:22px 8px">No requests yet. Tap “Reorder now” to place one.</div>';
+  // Collapsed by default: the reorder button is the point of this screen, the
+  // history is reference. Count in the label so it's useful while shut.
+  wireChkPill($('#reorderHistPill'), $('#reorderWrap'),
+    {show:`Recent requests${data.length ? ` (${data.length})` : ''}`, hide:'Recent requests'});
 }
 $('#reorderBtn').onclick = async () => {
   const u = (await sb.auth.getUser()).data.user;
