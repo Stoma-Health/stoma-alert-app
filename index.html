@@ -427,6 +427,13 @@
   .flagdot.g{background:var(--green);} .flagdot.a{background:var(--amber);} .flagdot.r{background:var(--red);}
   .entry .note{font-size:12.5px;color:var(--slate);margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);}
   .empty{text-align:center;color:var(--mist);font-size:13px;padding:40px 20px;}
+  /* An illustrated empty state, for the first-run screens only. Filtered or
+     single-day results stay plain — a big drawing every time you search would
+     stop being warm about ten seconds in. */
+  .empty.illo{padding:34px 20px 38px;}
+  .empty.illo svg{width:104px;height:104px;display:block;margin:0 auto 15px;}
+  .empty.illo .et{font-family:var(--display);font-size:16px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+  .empty.illo .ed{font-size:13.5px;color:var(--mist);max-width:30ch;margin:0 auto;line-height:1.55;}
   .counts{display:flex;gap:9px;margin-bottom:14px;}
   .counts .c{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;}
   .counts .c .n{font-family:var(--display);font-weight:700;font-size:22px;line-height:1;}
@@ -727,7 +734,7 @@
       <div class="kic" style="margin-top:20px">Your photo diary</div>
       <button class="chkPill" id="photoPill" type="button" aria-expanded="false" aria-controls="photoCal" style="display:none"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
       <div class="cal chkList collapsed" id="photoCal"></div>
-      <div class="photodiary" id="photoDiary"><div class="empty">No photos yet — your first one starts the record your nurse can compare against.</div></div>
+      <div class="photodiary" id="photoDiary"><div class="empty">Loading…</div></div>
     </section>
 
     <!-- PATIENT: MESSAGES (designed) -->
@@ -2384,7 +2391,7 @@ async function loadPhotoDiary(){
   const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ ascending:false }).limit(60);
   if(error){ hideCal(); el.innerHTML = `<div class="empty">${friendlyError(error, 'photos')}</div>`; return; }
   photoAll = data || []; photoSel = null;
-  if(!photoAll.length){ hideCal(); el.innerHTML = '<div class="empty">No photos yet — your first one starts the record your nurse can compare against.</div>'; return; }
+  if(!photoAll.length){ hideCal(); el.innerHTML = emptyIllo('Nothing here yet', 'Your first photo starts the record your nurse can compare against.'); return; }
   photoSigned = await signedUrls(photoAll.map(r => r.path));
   if(cal){
     photoCal = mountCalendar(cal, photoAll.map(r => ({ ts:r.created_at, colour:(r.quality && r.quality.verdict) || 'g' })),
@@ -2511,7 +2518,7 @@ async function loadHistory(){
 }
 function renderHistoryList(){
   const el = $('#historyList'); if(!el) return;
-  if(!histAll.length){ el.innerHTML = '<div class="empty">No check-ins yet. The first one takes about a minute.</div>'; return; }
+  if(!histAll.length){ el.innerHTML = emptyIllo('Nothing here yet', 'Your first check-in takes about a minute, and starts your record.'); return; }
   const rows = histSel ? histAll.filter(r => ymdLocal(r.created_at) === histSel) : histAll;
   const banner = histSel ? `<div class="histfilter">Showing <b>${niceDay(histSel)}</b> · ${rows.length} check-in${rows.length!==1?'s':''}<button data-histclear>Show all</button></div>` : '';
   el.innerHTML = banner + (rows.length ? rows.map(r=>rowHtml(r,false)).join('') : '<div class="empty">No check-ins on this day.</div>');
@@ -3560,6 +3567,32 @@ document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async ()
   applyContent();
   toast('Saved ✓');
 });
+
+// ---------- the empty-state illustration ----------
+// "Held": two forms, one supporting the other. Chosen by Virginia over a sprout
+// and a sunrise. It is the most abstract of the three and leans on its caption,
+// so the caption is doing real work here and should not be trimmed to fit.
+//
+// Drawn inline rather than loaded as an image: it takes its colour from the
+// palette, so a future theme change carries it. A PNG would have been left
+// behind, exactly as the icons were.
+function illoHeld(){
+  return `<svg viewBox="0 0 120 120" fill="none" stroke="var(--teal)" stroke-width="3"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <circle cx="60" cy="60" r="44" stroke="var(--teal-soft)" stroke-width="8"/>
+    <path d="M36 68c0-12 8-20 18-20 6 0 10 3 12 7" fill="var(--teal-soft)"/>
+    <path d="M84 68c0-12-8-20-18-20"/>
+    <circle cx="60" cy="72" r="9" fill="var(--teal-soft)"/>
+    <path d="M40 82h40" stroke="var(--mist)" stroke-width="2.5"/>
+  </svg>`;
+}
+
+/** A first-run empty state: picture, a line of reassurance, then the detail. */
+function emptyIllo(title, detail){
+  return `<div class="empty illo">${illoHeld()}
+    <div class="et">${title}</div>
+    <div class="ed">${detail}</div></div>`;
+}
 
 // ---------- errors people can read ----------
 // A database error message is written for whoever wrote the database. Showing it
