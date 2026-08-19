@@ -2382,7 +2382,7 @@ async function loadPhotoDiary(){
   const hideCal = () => { if(pill) pill.style.display='none'; if(cal){ cal.classList.add('collapsed'); cal.innerHTML=''; } };
   el.innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ ascending:false }).limit(60);
-  if(error){ hideCal(); el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(error){ hideCal(); el.innerHTML = `<div class="empty">${friendlyError(error, 'photos')}</div>`; return; }
   photoAll = data || []; photoSel = null;
   if(!photoAll.length){ hideCal(); el.innerHTML = '<div class="empty">No photos yet — your first one starts the record your nurse can compare against.</div>'; return; }
   photoSigned = await signedUrls(photoAll.map(r => r.path));
@@ -2405,7 +2405,7 @@ function renderPhotoDiary(){
 async function loadNursePhotos(key){
   const el = $('#ndetailPhotos'); if(!el) return;
   const { data, error } = await sb.from('diary_photos').select('*').eq('patient_email', key).order('created_at',{ ascending:false }).limit(12);
-  if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(error){ el.innerHTML = `<div class="empty">${friendlyError(error, 'photos')}</div>`; return; }
   if(!data.length){ el.innerHTML = '<div class="empty">Nothing shared yet.</div>'; setPhotoPillCount(0); return; }
   const signed = await signedUrls(data.map(r => r.path));
   renderPhotoGrid(el, data, signed, false);
@@ -2499,7 +2499,7 @@ let histAll = [], histSel = null, histCal = null, histPillApi = null;
 async function loadHistory(){
   $('#diaryCal').innerHTML = ''; $('#historyList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
-  if(error){ $('#historyList').innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(error){ $('#historyList').innerHTML = `<div class="empty">${friendlyError(error, 'history')}</div>`; return; }
   histAll = data || []; histSel = null;
   histCal = mountCalendar($('#diaryCal'),
     histAll.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
@@ -2511,7 +2511,7 @@ async function loadHistory(){
 }
 function renderHistoryList(){
   const el = $('#historyList'); if(!el) return;
-  if(!histAll.length){ el.innerHTML = '<div class="empty">No check-ins yet. Tap “Check-in” to add your first.</div>'; return; }
+  if(!histAll.length){ el.innerHTML = '<div class="empty">No check-ins yet. The first one takes about a minute.</div>'; return; }
   const rows = histSel ? histAll.filter(r => ymdLocal(r.created_at) === histSel) : histAll;
   const banner = histSel ? `<div class="histfilter">Showing <b>${niceDay(histSel)}</b> · ${rows.length} check-in${rows.length!==1?'s':''}<button data-histclear>Show all</button></div>` : '';
   el.innerHTML = banner + (rows.length ? rows.map(r=>rowHtml(r,false)).join('') : '<div class="empty">No check-ins on this day.</div>');
@@ -2638,7 +2638,7 @@ function renderProgDrill(){
   const body = $('#progDrill');
   if(progView === 'checkins'){
     $('#progDrillH').textContent = `Your check-ins (${progRows.length})`;
-    body.innerHTML = progRows.length ? progCapList(progRows, r => rowHtml(r, false), 'check-ins') : '<div class="empty">No check-ins yet.</div>';
+    body.innerHTML = progRows.length ? progCapList(progRows, r => rowHtml(r, false), 'check-ins') : '<div class="empty">No check-ins yet. The first one takes about a minute.</div>';
     progWireMore(body);
   } else if(progView === 'days'){
     const by = {};
@@ -2662,7 +2662,7 @@ async function loadProgressPhotos(){
   const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ascending:false}).limit(24);
   if(progView !== 'photos') return;   // user switched away while loading
   const body = $('#progDrill');
-  if(error){ body.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if(error){ body.innerHTML = `<div class="empty">${friendlyError(error, 'check-ins')}</div>`; return; }
   if(!data.length){ body.innerHTML = '<div class="empty">No photos yet.</div>'; return; }
   $('#progDrillH').textContent = `Your photos (${data.length})`;
   const signed = await signedUrls(data.map(r => r.path));
@@ -2686,7 +2686,7 @@ async function loadProgress(){
   const { count: photoCount } = await sb.from('diary_photos').select('id',{count:'exact',head:true});
   $('#statPhotos').textContent = photoCount ?? 0;
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:true}).limit(1000);
-  if(error){ $('#qolLegend').innerHTML = `<span class="muted">${error.message}</span>`; return; }
+  if(error){ $('#qolLegend').innerHTML = `<span class="muted">${friendlyError(error, 'wellbeing trend')}</span>`; return; }
   if(!data.length){
     $('#statCheckins').textContent = '0'; $('#statDays').textContent = '0';
     $('#qolChart').innerHTML = '<div class="empty" style="padding:24px 8px">No check-ins yet — submit a few and your wellbeing trend appears here.</div>';
@@ -2790,7 +2790,7 @@ async function loadSupplies(){
   wireChkPill($('#reorderHistPill'), $('#reorderWrap'), {show:'Recent requests', hide:'Recent requests'});
   const { data, error } = await sb.from('reorders').select('*').order('created_at',{ascending:false}).limit(10);
   if(error){
-    $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Reorder history unavailable — run the reorders table setup.</div>';
+    $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Reorder history isn’t available right now.</div>';
     return;
   }
   $('#reorderList').innerHTML = data.length ? data.map(reorderRow).join('')
@@ -3039,7 +3039,7 @@ function subscribeThread(threadUser, containerId){
 }
 async function loadThread(threadUser, containerId){
   const { data, error } = await sb.from('messages').select('*').eq('thread_user', threadUser).order('created_at',{ascending:true}).limit(200);
-  if(error){ $('#'+containerId).innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  if(error){ $('#'+containerId).innerHTML = `<div class="empty">${friendlyError(error, 'messages')}</div>`; return; }
   renderThread(containerId, data || []);
 }
 async function sendMsg(threadUser, inputId, containerId){
@@ -3066,7 +3066,7 @@ async function loadThreadList(){
   if(msgChannel){ sb.removeChannel(msgChannel); msgChannel = null; }
   $('#threadList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('messages').select('*').order('created_at',{ascending:false}).limit(300);
-  if(error){ $('#threadList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  if(error){ $('#threadList').innerHTML = `<div class="empty">${friendlyError(error, 'conversations')}</div>`; return; }
   if(!data.length){ $('#threadList').innerHTML = '<div class="empty">No conversations yet — patient messages appear here.</div>'; return; }
   const threads = {};
   data.forEach(r => {
@@ -3134,7 +3134,7 @@ function caseRow(p){
 async function loadCaseload(){
   $('#caseloadList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
-  if(error){ $('#caseloadList').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  if(error){ $('#caseloadList').innerHTML = `<div class="empty">${friendlyError(error, 'caseload')}</div>`; return; }
   const groups = {};
   data.forEach(r => { const k = r.patient_email || r.patient_name || '?'; (groups[k] = groups[k] || []).push(r); });
   casePatients = {};
@@ -3173,7 +3173,7 @@ function renderCounts(base){
 }
 function renderCaseList(){
   const el = $('#caseloadList'); if(!el) return;
-  if(!caseAll.length){ $('#counts').innerHTML=''; el.innerHTML = '<div class="empty">No check-ins submitted yet. Have a patient account submit one, then refresh.</div>'; return; }
+  if(!caseAll.length){ $('#counts').innerHTML=''; el.innerHTML = '<div class="empty">No check-ins from your patients yet.</div>'; return; }
   const q = ($('#caseSearch')?.value || '').trim().toLowerCase();
   const onDay = p => (casePatients[p.key]?.rows || []).some(r => ymdLocal(r.created_at) === caseDate);
   // base = patients in scope (date + name), before the band filter — counts reflect this
@@ -3257,7 +3257,7 @@ let reportRows = [];
 async function loadReports(){
   $('#repDrill').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(500);
-  if(error){ $('#repDrill').innerHTML = `<div class="empty">${error.message}</div>`; return; }
+  if(error){ $('#repDrill').innerHTML = `<div class="empty">${friendlyError(error, 'report')}</div>`; return; }
   reportRows = data;
   repView = 'patients'; repDate = null;
   const groups = {};
@@ -3331,7 +3331,7 @@ function renderRepDrill(){
   }
   // default: per-patient summary
   $('#repDrillH').textContent = 'Per-patient summary';
-  if(!repAll.length){ el.innerHTML = '<div class="empty">No check-ins yet.</div>'; return; }
+  if(!repAll.length){ el.innerHTML = '<div class="empty">No check-ins yet. The first one takes about a minute.</div>'; return; }
   const pts = q ? repAll.filter(p => nameMatches(p.name, q)) : repAll;
   el.innerHTML = pts.length ? pts.map(patientRow).join('') : `<div class="empty">No patients matching “${esc(q)}”.</div>`;
 }
@@ -3357,7 +3357,8 @@ async function loadAdminSupplies(){
   $('#asupBySupplier').innerHTML = busy; $('#asupByProduct').innerHTML = busy; $('#asupMatrix').innerHTML = busy;
   const { data, error } = await sb.from('reorders').select('*').order('created_at',{ascending:false}).limit(1000);
   if(error){
-    const msg = `<div class="empty">${esc(error.message)} — run migration 0009 in Supabase.</div>`;
+    console.error('[reorders] admin read failed — is migration 0009 applied?', error.message);
+    const msg = `<div class="empty">Reorder data isn’t available right now.</div>`;
     $('#asupTop').innerHTML=''; $('#asupBySupplier').innerHTML=msg; $('#asupByProduct').innerHTML=msg; $('#asupMatrix').innerHTML=msg;
     return;
   }
@@ -3551,13 +3552,23 @@ document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async ()
   btn.disabled = false;
   if(err){
     toast('Save failed: ' + err.message);
-    $('#acStatus').innerHTML = `<div class="empty" style="padding:12px">Couldn't save — ${esc(err.message)}. Run migration 0010 (site_content) in Supabase.</div>`;
+    console.error('[content] save failed — is migration 0010 (site_content) applied?', err.message);
+    $('#acStatus').innerHTML = `<div class="empty" style="padding:12px">Couldn’t save that. The change hasn’t been applied — please try again.</div>`;
     return;
   }
   $('#acStatus').innerHTML = '';
   applyContent();
   toast('Saved ✓');
 });
+
+// ---------- errors people can read ----------
+// A database error message is written for whoever wrote the database. Showing it
+// to a patient tells them nothing they can act on, and quietly leaks how the
+// thing is built. The detail still goes to the console, where it is useful.
+function friendlyError(err, what){
+  console.error(`[${what}]`, err?.message || err);
+  return `Couldn’t load your ${what} just now. Check your connection and pull down to refresh.`;
+}
 
 // ---------- theme trials ----------
 // ?theme=warm|sage|dusk paints the whole app in a candidate palette so a look
