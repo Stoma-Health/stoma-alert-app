@@ -3733,7 +3733,24 @@ async function boot(){
     // decides whether the app sounds like a person or a database.
     const h = new Date().getHours();
     const salutation = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    $('#greet').textContent = `${salutation}, ${myName}`;
+    // First name only. "Good evening, Margaret Hill" is a receptionist; "Good
+    // evening, Margaret" is someone who knows you. myName keeps the full name,
+    // because that is what a nurse should see against a message.
+    //
+    // Split on dots and underscores too: when nobody has set a name we fall back
+    // to the email prefix, and "Good evening, virginia.filmer-sankey" is worse
+    // than not greeting them at all. Hyphens are left alone — Mary-Jane is one
+    // name. If nothing usable survives, drop the name rather than print a stub.
+    const firstName = (myName || '').trim().split(/[\s._]+/)[0] || '';
+    // Capitalise each hyphenated part (Mary-Jane, not Mary-jane), and fix a name
+    // typed in capitals rather than shouting it back. A single letter is an
+    // initial, not a name, so greet without one instead.
+    const shown = firstName.length > 1
+      ? firstName.split('-')
+          .map(part => part ? part[0].toUpperCase() + (part === part.toUpperCase() ? part.slice(1).toLowerCase() : part.slice(1)) : part)
+          .join('-')
+      : '';
+    $('#greet').textContent = shown ? `${salutation}, ${shown}` : salutation;
     $('#homeAvatar').textContent = (myName[0]||'?').toUpperCase();
     updateProfileSub();
     loadCommunities();
