@@ -3,7 +3,7 @@
 Running list of what must be addressed **before this prototype handles real patients**.
 The app currently declares "test data only · not for real patients" — these items clear that bar.
 
-_Last updated: 2026-07-14._
+_Last updated: 2026-08-19._
 
 ---
 
@@ -36,9 +36,18 @@ Stoma photos + symptom check-ins are **special-category health data**, so the ba
 - [ ] If NHS-facing: **NHS Data Security & Protection Toolkit (DSPT)** and Caldicott principles.
 - [ ] Clinical-safety framing: app is **non-diagnostic** (already worded throughout) — keep, and check DCB0129/0160 if it becomes a medical device.
 
-## 3. Auth & access hardening (currently prototype-grade)
+## 3. Auth & access hardening
 
-- [ ] **Role is self-selected at signup** (patient/nurse/admin in `user_metadata`) and **not enforced server-side**. Move to an enforced roles table + tightened RLS; remove self-service nurse/admin signup in favour of invite/assignment.
+- [x] **Role is self-selected at signup and not enforced server-side.** *Done — `0015_server_side_roles.sql`.*
+      This was worse than "unenforced": all 20 policies read `auth.jwt() -> user_metadata ->> 'role'`,
+      and **`user_metadata` is writable by the user**. Any patient could run
+      `supabase.auth.updateUser({ data:{ role:'nurse' } })` in the browser console and read every
+      other patient's check-ins, stoma photos, messages and profile. Demonstrated against a local
+      copy of the schema before fixing.
+      Roles now live in `public.user_roles`, which clients cannot write; a trigger assigns
+      `patient` on signup regardless of what the form sends; policies ask the table via
+      `is_nurse()` / `is_admin()`. Nurse and admin are granted only in the SQL editor.
+      `supabase/tests/run.sh` replays the attack against a throwaway Postgres — 20 assertions.
 - [ ] Admin **Content editor** article bodies accept **raw HTML** (admin is trusted today) — sanitise or restrict before untrusted admins exist.
 - [ ] Review all RLS policies for least-privilege before go-live.
 
