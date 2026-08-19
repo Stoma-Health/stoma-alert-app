@@ -13,7 +13,15 @@ Photos are the main thing that scales (see below). Files live in **Supabase Stor
 bucket `diary-photos`; the `diary_photos` table holds only a small metadata row each.
 Already compressed client-side to **max 1600px, JPEG q0.85** (~200–400 KB/photo).
 
-- [ ] **Retention policy** — auto-delete or archive photos older than a set period (e.g. 12 months). *Highest priority — do this first.*
+- [~] **Retention policy** — *rule defined and tested (`0016_photo_retention.sql`); NOT yet armed.*
+      `app_settings.photo_retention_months` (default 12) is the documented, dated, changeable
+      period. `diary_photos.keep` lets a patient exempt individual photos — the oldest photo is
+      often the clinically important one, because that is what shows a hernia developing.
+      `expired_photos()` (admin-only) lists what a purge would remove; `my_photos_expiring_within()`
+      warns a patient while they can still act. **Nothing deletes anything yet** — the file lives in
+      Supabase Storage and only the service-role key can remove it, so the purge runner is a
+      separate, deliberate decision. Outstanding: pick the runner (Vercel Cron / GitHub Action /
+      Edge Function), review one real dry-run list, then arm it. UI toggle for `keep` also to do.
 - [ ] **Thumbnails** — store a small thumb for grid views; fetch full-res only on tap (cuts bandwidth).
 - [ ] Consider dropping to **1280px / q0.80** to roughly halve storage with little visible loss.
 - [ ] At scale, evaluate moving the bucket to cheaper object storage (Cloudflare R2 / Hetzner) — same app, different backend.
