@@ -6,7 +6,7 @@
 <title>Stoma Alert</title>
 <meta name="description" content="Stoma Alert — working prototype (test data only).">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#20305c">
+<meta name="theme-color" content="#2f6f5e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stoma Alert">
@@ -27,6 +27,10 @@
     --display:"Bricolage Grotesque",sans-serif;
     --ui:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,sans-serif;
     --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+    /* Softened 19 Aug 2026. Pure #fff against a tinted background is the tell
+       that says "screen" rather than "paper", and pure near-black is harsh at
+       body size. Both lift very slightly. */
+    --paper:#fffefb; --ink:#26332e;
   }
 
   /* ---- Theme trials -------------------------------------------------------
@@ -59,49 +63,12 @@
     --red:#c0492f; --red-soft:#fbece8;
   }
 
-  /* ?soft=1 — the other half of "friendly". Colour was only ever half of it:
-     hairline borders round flat white cards are what make a screen feel like a
-     form. This trades the border for a soft shadow and rounds the corners a
-     little. Separate from the palette so each can be judged on its own. */
-  body[data-soft="1"] .card{
-    border-color:transparent; border-radius:22px;
-    box-shadow:0 1px 2px rgba(29,42,38,.04), 0 6px 18px -8px rgba(29,42,38,.14);
-  }
-  body[data-soft="1"] .topbar{ border-bottom-color:transparent; box-shadow:0 2px 12px -8px rgba(29,42,38,.35); }
-
-  /* ?soft=2 — the full visual pass. Everything in soft=1, plus the smaller
-     things that add up to "this was made by a person":
-
-       paper        pure #fff against a tinted background is the clinical tell;
-                    a barely-warm white reads as paper rather than a screen
-       ink          pure near-black is harsh at body size, so it lifts slightly
-       line-height  1.5 is tight for anyone reading on a bad day
-       padding      cramped is clinical; room is calm
-       inputs       filled rather than outlined — fewer hard edges per screen
-       press        a gentle squash on tap, so the app feels answerable
-       motion       respects prefers-reduced-motion, because a stoma app has
-                    users for whom animation is genuinely unwelcome */
-  body[data-soft="2"]{ --paper:#fffefb; --ink:#26332e; --line:#e6ede8; line-height:1.62; }
-
-  body[data-soft="2"] .card{
-    border-color:transparent; border-radius:24px; padding:19px;
-    box-shadow:0 1px 2px rgba(29,42,38,.04), 0 8px 22px -10px rgba(29,42,38,.16);
-  }
-  body[data-soft="2"] .topbar{ border-bottom-color:transparent; box-shadow:0 2px 14px -9px rgba(29,42,38,.35); }
-  body[data-soft="2"] .h{ line-height:1.18; }
-  body[data-soft="2"] .ssub{ font-size:13px; line-height:1.55; }
-  body[data-soft="2"] .input{
-    background:var(--wash); border-color:transparent; border-radius:14px; padding:13px 14px;
-  }
-  body[data-soft="2"] .input:focus{ background:var(--paper); border-color:var(--teal); }
-  body[data-soft="2"] .btn{ border-radius:16px; }
-
+  /* The press feedback stays: it makes the app feel answerable rather than
+     rigid. Behind prefers-reduced-motion, because a stoma app has users for whom
+     animation is genuinely unwelcome. */
   @media (prefers-reduced-motion:no-preference){
-    body[data-soft="2"] .btn,
-    body[data-soft="2"] .card,
-    body[data-soft="2"] .chkPill{ transition:transform .12s ease, box-shadow .18s ease; }
-    body[data-soft="2"] .btn:active,
-    body[data-soft="2"] .chkPill:active{ transform:scale(.975); }
+    .btn, .chkPill{ transition:transform .12s ease, box-shadow .18s ease; }
+    .btn:active, .chkPill:active{ transform:scale(.975); }
   }
 
   /* Dusk — plum and clay. Warm, distinctive, still serious. The one that would
@@ -115,7 +82,7 @@
 
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
-  body{font-family:var(--ui); color:var(--ink); line-height:1.5; background:var(--wash);
+  body{font-family:var(--ui); color:var(--ink); line-height:1.62; background:var(--wash);
     -webkit-font-smoothing:antialiased; overscroll-behavior:none;}
   .app{position:fixed; inset:0; display:flex; flex-direction:column; max-width:480px; margin:0 auto;
     background:var(--wash); box-shadow:0 0 60px -20px rgba(14,22,32,.25);}
@@ -138,8 +105,12 @@
   .h{font-family:var(--display);font-weight:700;font-size:23px;letter-spacing:-.02em;line-height:1.06;margin-bottom:14px;color:var(--teal);}
   .ssub{font-size:12.5px;color:var(--mist);} .muted{color:var(--mist);}
 
-  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;}
-  .btn{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--teal);color:#fff;
+  .card{background:var(--paper);border:1px solid transparent;border-radius:24px;padding:19px;margin-bottom:12px;
+    box-shadow:0 1px 2px rgba(29,42,38,.04), 0 8px 22px -10px rgba(29,42,38,.16);}
+  /* ?soft=0 restores the original flat, hairline-bordered look for comparison. */
+  body[data-soft="0"] .card{border-color:var(--line);border-radius:18px;padding:16px;box-shadow:none;}
+  body[data-soft="0"]{line-height:1.5;--paper:#fff;--ink:#1d2a26;}
+  .btn{border-radius:16px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--teal);color:#fff;
     font-family:var(--ui);font-weight:700;font-size:14.5px;border:none;border-radius:13px;padding:14px;width:100%;cursor:pointer;
     box-shadow:0 10px 22px -12px rgba(10,138,143,.8);}
   .btn:disabled{opacity:.55;}
@@ -147,9 +118,12 @@
   .btn:active{transform:scale(.99);}
   .btn svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;}
   .btn.ghost svg{stroke:var(--teal-deep);}
-  .input{width:100%;font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--paper);
-    border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;}
-  .input:focus{outline:none;border-color:var(--teal);}
+  /* Filled rather than outlined: fewer hard edges per screen, and a field you
+     are invited into rather than boxed out of. ?soft=0 restores the outline. */
+  .input{width:100%;font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--wash);
+    border:1px solid transparent;border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+  .input:focus{outline:none;background:var(--paper);border-color:var(--teal);}
+  body[data-soft="0"] .input{background:var(--paper);border-color:var(--line);border-radius:12px;}
   label.fl{display:block;font-size:12px;font-weight:600;color:var(--slate);margin:2px 0 6px;}
 
   /* auth */
@@ -590,8 +564,8 @@
           <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       </button>
       <div class="quick" style="margin-top:12px">
-        <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
-        <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
+        <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
+        <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
         <!-- Message nurse quick-action hidden 2026-07-14; Learning & Education moved to Community below -->
       </div>
       <!-- Home profile card removed 2026-07-14 — Profile is reached via the bottom tab; Update pill lives on the Profile page -->
@@ -599,7 +573,7 @@
       <!-- Community — directory-driven; groups live in Supabase, not in this file -->
       <div class="kic" style="margin-top:20px">Community</div>
       <button class="card" id="browseCommunities" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
-        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#172446" stroke-width="1.9"><circle cx="9" cy="8" r="3"/><path d="M2.5 19c0-3.1 2.9-4.8 6.5-4.8s6.5 1.7 6.5 4.8" stroke-linecap="round"/><circle cx="17.5" cy="7" r="2.4"/><path d="M16 13.4c3.1.2 5.5 1.8 5.5 4.6" stroke-linecap="round"/></svg></span>
+        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:var(--teal-deep)" stroke-width="1.9"><circle cx="9" cy="8" r="3"/><path d="M2.5 19c0-3.1 2.9-4.8 6.5-4.8s6.5 1.7 6.5 4.8" stroke-linecap="round"/><circle cx="17.5" cy="7" r="2.4"/><path d="M16 13.4c3.1.2 5.5 1.8 5.5 4.6" stroke-linecap="round"/></svg></span>
         <div style="flex:1"><div style="font-weight:700;font-size:13.5px" id="browseCommunitiesTitle">Find your communities</div><div class="ssub" id="browseCommunitiesSub">Support groups and people who get it</div></div>
         <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
       </button>
@@ -753,7 +727,7 @@
       <div class="kic" style="margin-top:20px">Your photo diary</div>
       <button class="chkPill" id="photoPill" type="button" aria-expanded="false" aria-controls="photoCal" style="display:none"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
       <div class="cal chkList collapsed" id="photoCal"></div>
-      <div class="photodiary" id="photoDiary"><div class="empty">No photos yet. Take your first above.</div></div>
+      <div class="photodiary" id="photoDiary"><div class="empty">No photos yet — your first one starts the record your nurse can compare against.</div></div>
     </section>
 
     <!-- PATIENT: MESSAGES (designed) -->
@@ -846,7 +820,7 @@
       <div class="ssub" style="margin-bottom:14px">Pick the best route — we'll point you to the right place.</div>
 
       <button class="opt" id="optAI">
-        <span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" stroke="#172446"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/><circle cx="9" cy="10" r="1"/><circle cx="12.5" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg></span>
+        <span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M5 5h14v10H9l-4 4z" stroke-linejoin="round"/><circle cx="9" cy="10" r="1"/><circle cx="12.5" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg></span>
         <span class="copy"><span class="t">Quick help</span><span class="d">Instant answers to common product questions</span></span>
         <span class="chev">›</span>
       </button>
@@ -1474,7 +1448,7 @@ let commCatOpen = new Set([ADD_KEY, MINE_KEY]); // sections the patient has expa
 const COMM_ICONS = {
   facebook: { bg:'#e7f0ff', svg:'<svg width="21" height="21" viewBox="0 0 24 24" fill="#1877F2"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>' },
   whatsapp: { bg:'#e4f7ec', svg:'<svg width="21" height="21" viewBox="0 0 24 24" fill="#25D366"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.94 1.38-.5.07-1.12.1-1.81-.11-.42-.13-.95-.31-1.64-.6-2.88-1.25-4.76-4.15-4.9-4.34-.14-.19-1.17-1.56-1.17-2.97 0-1.41.74-2.11 1-2.39.26-.29.57-.36.76-.36.19 0 .38 0 .55.01.18.01.42-.07.65.5.24.58.82 2 .89 2.14.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.53 1.9 1.05.93 1.94 1.22 2.22 1.36.28.14.44.12.6-.07.17-.19.69-.8.87-1.08.18-.28.36-.23.61-.14.24.09 1.55.73 1.82.86.27.14.44.21.51.32.07.12.07.66-.17 1.34z"/></svg>' },
-  web:      { bg:'var(--teal-soft)', svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#172446" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>' }
+  web:      { bg:'var(--teal-soft)', svg:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:var(--teal-deep)" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>' }
 };
 const commIcon = p => COMM_ICONS[p] || COMM_ICONS.web;
 
@@ -1596,7 +1570,7 @@ function renderCommList(){
       </button>
       <div data-catrows="${esc(cat)}"${open ? '' : ' style="display:none"'}>${rows}</div>`;
   }).join('')
-    : '<div class="commempty">No groups in the directory yet.</div>');
+    : '<div class="commempty">No groups listed yet — we’re adding them as we find good ones.</div>');
 
   $('#commList').querySelectorAll('[data-cat]').forEach(b => b.onclick = () => {
     const cat = b.dataset.cat;
@@ -2410,7 +2384,7 @@ async function loadPhotoDiary(){
   const { data, error } = await sb.from('diary_photos').select('*').order('created_at',{ ascending:false }).limit(60);
   if(error){ hideCal(); el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
   photoAll = data || []; photoSel = null;
-  if(!photoAll.length){ hideCal(); el.innerHTML = '<div class="empty">No photos yet. Take your first above.</div>'; return; }
+  if(!photoAll.length){ hideCal(); el.innerHTML = '<div class="empty">No photos yet — your first one starts the record your nurse can compare against.</div>'; return; }
   photoSigned = await signedUrls(photoAll.map(r => r.path));
   if(cal){
     photoCal = mountCalendar(cal, photoAll.map(r => ({ ts:r.created_at, colour:(r.quality && r.quality.verdict) || 'g' })),
@@ -2432,7 +2406,7 @@ async function loadNursePhotos(key){
   const el = $('#ndetailPhotos'); if(!el) return;
   const { data, error } = await sb.from('diary_photos').select('*').eq('patient_email', key).order('created_at',{ ascending:false }).limit(12);
   if(error){ el.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
-  if(!data.length){ el.innerHTML = '<div class="empty">No photos shared yet.</div>'; setPhotoPillCount(0); return; }
+  if(!data.length){ el.innerHTML = '<div class="empty">Nothing shared yet.</div>'; setPhotoPillCount(0); return; }
   const signed = await signedUrls(data.map(r => r.path));
   renderPhotoGrid(el, data, signed, false);
   setPhotoPillCount(data.length);
@@ -2565,11 +2539,19 @@ function trendSvg(scores){
     <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="#4f9d7b" stroke="#fff" stroke-width="2"/>
   </svg>`;
 }
+// The charts are built as SVG strings, and presentation attributes cannot take
+// var(). Read the palette once instead, so a theme change reaches the charts too
+// — otherwise they quietly stay the old navy and nobody notices for weeks.
+function themeColour(name, fallback){
+  const v = getComputedStyle(document.body).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
 function ringSvg(pct){
   const circ = 97.4, off = (circ * (1 - pct / 100)).toFixed(1);
-  return `<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#e2e9ef" stroke-width="4"/>
-    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#20305c" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 18 18)"/>
-    <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="#1a2733">${pct}%</text></svg>`;
+  return `<svg class="ring" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="${themeColour('--line','#dfe7e2')}" stroke-width="4"/>
+    <circle cx="18" cy="18" r="15.5" fill="none" stroke="${themeColour('--teal','#2f6f5e')}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}" transform="rotate(-90 18 18)"/>
+    <text x="18" y="21" text-anchor="middle" font-size="9" font-weight="700" fill="${themeColour('--ink','#1d2a26')}">${pct}%</text></svg>`;
 }
 // stoma-size trend: auto-scaled to the data's mm range (values are small, e.g. 5–40mm)
 function sizeTrendSvg(vals){
@@ -2584,10 +2566,10 @@ function sizeTrendSvg(vals){
   const area = `M${P[0][0].toFixed(1)} ${H} ` + P.map(p => 'L'+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ') + ` L${P[m-1][0].toFixed(1)} ${H} Z`;
   const last = P[m-1];
   return `<svg viewBox="0 0 240 120" width="100%" height="120" preserveAspectRatio="none">
-    <defs><linearGradient id="sfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#20305c" stop-opacity=".18"/><stop offset="1" stop-color="#20305c" stop-opacity="0"/></linearGradient></defs>
+    <defs><linearGradient id="sfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${themeColour('--teal','#2f6f5e')}" stop-opacity=".18"/><stop offset="1" stop-color="${themeColour('--teal','#2f6f5e')}" stop-opacity="0"/></linearGradient></defs>
     <path d="${area}" fill="url(#sfill)"/>
-    <path d="${line}" fill="none" stroke="#20305c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="#20305c" stroke="#fff" stroke-width="2"/>
+    <path d="${line}" fill="none" stroke="${themeColour('--teal','#2f6f5e')}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="${themeColour('--teal','#2f6f5e')}" stroke="#fff" stroke-width="2"/>
   </svg>`;
 }
 async function loadSizeTrend(){
@@ -2668,7 +2650,7 @@ function renderProgDrill(){
       const d = new Date(k+'T00:00');
       const label = `${WD[d.getDay()]} ${d.getDate()} ${d.toLocaleDateString('en-GB',{ month:'long' })} ${d.getFullYear()}`;
       return `<div class="rr"><span class="nm">${label} - ${n} check-in${n!==1?'s':''}</span></div>`;
-    }, 'days') : '<div class="empty">No days tracked yet.</div>';
+    }, 'days') : '<div class="empty">No check-ins yet. The first one takes about a minute.</div>';
     progWireMore(body);
   } else if(progView === 'photos'){
     $('#progDrillH').textContent = 'Your photos';
@@ -2812,7 +2794,7 @@ async function loadSupplies(){
     return;
   }
   $('#reorderList').innerHTML = data.length ? data.map(reorderRow).join('')
-    : '<div class="empty" style="padding:22px 8px">No requests yet. Tap “Reorder now” to place one.</div>';
+    : '<div class="empty" style="padding:22px 8px">No orders yet. Tap “Reorder now” when you’re running low.</div>';
   // Collapsed by default: the reorder button is the point of this screen, the
   // history is reference. Count in the label so it's useful while shut.
   wireChkPill($('#reorderHistPill'), $('#reorderWrap'),
@@ -2972,7 +2954,7 @@ async function loadLearn(){
     const done = guideDone.has(g.id);
     return `<div class="edu" data-guide="${g.id}">
       <div class="ph ${g.theme}"><span class="tagv">${g.cat}</span>
-        ${g.type==='video' ? '<span class="play"><svg width="12" height="12" viewBox="0 0 24 24" fill="#172446"><path d="M7 5l12 7-12 7z"/></svg></span>' : ''}
+        ${g.type==='video' ? '<span class="play"><svg width="12" height="12" viewBox="0 0 24 24" style="fill:var(--teal-deep)"><path d="M7 5l12 7-12 7z"/></svg></span>' : ''}
         ${done ? '<span class="donetag">✓ Done</span>' : ''}</div>
       <div class="bd"><div class="t">${GUIDE_TITLES[g.id]}</div>
         <div class="m"><span>${g.icon} ${g.minutes} min ${g.type}</span><span>· ${done ? 'Completed' : g.note}</span></div></div>
@@ -3039,7 +3021,7 @@ function msgBubble(r){
 function renderThread(containerId, rows){
   seenMsg.clear(); rows.forEach(r=>seenMsg.add(r.id));
   const el = $('#'+containerId);
-  el.innerHTML = rows.length ? rows.map(msgBubble).join('') : '<div class="empty">No messages yet — say hello 👋</div>';
+  el.innerHTML = rows.length ? rows.map(msgBubble).join('') : '<div class="empty">No messages yet. Ask anything — no question is too small.</div>';
   el.scrollTop = el.scrollHeight;
 }
 function appendBubble(containerId, r){
@@ -3523,7 +3505,7 @@ function renderAcFaq(){
       <label class="fl">Question</label><input class="input" data-fq value="${esc(f.q||'')}">
       <label class="fl">Answer</label><textarea class="input" data-fa rows="3">${esc(f.a||'')}</textarea>
       <button class="btn ghost" data-faqdel="${i}" style="margin:0">Remove</button>
-    </div>`).join('') || '<div class="ssub" style="margin-bottom:10px">No questions yet.</div>';
+    </div>`).join('') || '<div class="ssub" style="margin-bottom:10px">No questions yet — add the ones patients actually ask.</div>';
   $('#acFaqList').querySelectorAll('[data-faqdel]').forEach(b => b.onclick = () => {
     syncAcFaqFromDom(); acFaqDraft.splice(+b.dataset.faqdel, 1); renderAcFaq();
   });
@@ -3585,7 +3567,7 @@ document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async ()
   const t = q.get('theme');
   if(['warm','navy','dusk'].includes(t)) document.body.dataset.theme = t;
   const soft = q.get('soft');
-  if(['1','2'].includes(soft)) document.body.dataset.soft = soft;
+  if(soft === '0') document.body.dataset.soft = '0';   // the original flat look
 }
 
 // ---------- your data: export and erasure ----------
@@ -3747,7 +3729,11 @@ async function boot(){
   } else {
     $('#patientTabs').style.display = 'flex';
     $('#nurseTabs').style.display = 'none';
-    $('#greet').textContent = 'Hello, ' + myName;
+    // Time-of-day greeting. Small, but it is the first line on the screen and it
+    // decides whether the app sounds like a person or a database.
+    const h = new Date().getHours();
+    const salutation = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    $('#greet').textContent = `${salutation}, ${myName}`;
     $('#homeAvatar').textContent = (myName[0]||'?').toUpperCase();
     updateProfileSub();
     loadCommunities();
