@@ -243,6 +243,10 @@
   .pmmeta{display:flex;align-items:center;gap:9px;margin-bottom:12px;font-size:12.5px;color:var(--slate);font-weight:600;}
   .qbadge-inline{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;color:#fff;}
   .qbadge-inline.g{background:var(--green);} .qbadge-inline.a{background:var(--amber);} .qbadge-inline.r{background:var(--red);}
+  .pmkeep{margin:10px 0 2px;}
+  .pmkeep-label{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;}
+  .pmkeep-label input{width:17px;height:17px;accent-color:var(--ink);cursor:pointer;}
+  .pmkeep-note{font-size:12px;opacity:.72;margin:4px 0 0 25px;line-height:1.35;}
   .pmactions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:2px;}
   .btn.danger{color:var(--red);border-color:rgba(192,73,47,.35);background:var(--paper);box-shadow:none;}
   .btn.danger svg{stroke:var(--red);}
@@ -957,6 +961,16 @@
       <div class="pmmeta"><span id="pmDate"></span><span id="pmBadge" class="qbadge-inline"></span></div>
       <label class="fl" id="pmNoteLabel">Note</label>
       <textarea class="input" id="pmNote" rows="2" placeholder="Add a note for this photo…"></textarea>
+      <!-- Retention. A patient cannot make a sensible choice about keeping a
+           photo unless they are told it is going, so the date is stated plainly
+           rather than hidden behind the toggle. -->
+      <div id="pmKeepRow" class="pmkeep">
+        <label class="pmkeep-label">
+          <input type="checkbox" id="pmKeep">
+          <span>Keep this photo</span>
+        </label>
+        <div class="pmkeep-note" id="pmKeepNote"></div>
+      </div>
       <div class="pmactions">
         <button class="btn" id="pmSaveNote">Save note</button>
         <button class="btn danger" id="pmDelete">Delete photo</button>
@@ -1956,8 +1970,67 @@ function openPhoto(r, url, canEdit){
   $('#pmNoteLabel').style.display = hideNote ? 'none' : '';
   $('#pmNote').style.display = hideNote ? 'none' : '';
   document.querySelector('.pmactions').style.display = canEdit ? 'grid' : 'none';
+  renderKeep(r, canEdit);
   $('#photoModal').classList.add('on');
 }
+// Retention, shown to the person it affects.
+//
+// Only the owner sees this: a nurse or admin looking at someone else's photo has
+// no business deciding what that patient keeps. The expiry date comes from the
+// same app_settings value the purge job uses, so the app cannot promise one
+// thing while the sweep does another.
+let retentionMonths = null;
+async function getRetentionMonths(){
+  if(retentionMonths !== null) return retentionMonths;
+  try {
+    const { data } = await sb.from('app_settings').select('value').eq('key','photo_retention_months').maybeSingle();
+    const n = Number(data?.value);
+    retentionMonths = Number.isInteger(n) && n > 0 ? n : null;
+  } catch { retentionMonths = null; }
+  return retentionMonths;
+}
+
+async function renderKeep(r, canEdit){
+  const row = $('#pmKeepRow');
+  // Not the owner's photo, or read-only: no toggle at all.
+  if(!canEdit){ row.style.display = 'none'; return; }
+  row.style.display = '';
+  $('#pmKeep').checked = !!r.keep;
+
+  const months = await getRetentionMonths();
+  const note = $('#pmKeepNote');
+  if(months === null){
+    // If we cannot read the setting we say nothing rather than invent a date.
+    note.textContent = '';
+    return;
+  }
+  const expires = new Date(r.created_at);
+  expires.setMonth(expires.getMonth() + months);
+  const when = expires.toLocaleDateString('en-GB',{ day:'numeric', month:'long', year:'numeric' });
+  note.textContent = r.keep
+    ? 'Kept. This photo will not be deleted automatically.'
+    : `Photos are deleted after ${months} months. This one is due to go on ${when}.`;
+}
+
+$('#pmKeep').onchange = async () => {
+  if(!pmCurrent) return;
+  const want = $('#pmKeep').checked;
+  $('#pmKeep').disabled = true;
+  const { error } = await sb.from('diary_photos').update({ keep: want }).eq('id', pmCurrent.id);
+  $('#pmKeep').disabled = false;
+  if(error){
+    // Put the checkbox back. A toggle that looks saved but is not would cost the
+    // patient the photo they thought they had protected.
+    $('#pmKeep').checked = !want;
+    toast('Could not save that — please try again');
+    console.error('keep toggle failed:', error.message);
+    return;
+  }
+  pmCurrent.keep = want;
+  renderKeep(pmCurrent, true);
+  toast(want ? 'Photo kept ✓' : 'Photo will expire normally');
+};
+
 function closePhoto(){ $('#photoModal').classList.remove('on'); $('#pmImg').removeAttribute('src'); pmCurrent = null; }
 $('#pmClose').onclick = closePhoto;
 $('#photoModal').onclick = (e) => { if(e.target === $('#photoModal')) closePhoto(); };

@@ -22,7 +22,11 @@ Already compressed client-side to **max 1600px, JPEG q0.85** (~200–400 KB/phot
       Supabase Storage and only the service-role key can remove it, so the purge runner is a
       separate, deliberate decision. Runner built: `api/purge-photos.js` on **Vercel Cron**, daily 03:00 UTC, **dry run until
       `PURGE_ARMED=true`**. Outstanding: set `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` in Vercel,
-      read one real dry run, then arm. UI toggle for `keep` also to do.
+      read one real dry run, then arm.
+      UI toggle for `keep` **done** — the photo view shows the actual expiry date, from the same
+      `app_settings` value the purge job reads, so the app cannot promise one date while the
+      sweep uses another. Only the owner sees it; a nurse has no business deciding what a
+      patient keeps.
 - [ ] **Thumbnails** — store a small thumb for grid views; fetch full-res only on tap (cuts bandwidth).
 - [ ] Consider dropping to **1280px / q0.80** to roughly halve storage with little visible loss.
 - [ ] At scale, evaluate moving the bucket to cheaper object storage (Cloudflare R2 / Hetzner) — same app, different backend.
