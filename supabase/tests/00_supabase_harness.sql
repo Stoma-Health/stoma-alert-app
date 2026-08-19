@@ -1,8 +1,16 @@
 -- Minimal stand-in for the parts of Supabase the migrations touch, so the real
 -- migration files run unmodified and RLS behaves as it does in production.
-create role anon nologin;
-create role authenticated nologin;
-create role service_role nologin bypassrls;
+-- Roles are cluster-wide, not per-database, so these must be idempotent: each
+-- suite gets its own database on the same cluster.
+do $$ begin
+  create role anon nologin;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create role authenticated nologin;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create role service_role nologin bypassrls;
+exception when duplicate_object then null; end $$;
 
 create schema if not exists auth;
 create schema if not exists storage;
