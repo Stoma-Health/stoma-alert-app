@@ -53,5 +53,13 @@ for suite in "$HERE"/0[1-9]_*.sql; do
   echo
 done
 
+# Logic that lives in the scheduled job rather than the database.
+for js in "$HERE"/0[1-9]_*.mjs; do
+  [ -e "$js" ] || continue
+  echo "── $(basename "$js") ──"
+  node "$js" || fails=1
+  echo
+done
+
 if [ "$fails" -ne 0 ]; then echo "SUITE FAILED"; exit 1; fi
 echo "All checks passed."
