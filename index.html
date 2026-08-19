@@ -69,6 +69,41 @@
   }
   body[data-soft="1"] .topbar{ border-bottom-color:transparent; box-shadow:0 2px 12px -8px rgba(29,42,38,.35); }
 
+  /* ?soft=2 — the full visual pass. Everything in soft=1, plus the smaller
+     things that add up to "this was made by a person":
+
+       paper        pure #fff against a tinted background is the clinical tell;
+                    a barely-warm white reads as paper rather than a screen
+       ink          pure near-black is harsh at body size, so it lifts slightly
+       line-height  1.5 is tight for anyone reading on a bad day
+       padding      cramped is clinical; room is calm
+       inputs       filled rather than outlined — fewer hard edges per screen
+       press        a gentle squash on tap, so the app feels answerable
+       motion       respects prefers-reduced-motion, because a stoma app has
+                    users for whom animation is genuinely unwelcome */
+  body[data-soft="2"]{ --paper:#fffefb; --ink:#26332e; --line:#e6ede8; line-height:1.62; }
+
+  body[data-soft="2"] .card{
+    border-color:transparent; border-radius:24px; padding:19px;
+    box-shadow:0 1px 2px rgba(29,42,38,.04), 0 8px 22px -10px rgba(29,42,38,.16);
+  }
+  body[data-soft="2"] .topbar{ border-bottom-color:transparent; box-shadow:0 2px 14px -9px rgba(29,42,38,.35); }
+  body[data-soft="2"] .h{ line-height:1.18; }
+  body[data-soft="2"] .ssub{ font-size:13px; line-height:1.55; }
+  body[data-soft="2"] .input{
+    background:var(--wash); border-color:transparent; border-radius:14px; padding:13px 14px;
+  }
+  body[data-soft="2"] .input:focus{ background:var(--paper); border-color:var(--teal); }
+  body[data-soft="2"] .btn{ border-radius:16px; }
+
+  @media (prefers-reduced-motion:no-preference){
+    body[data-soft="2"] .btn,
+    body[data-soft="2"] .card,
+    body[data-soft="2"] .chkPill{ transition:transform .12s ease, box-shadow .18s ease; }
+    body[data-soft="2"] .btn:active,
+    body[data-soft="2"] .chkPill:active{ transform:scale(.975); }
+  }
+
   /* Dusk — plum and clay. Warm, distinctive, still serious. The one that would
      not be mistaken for every other health app. */
   body[data-theme="dusk"]{
@@ -3549,7 +3584,8 @@ document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async ()
   const q = new URLSearchParams(location.search);
   const t = q.get('theme');
   if(['warm','navy','dusk'].includes(t)) document.body.dataset.theme = t;
-  if(q.get('soft') === '1') document.body.dataset.soft = '1';
+  const soft = q.get('soft');
+  if(['1','2'].includes(soft)) document.body.dataset.soft = soft;
 }
 
 // ---------- your data: export and erasure ----------
