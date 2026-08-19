@@ -460,12 +460,9 @@
     <div id="signupOnly" style="display:none">
       <label class="fl">Your name</label>
       <input class="input" id="suName" placeholder="e.g. Margaret Hill" autocomplete="name">
-      <label class="fl">I am a…</label>
-      <div class="roles">
-        <button id="rolePatient" class="on" data-role="patient">🧑‍🦱 Patient</button>
-        <button id="roleNurse" data-role="nurse">🩺 Stoma nurse</button>
-        <button id="roleAdmin" data-role="admin" style="grid-column:1 / -1">🛠️ Admin</button>
-      </div>
+      <!-- Role is assigned by the database, never chosen here. Nurse and admin
+           access is granted in Supabase by someone with access to the project.
+           See supabase/migrations/0015_server_side_roles.sql. -->
     </div>
 
     <label class="fl">Email</label>
@@ -1048,7 +1045,6 @@ function swatchHtml(name){
   ).join('') + `</div>`;
 }
 let mode = 'signin';
-let signupRole = 'patient';
 let myUid = null, myRole = 'patient', myName = '';   // session identity
 let curThread = null, msgChannel = null;             // messaging state
 const seenMsg = new Set();                           // de-dupe realtime vs reload
@@ -1071,10 +1067,6 @@ function setMode(m){
   $('#authBtn').textContent = m==='signup' ? 'Create account' : 'Sign in';
   $('#authWrap').querySelector('.auth-sub').textContent = m==='signup' ? 'Create a test account' : 'Sign in to your account';
 }
-$('#rolePatient').onclick = () => setRole('patient');
-$('#roleNurse').onclick   = () => setRole('nurse');
-$('#roleAdmin').onclick   = () => setRole('admin');
-function setRole(r){ signupRole=r; $('#rolePatient').classList.toggle('on',r==='patient'); $('#roleNurse').classList.toggle('on',r==='nurse'); $('#roleAdmin').classList.toggle('on',r==='admin'); }
 
 $('#authBtn').onclick = async () => {
   clearMsg();
@@ -1087,7 +1079,7 @@ $('#authBtn').onclick = async () => {
       const name = $('#suName').value.trim() || email.split('@')[0];
       const { data, error } = await sb.auth.signUp({
         email, password,
-        options:{ data:{ full_name:name, role:signupRole } }
+        options:{ data:{ full_name:name } }
       });
       if(error) throw error;
       if(!data.session){
@@ -3399,13 +3391,32 @@ document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async ()
   toast('Saved ✓');
 });
 
+// ---------- role ----------
+// The role comes from public.user_roles, which the user cannot write. It is NOT
+// read from user_metadata: that field is editable by the account holder, so
+// before 0015 anyone could grant themselves nurse or admin and read every other
+// patient's check-ins, photos and messages. RLS enforces this server-side too —
+// this call only decides which screens to draw.
+async function fetchMyRole(){
+  try {
+    const { data, error } = await sb.from('user_roles').select('role').maybeSingle();
+    if(error) throw error;
+    return data?.role || 'patient';
+  } catch (e) {
+    // Fail closed. A patient view for a nurse is an inconvenience; the reverse
+    // would be a data breach.
+    console.warn('Could not read role, defaulting to patient:', e?.message || e);
+    return 'patient';
+  }
+}
+
 // ---------- boot / routing ----------
 async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
   if(!session){ showAuth(); return; }
   const u = session.user;
   myUid = u.id;
-  myRole = u.user_metadata?.role || 'patient';
+  myRole = await fetchMyRole();
   myName = u.user_metadata?.full_name || u.email.split('@')[0];
   await loadContent();
   $('#authWrap').style.display = 'none';
