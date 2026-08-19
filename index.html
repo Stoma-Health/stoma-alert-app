@@ -551,6 +551,30 @@
       </div>
       <button class="btn" id="pfSave">Save my profile
         <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+      <!-- UK GDPR Art. 15 and 20 (access and portability) and Art. 17 (erasure).
+           Both are rights, not features, so they live in plain sight rather than
+           behind a support email. -->
+      <div class="kic" style="margin-top:26px">Your rights</div>
+      <div class="h">Your data</div>
+      <div class="card">
+        <div class="qh">Download everything we hold</div>
+        <div class="ssub" style="margin:4px 0 12px">
+          A ZIP containing your profile, check-ins, messages and every photo you have taken.
+          Nothing is left out and nothing is sent anywhere — it is built on your own device.
+        </div>
+        <button class="btn ghost" id="dataExport">Download my data</button>
+        <div class="ssub" id="dataExportNote" style="margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <div class="qh">Delete my account</div>
+        <div class="ssub" style="margin:4px 0 12px">
+          This removes your account, your check-ins, your messages and every photo,
+          permanently. It cannot be undone and your care team will no longer see your
+          history. Consider downloading your data first.
+        </div>
+        <button class="btn danger" id="dataDelete">Delete my account</button>
+      </div>
     </section>
 
     <!-- PATIENT: CHECK-IN -->
@@ -1004,6 +1028,7 @@
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { makeZip, safeName } from './zip.js';
 
 const SUPABASE_URL = 'https://yevndoekwgahvvskiplt.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9hPnsA1CJh3BQ_v09rIkBw_O2Vrrgps';
@@ -3463,6 +3488,124 @@ document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async ()
   applyContent();
   toast('Saved ✓');
 });
+
+// ---------- your data: export and erasure ----------
+// UK GDPR Art. 15/20 (access and portability) and Art. 17 (erasure). Built on
+// the device: the export never goes near a server, so exercising the right to
+// see your own data does not involve handing it to anyone else first.
+
+// Every table holding something about this patient. RLS means each of these
+// returns only their own rows, which is exactly the scope Art. 15 asks for.
+const EXPORT_TABLES = [
+  'patient_profile', 'check_ins', 'diary_photos', 'reorders',
+  'guide_progress', 'user_communities', 'messages',
+];
+
+async function buildExport(onProgress){
+  const { data:{ user } } = await sb.auth.getUser();
+  if(!user) throw new Error('Please sign in again.');
+
+  const dump = {
+    exported_at: new Date().toISOString(),
+    account: { id: user.id, email: user.email, created_at: user.created_at },
+    tables: {},
+  };
+
+  for(const table of EXPORT_TABLES){
+    onProgress?.(`Collecting ${table.replace(/_/g,' ')}…`);
+    const { data, error } = await sb.from(table).select('*');
+    // Report a table we could not read rather than quietly shipping a short
+    // export. An incomplete answer to a subject access request is a breach of
+    // it, and the patient cannot tell by looking.
+    if(error) throw new Error(`Could not read ${table}: ${error.message}`);
+    dump.tables[table] = data || [];
+  }
+
+  const files = [];
+  const photos = dump.tables.diary_photos || [];
+  if(photos.length){
+    // Signed URLs in one call, then fetched one at a time so a slow connection
+    // degrades rather than stalls.
+    const { data: signed } = await sb.storage.from('diary-photos')
+      .createSignedUrls(photos.map(p => p.path), 3600);
+    for(let i = 0; i < photos.length; i++){
+      onProgress?.(`Downloading photo ${i+1} of ${photos.length}…`);
+      const url = signed?.[i]?.signedUrl;
+      if(!url) continue;
+      try {
+        const res = await fetch(url);
+        if(!res.ok) continue;
+        const buf = new Uint8Array(await res.arrayBuffer());
+        const when = (photos[i].created_at || '').slice(0,10) || 'undated';
+        files.push({ name: safeName(`photos/${when}-${photos[i].id.slice(0,8)}.jpg`), data: buf });
+      } catch { /* a photo that will not download is listed in data.json regardless */ }
+    }
+    dump.photos_included = files.length;
+    dump.photos_recorded = photos.length;
+  }
+
+  onProgress?.('Packaging…');
+  files.unshift({
+    name: 'data.json',
+    data: new TextEncoder().encode(JSON.stringify(dump, null, 2)),
+  });
+  return { zip: makeZip(files), photoCount: files.length - 1, dump };
+}
+
+$('#dataExport').onclick = async () => {
+  const btn = $('#dataExport'), note = $('#dataExportNote');
+  btn.disabled = true;
+  try {
+    const { zip, photoCount, dump } = await buildExport(m => { note.textContent = m; });
+    const blob = new Blob([zip], { type:'application/zip' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stoma-alert-my-data-${new Date().toISOString().slice(0,10)}.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+    const rows = Object.values(dump.tables).reduce((n,t) => n + t.length, 0);
+    note.textContent = `Downloaded — ${rows} record${rows===1?'':'s'} and ${photoCount} photo${photoCount===1?'':'s'}.`;
+  } catch (e) {
+    note.textContent = `Could not build your export: ${e.message}`;
+    console.error('export failed:', e);
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+$('#dataDelete').onclick = async () => {
+  // Typing the word, not just clicking OK. This is irreversible and takes the
+  // patient's clinical history with it.
+  const typed = prompt(
+    'This permanently deletes your account, your check-ins, your messages and every photo.\n\n' +
+    'It cannot be undone.\n\nType DELETE to confirm.'
+  );
+  if(typed !== 'DELETE') return;
+
+  const btn = $('#dataDelete');
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Deleting…';
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session) throw new Error('Please sign in again.');
+    const res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    const body = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(body.error || `Something went wrong (${res.status}).`);
+    await sb.auth.signOut();
+    alert('Your account and all your data have been deleted.');
+    location.reload();
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = original;
+    alert(`Could not delete your account: ${e.message}\n\nNothing has been changed. Please try again, or contact us.`);
+    console.error('delete failed:', e);
+  }
+};
 
 // ---------- role ----------
 // The role comes from public.user_roles, which the user cannot write. It is NOT

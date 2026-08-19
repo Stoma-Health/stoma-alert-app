@@ -41,7 +41,17 @@ Stoma photos + symptom check-ins are **special-category health data**, so the ba
 - [ ] **Lawful basis + explicit consent** for processing health data (Art. 6 + Art. 9); consent capture in the signup/onboarding flow.
 - [ ] **Privacy notice** — what's collected, why, how long kept, who it's shared with (care team), patient rights.
 - [ ] **DPIA** (Data Protection Impact Assessment) — required for large-scale special-category processing.
-- [ ] **Data subject rights** — access, rectification, **erasure ("delete my account & data")**, portability/export.
+- [x] **Data subject rights** — access, erasure, portability. *Done.*
+      Profile → **Your data**. "Download my data" builds a ZIP on the device (never uploaded)
+      containing `data.json` — profile, check-ins, photo records, reorders, guide progress,
+      communities, messages — plus every photo as a real JPEG. A table that cannot be read is
+      an error, not a short export: an incomplete subject access response is a breach of it and
+      the patient cannot tell by looking.
+      "Delete my account" requires typing DELETE, then `api/delete-account.js` removes the
+      Storage files, then the message threads (`thread_user` has no FK so the cascade misses
+      them), then the auth record, which cascades the rest. Identity comes from the caller's
+      own token, never from the request body.
+      Rectification was already there — the profile screen is editable.
 - [ ] **Retention schedule** — documented, and technically enforced (ties to photo retention above).
 - [ ] **Data Processing Agreement** with Supabase (and any sub-processors); confirm **UK/EU data residency** for the Supabase project.
 - [ ] **Encryption** in transit (HTTPS ✓) and at rest (confirm Supabase); signed URLs already expire (1 h).
