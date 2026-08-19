@@ -25,6 +25,45 @@
     --ui:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,sans-serif;
     --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
   }
+
+  /* ---- Theme trials -------------------------------------------------------
+     Add ?theme=warm, ?theme=sage or ?theme=dusk to the URL to see the whole app
+     in a different palette. Nothing changes without the parameter, so this is
+     safe to have live: it is a way to decide a look on a real phone with real
+     content, rather than from a mock-up that always flatters.
+
+     The diagnosis being tested: the app is not badly laid out, it is cold.
+     --teal is really navy #20305c and --wash is a blue-grey, so every screen is
+     navy on grey behind hairline borders. That reads as a form to fill in. Each
+     trial below keeps the structure and only moves the temperature. */
+
+  /* Warm clinical — keeps the navy for trust, warms every neutral around it.
+     The most conservative option, and the easiest to defend to a clinician. */
+  body[data-theme="warm"]{
+    --ink:#231f1c; --slate:#5c534c; --mist:#8a7f76; --line:#e8e0d8;
+    --wash:#faf6f1; --teal:#1f3a5f; --teal-deep:#152840; --teal-soft:#e7ecf3;
+    --green:#4a8f6c; --green-soft:#e7f1ea; --amber:#b8791a; --amber-soft:#fbf1de;
+    --red:#b4442c; --red-soft:#fbeae5;
+  }
+
+  /* Soft sage — a real teal-green rather than a navy called teal. Calmer and
+     more human; the least "hospital" of the three. */
+  body[data-theme="sage"]{
+    --ink:#1d2a26; --slate:#4a5b55; --mist:#7b8b84; --line:#dfe7e2;
+    --wash:#f5f8f5; --teal:#2f6f5e; --teal-deep:#1f4e42; --teal-soft:#e4f0eb;
+    --green:#4f9d7b; --green-soft:#e8f3ed; --amber:#bf8419; --amber-soft:#fbf2df;
+    --red:#bb4a31; --red-soft:#fbece8;
+  }
+
+  /* Dusk — plum and clay. Warm, distinctive, still serious. The one that would
+     not be mistaken for every other health app. */
+  body[data-theme="dusk"]{
+    --ink:#241d28; --slate:#574a5c; --mist:#847785; --line:#e8dfe6;
+    --wash:#faf5f7; --teal:#5b3a66; --teal-deep:#412a4a; --teal-soft:#f0e8f2;
+    --green:#4f8f74; --green-soft:#e7f1ec; --amber:#bd7c2a; --amber-soft:#fbf0e2;
+    --red:#b8493c; --red-soft:#fbebe9;
+  }
+
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
   body{font-family:var(--ui); color:var(--ink); line-height:1.5; background:var(--wash);
@@ -3488,6 +3527,14 @@ document.querySelectorAll('[data-acsave]').forEach(btn => btn.onclick = async ()
   applyContent();
   toast('Saved ✓');
 });
+
+// ---------- theme trials ----------
+// ?theme=warm|sage|dusk paints the whole app in a candidate palette so a look
+// can be judged on a real phone with real content. No parameter, no change.
+{
+  const t = new URLSearchParams(location.search).get('theme');
+  if(['warm','sage','dusk'].includes(t)) document.body.dataset.theme = t;
+}
 
 // ---------- your data: export and erasure ----------
 // UK GDPR Art. 15/20 (access and portability) and Art. 17 (erasure). Built on
