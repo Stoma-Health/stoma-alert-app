@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stoma Alert: Your stoma care, all in one place</title>
+<meta name="description" content="Stoma Alert is a digital support app for people living with a stoma: daily check-ins, a photo diary, progress tracking, community and effortless supply reordering. Messaging your stoma nurse is coming next. A companion from pre-op to everyday life.">
+<meta name="theme-color" content="#0d1c17">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Stoma Alert: Your stoma care, all in one place">
+<meta property="og:description" content="A digital support app for people living with a stoma: daily check-ins, a photo diary, progress tracking, community and effortless supply reordering. A companion from pre-op to everyday life.">
+<meta property="og:image" content="stoma-assets/logo.jpg">
+<link rel="icon" href="stoma-assets/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+  /* Page-specific only. Anything reusable belongs in components.css. */
+  .shots{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .shots img{border-radius:var(--r-lg);box-shadow:var(--shadow);border:1px solid var(--line)}
+  .step{display:flex;gap:16px;align-items:flex-start}
+  .step .num{flex:0 0 auto;width:34px;height:34px;border-radius:var(--r-pill);
+    display:grid;place-items:center;font-weight:800;font-size:14px;
+    background:var(--brand);color:var(--on-dark)}
+  .ticks{list-style:none;display:grid;gap:10px}
+  .ticks li{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+  .ticks li::before{content:"";flex:0 0 auto;width:8px;height:8px;margin-top:8px;
+    border-radius:50%;background:var(--accent)}
+  .note{border-left:3px solid var(--accent);padding-left:16px}
+</style>
+</head>
+<body>
+<a href="#main" class="sr">Skip to main content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Stoma Alert home"><span class="mark"></span> Stoma Alert</a>
+    <nav class="nav">
+      <a href="#features">Inside the app</a>
+      <a href="#journey">Your journey</a>
+      <a href="#supplies">Supplies</a>
+      <a href="#care-team">For nurses</a>
+      <a class="btn btn-primary" href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener" style="padding:10px 18px;font-size:14px">Open the app</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section id="top" class="section section-dark">
+  <div class="wrap stack">
+    <span class="label">The Stoma Alert app · UK</span>
+    <h1 class="hero-title" style="max-width:15ch">Your stoma care, all in one place</h1>
+    <p class="lead">A digital companion for living with a stoma. Check in each day, keep a
+      photo diary, reorder supplies without a phone call, and stay connected to a community
+      who understand.</p>
+    <div class="row">
+      <a class="btn btn-primary" href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener">Open the app</a>
+      <a class="btn btn-ghost" href="#features">Inside the app</a>
+    </div>
+    <div class="row on-dark" style="margin-top:8px">
+      <span class="pill">You record, nurses decide</span>
+      <span class="pill">One-tap reorders</span>
+      <span class="pill">Brand-independent</span>
+    </div>
+    <p class="muted small" style="max-width:52ch">Works on any phone. Open it in your browser,
+      then add it to your home screen. No app store needed.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack">
+    <span class="label">What it is</span>
+    <h2 style="max-width:26ch">A calm and structured place to manage life with a stoma</h2>
+    <p class="lead">Between appointments, you manage a lot on your own: skin, comfort,
+      supplies and the odd worry. Stoma Alert gives you a calm, structured place to keep track
+      of it all, keep a clear record for yourself, and get your supplies sorted. It helps you
+      notice and keep track. It doesn't diagnose.</p>
+    <div class="card card-raised note" style="margin-top:6px">
+      <span class="label">Our promise</span>
+      <p style="font-size:var(--t-lead);margin-top:8px">“Records symptoms and images you can
+        share with a healthcare professional.”</p>
+      <p class="muted" style="margin-top:10px">That's the whole philosophy. Stoma Alert helps
+        you keep a clear picture, and your stoma nurse stays the one who reviews and decides.
+        The app never claims to diagnose or replace them. In-app sharing and messaging with
+        your nurse is <strong>coming next</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="wrap stack">
+    <span class="label">Everything you need</span>
+    <h2 style="max-width:22ch">Everything you need, nothing you don't</h2>
+    <p class="lead">Six things the app does, built around the day-to-day reality of stoma life.</p>
+    <div class="grid grid-3" style="margin-top:6px">
+      <article class="card"><div class="rule" style="margin-bottom:14px"></div>
+        <h3>Daily check-in</h3><p>A few taps each day: how you feel, how your stoma looks, how
+        your abdomen is. Under a minute, and it quietly builds a picture day by day.</p></article>
+      <article class="card"><div class="rule" style="margin-bottom:14px"></div>
+        <h3>Photo diary</h3><p>An on-screen guide helps you take a clear, consistent photo, so
+        you build a reliable record. Sharing it straight to your stoma nurse is coming next.</p></article>
+      <article class="card"><div class="rule" style="margin-bottom:14px"></div>
+        <h3>Progress over time</h3><p>See how skin, comfort and mood are trending. Patterns are
+        easy to spot and share, not lost to memory.</p></article>
+      <article class="card"><div class="rule" style="margin-bottom:14px"></div>
+        <h3>Supplies &amp; reorder</h3><p>Your pouches, baseplates and accessories on file with
+        sizes and cut, reorder in a tap and have them delivered before you run low.</p></article>
+      <article class="card"><div class="rule" style="margin-bottom:14px"></div>
+        <h3>Learn library</h3><p>Short, practical guides co-produced with stoma nurses: skin
+        care, travelling with confidence, and the things that quietly help.</p></article>
+      <article class="card"><div class="rule" style="margin-bottom:14px"></div>
+        <h3>Community</h3><p>Peer support from others who understand what stoma life is like.
+        Moderated and safe, launching alongside the app.</p></article>
+    </div>
+    <div class="shots" style="margin-top:10px">
+      <img src="stoma-assets/screen-home.jpg" alt="The Stoma Alert home screen" loading="lazy">
+      <img src="stoma-assets/screen-checkin.jpg" alt="A daily check-in in progress" loading="lazy">
+      <img src="stoma-assets/screen-progress.jpg" alt="Progress over time" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="section" id="journey">
+  <div class="wrap stack">
+    <span class="label">Your journey</span>
+    <h2 style="max-width:24ch">One companion from pre-op to everyday life</h2>
+    <p class="lead">Living with a stoma changes through its stages, especially in the early
+      weeks. Stoma Alert follows you through each one, so it becomes a daily habit rather than
+      a one-off download.</p>
+    <div class="grid grid-2" style="margin-top:6px">
+      <article class="card step"><span class="num">1</span><div>
+        <span class="label">Before surgery</span><h3 style="margin:4px 0 6px">Prepare &amp; reassure</h3>
+        <p>What to expect, gentle pre-op education, and set up your profile so you're ready from day one.</p></div></article>
+      <article class="card step"><span class="num">2</span><div>
+        <span class="label">Hospital &amp; discharge</span><h3 style="margin:4px 0 6px">Get set up</h3>
+        <p>Capture your stoma details and first photos, a discharge checklist, and your first product setup.</p></div></article>
+      <article class="card step"><span class="num">3</span><div>
+        <span class="label">First 6–8 weeks</span><h3 style="margin:4px 0 6px">Adjust &amp; refit</h3>
+        <p>The stoma shrinks as it heals. Guided refitting and reminders help you keep the right size and a comfortable fit.</p></div></article>
+      <article class="card step"><span class="num">4</span><div>
+        <span class="label">Everyday life</span><h3 style="margin:4px 0 6px">Stay on top of it</h3>
+        <p>Daily check-ins, easy reordering, learn guides and community, the reassurance of a routine that keeps working in the background.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="supplies">
+  <div class="wrap stack">
+    <span class="label">Supplies, sorted</span>
+    <h2 style="max-width:22ch">Never run low, reorder in one tap</h2>
+    <p class="lead">In the UK most stoma appliances are free on NHS prescription and delivered
+      to your door. Stoma Alert's job is simply to make the repeat effortless and send it to
+      the supplier you already use.</p>
+    <div class="grid grid-2" style="margin-top:6px">
+      <article class="card"><h3>Saved products</h3><p>Your pouches, baseplates and accessories
+        held on file, with sizes and cut, ready to go.</p></article>
+      <article class="card"><h3>One-tap reorder</h3><p>Confirm what you need; the app sends the
+        repeat-prescription request on your behalf.</p></article>
+      <article class="card"><h3>Prescription &amp; dispense</h3><p>Your GP and chosen supplier
+        handle the prescription and dispense it, just as they do today.</p></article>
+      <article class="card"><h3>Delivered to your door</h3><p>Your supplies arrive at home,
+        discreetly, and before you were going to run out.</p></article>
+    </div>
+    <p class="note muted" style="margin-top:6px">Stoma Alert is independent of the bag
+      manufacturers. You keep your own products and your own supplier. The app just takes the
+      hassle out of the repeat.</p>
+  </div>
+</section>
+
+<section class="section" id="care-team">
+  <div class="wrap">
+    <div class="panel-dark on-dark" style="padding:clamp(26px,4vw,56px)">
+      <span class="label">Coming next</span>
+      <h2 style="max-width:20ch;margin:10px 0 14px">Your stoma nurse in the loop</h2>
+      <p class="lead">The nurse portal is being built around how stoma nurses and colorectal
+        teams actually work. Your check-ins, photos and questions arrive in one place,
+        organised and easy to review. That lightens the load of unscheduled calls, without ever
+        taking clinical judgement out of human hands.</p>
+      <ul class="ticks" style="margin:22px 0">
+        <li>Everything you share, gathered in one tidy view</li>
+        <li>Photos taken with the on-screen guide, so they're actually usable</li>
+        <li>Secure messaging between you and your team</li>
+        <li>Fewer avoidable phone calls and trips to the clinic</li>
+        <li><strong>Your nurse always makes the clinical decision. The app never does.</strong></li>
+      </ul>
+      <a class="btn btn-ghost" href="mailto:virginia.filmer-sankey@stoma-alert.eu?subject=Nurse%20portal%20interest">Register interest in the nurse portal</a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack">
+    <span class="label">Where Stoma Alert is heading</span>
+    <h2 style="max-width:20ch">Here today, growing with you</h2>
+    <p class="lead">Stoma Alert helps with the everyday right now, and it keeps getting better.
+      Here's what you can use today, and what's coming next.</p>
+    <div class="grid grid-3" style="margin-top:6px">
+      <article class="card card-raised">
+        <span class="pill pill-brand">Phase 1 · live</span>
+        <h3 style="margin:14px 0 6px">Everyday support</h3>
+        <p>The companion app you can use today: everyday support, record-keeping and effortless reordering.</p>
+        <ul class="ticks" style="margin-top:14px">
+          <li>Daily check-ins &amp; photo diary</li><li>Progress &amp; outcome tracking</li>
+          <li>Supplies &amp; one-tap reordering</li><li>Community &amp; education</li></ul>
+      </article>
+      <article class="card">
+        <span class="pill">Phase 2 · next</span>
+        <h3 style="margin:14px 0 6px">Nurse portal &amp; clinical workflow</h3>
+        <p>Messaging with your stoma nurse, and deeper tools for stoma teams, built with clinicians and backed by real-world study.</p>
+        <ul class="ticks" style="margin-top:14px">
+          <li>Message your stoma nurse in-app</li><li>A shared portal view for your stoma team</li>
+          <li>Structured clinical review by nurses</li><li>NHS pathway integrations &amp; outcomes evidence</li></ul>
+      </article>
+      <article class="card">
+        <span class="pill">Coming soon</span>
+        <h3 style="margin:14px 0 6px">Smarter support, certified</h3>
+        <p>The advanced, certified layer, added carefully, only once the evidence and approvals are in place.</p>
+        <ul class="ticks" style="margin-top:14px">
+          <li>AI-assisted decision support</li><li>Predictive insight for teams</li>
+          <li>Medical-device certification</li><li>Built on our existing clinical engine</li></ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack">
+    <span class="label">The foundation</span>
+    <h2 style="max-width:22ch">A simple app on a serious foundation</h2>
+    <p class="lead">Stoma Alert may start light, but it isn't a weekend project. It's built on
+      years of clinical research, real hospital experience in Europe, and a patented imaging
+      aid, so the everyday app you use today has real depth to grow into.</p>
+    <div class="grid grid-2" style="margin-top:6px">
+      <div class="card stat"><span class="n">200+</span><span class="k">Patients — real-world experience across five hospitals in Europe.</span></div>
+      <div class="card stat"><span class="n">Years</span><span class="k">of clinical R&amp;D — a multi-year research programme, not a repackaged app.</span></div>
+      <div class="card stat"><span class="n">Patented</span><span class="k">Stoma Stick — Patent 244744, a patented aid for clear, consistent photos.</span></div>
+      <div class="card stat"><span class="n">Independent</span><span class="k">By design — not owned by, or tied to, any bag manufacturer.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap center stack">
+    <span class="label">Get started</span>
+    <h2 style="max-width:22ch;margin-inline:auto">Support and reassurance, in your pocket</h2>
+    <p class="lead">Works on any phone. Open it in your browser, then add it to your home
+      screen. No app store needed.</p>
+    <div class="row" style="justify-content:center">
+      <a class="btn btn-primary" href="https://stoma-alert-app.vercel.app/" target="_blank" rel="noopener">Open the app</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer section" style="--section:clamp(40px,5vw,72px)">
+  <div class="wrap stack">
+    <div class="grid grid-3">
+      <div>
+        <span class="label">Legal</span>
+        <ul class="ticks" style="margin-top:10px">
+          <li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li>
+          <li>ICO: ZC000000</li></ul>
+      </div>
+      <div>
+        <span class="label">UK contact</span>
+        <p style="margin-top:10px">Stoma Alert Ltd<br>Little Tillingham, Rye<br>England, TN31 7EL<br>
+          <a href="mailto:contact@stoma-alert.eu">contact@stoma-alert.eu</a></p>
+      </div>
+      <div>
+        <span class="label">Poland contact</span>
+        <p style="margin-top:10px">PHIN Consulting Sp. z o.o.<br>ul. S. Dubois 114/116/1.20<br>93-465 Łódź, Poland<br>
+          <a href="mailto:pacjent@stoma-alert.eu">pacjent@stoma-alert.eu</a></p>
+      </div>
+    </div>
+    <p class="fine" style="max-width:none">Stoma Alert is a support and record-keeping app for
+      people with a stoma and their care teams. It helps you record and share information. It
+      does not diagnose, and it does not replace the advice of your stoma nurse or doctor.</p>
+    <p class="fine">© 2026 Stoma Alert Ltd</p>
+  </div>
+</footer>
+
+</body>
+</html>

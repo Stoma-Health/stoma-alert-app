@@ -1,0 +1,90 @@
+/* ============================================================================
+   TOKENS — the only file you edit to rebrand.
+   ----------------------------------------------------------------------------
+   Everything else in this template reads from these variables, so a new client
+   or product is a colour and a typeface, not a rewrite. Change values here;
+   do not add colours anywhere else.
+
+   House style = the ByzGen system (byzgen.vercel.app). This copy is tuned for
+   STOMA ALERT: house mechanics, sage palette, matching the patient app.
+   ========================================================================= */
+
+:root{
+  /* ---- Brand ------------------------------------------------------------- */
+  /* STOMA ALERT — sage, matching the patient app. Chosen 19 Aug over the
+     original navy, which read as clinical rather than caring. House-style
+     MECHANICS are untouched: Manrope, the fluid clamp() scale, the tight/wide
+     tracking pair, one big soft shadow, three-stop dark gradients. Only the
+     palette is the project's, which is the whole point of this file. */
+  --brand:#2f6f5e;
+  --brand-hi:#3d8a74;
+  --accent:#7fc4ac;
+  --accent-2:#a8dcc8;
+
+  /* ---- Inks -------------------------------------------------------------- */
+  /* These are NAVY, not grey, and that is the point. Grey looks like a
+     default; a near-black navy looks chosen. Keep the hue if you change the
+     brand colour.                                                            */
+  --ink:#0d1c17;            /* darkest: hero panels, footer                   */
+  --ink-2:#132a23;          /* mid dark panel                                 */
+  --ink-3:#1b3a30;          /* lightest dark panel, borders on dark           */
+  --text:#26332e;           /* body copy on light                             */
+  --muted:#6b7f78;          /* secondary copy, captions                       */
+
+  /* ---- Grounds ----------------------------------------------------------- */
+  --paper:#f5f8f5;          /* page background                                */
+  --surface:#ffffff;        /* cards, panels                                  */
+
+  /* ---- Structure --------------------------------------------------------- */
+  --line:rgba(13,28,23,.13);        /* hairlines on light                      */
+  --line-dark:rgba(255,255,255,.12);/* hairlines on dark                      */
+
+  /* Text ON the dark panels. A token rather than a hard #fff, because a warm
+     brand may want an off-white here and should not have to edit components. */
+  --on-dark:#ffffff;
+  --on-dark-muted:rgba(255,255,255,.72);
+  --on-dark-soft:rgba(255,255,255,.06);   /* pill/chip fills on dark          */
+  --shadow:0 30px 80px rgba(13,28,23,.14);   /* ONE big soft shadow, not many  */
+  --shadow-sm:0 8px 24px -12px rgba(13,28,23,.20);
+
+  /* ---- Type -------------------------------------------------------------- */
+  /* One family, which satisfies "two families maximum" by needing only one.   */
+  --font:'Manrope',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* Fluid scale. clamp() means no breakpoints for type: it is composed at
+     every width, which is most of why the original feels considered.         */
+  --t-hero:clamp(50px,5.7vw,88px);
+  --t-h1:clamp(42px,5vw,70px);
+  --t-h2:clamp(25px,3vw,42px);
+  --t-h3:clamp(24px,2.8vw,40px);
+  --t-lead:clamp(17px,1.4vw,21px);
+  --t-body:16.5px;
+  --t-small:14px;
+  --t-label:11.5px;
+
+  /* Tracking is the signature of this style. Tight on big type, wide on small
+     uppercase labels. Copy the colours and miss this and it reads as a copy.  */
+  --track-hero:-.055em;
+  --track-head:-.04em;
+  --track-label:.13em;
+
+  /* ---- Space and shape --------------------------------------------------- */
+  --max:1320px;             /* outer container                                */
+  --measure:720px;          /* reading width — never full bleed for prose     */
+  --gap:clamp(18px,2.2vw,30px);
+  --section:clamp(56px,7vw,120px);
+
+  --r-sm:8px;
+  --r:16px;
+  --r-lg:22px;
+  --r-pill:999px;
+}
+
+/* Optional dark mode. Off unless you add class="dark" to <html>, because it
+   should be a decision rather than something the OS imposes on a brand. */
+.dark{
+  --paper:#07111f; --surface:#0b1b2d;
+  --text:#e8eef7; --muted:#8fa1b8;
+  --line:rgba(255,255,255,.12);
+}
