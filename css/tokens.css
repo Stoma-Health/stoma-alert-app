@@ -105,7 +105,10 @@
 /* Optional dark mode. Off unless you add class="dark" to <html>, because it
    should be a decision rather than something the OS imposes on a brand. */
 .dark{
-  --paper:#07111f; --surface:#0b1b2d;
-  --text:#e8eef7; --muted:#8fa1b8;
+  /* Sage-dark, to match the rest of this file. Unused today — dark mode is
+     opt-in via class="dark" — but leaving ByzGen's navy in here would be a trap
+     for whoever switches it on. */
+  --paper:#0d1c17; --surface:#132a23;
+  --text:#e6efe9; --muted:#93a89f;
   --line:rgba(255,255,255,.12);
 }
