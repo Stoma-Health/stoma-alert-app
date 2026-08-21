@@ -53,15 +53,28 @@
   --font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 
   /* Fluid scale. clamp() means no breakpoints for type: it is composed at
-     every width, which is most of why the original feels considered.         */
-  --t-hero:clamp(50px,5.7vw,88px);
-  --t-h1:clamp(42px,5vw,70px);
-  --t-h2:clamp(25px,3vw,42px);
-  --t-h3:clamp(24px,2.8vw,40px);
-  --t-lead:clamp(17px,1.4vw,21px);
-  --t-body:16.5px;
-  --t-small:14px;
-  --t-label:11.5px;
+     every width, which is most of why the original feels considered.
+     ------------------------------------------------------------------------
+     Reduced ~a third on 21 Aug 2026 at Virginia's request. The ByzGen scale is
+     built for a statement hero; on a content page it shouted.
+
+     The third came off the MAXIMA, which is what actually reads as oversized.
+     Minimums were set by hand rather than scaled, because a literal third off
+     them would have put the lead BELOW body size and flattened the hierarchy on
+     a phone. Sizes are a system, not a multiplier.                            */
+  --t-hero:clamp(32px,4.2vw,58px);   /* was 50/5.7/88 */
+  --t-h1:clamp(28px,3.4vw,46px);     /* was 42/5/70   */
+  --t-h2:clamp(21px,2.2vw,28px);     /* was 25/3/42   */
+  --t-h3:clamp(18px,1.7vw,23px);     /* was 24/2.8/40 */
+  --t-lead:clamp(17px,1.3vw,18.5px); /* was 17/1.4/21 — must stay above body */
+
+  /* Body deliberately NOT cut by a third: 11px is not readable prose, and these
+     sites are read by people who are older, tired, or worried. 16px is the
+     floor I would defend. Say the word and it comes down, but that is a
+     legibility decision rather than a style one.                              */
+  --t-body:16px;
+  --t-small:13.5px;
+  --t-label:11px;
 
   /* Tracking is the signature of this style. Tight on big type, wide on small
      uppercase labels. Copy the colours and miss this and it reads as a copy.  */
