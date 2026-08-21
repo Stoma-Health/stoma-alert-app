@@ -46,7 +46,24 @@ for suite in "$HERE"/0[1-9]_*.sql; do
   n=$(echo "$out" | grep -c PASS || true)
   if [ -z "$out" ] || [ "$n" -eq 0 ]; then
     echo "  NO ASSERTIONS RAN — the suite aborted. Last error:"
-    echo "$raw" | grep -i error | head -3 | sed 's/^/    /'
+    { echo "$raw" | grep -i error | head -3 | sed 's/^/    /'; } || true
+    fails=1
+  fi
+  # A PARTIAL abort used to pass. Suite 07 stopped at assertion 6 of 16 and this
+  # runner called it success, because it only checked that SOME assertion ran.
+  # Count the assertions the file asks for and insist they all report. This is
+  # the second time a silent abort has been read as a pass; the first fix only
+  # covered the zero case.
+  # Count CALLS only. Matching "pg_temp.t(" also caught the helper's own
+  # `create or replace function pg_temp.t(...)` line, which made every suite
+  # look one assertion short.
+  want=$(grep -cE "(perform|select) pg_temp\.t\(" "$suite" || true)
+  got=$(echo "$out" | grep -cE "PASS|FAIL" || true)
+  if [ "$want" -gt 0 ] && [ "$got" -lt "$want" ]; then
+    echo "  PARTIAL RUN — $got of $want assertions reported. The suite aborted. Last error:"
+    # `|| true` because set -e is on and a grep that matches nothing exits 1,
+    # which would kill the runner at the exact moment it is reporting a problem.
+    { echo "$raw" | grep -i error | head -3 | sed 's/^/    /'; } || true
     fails=1
   fi
   echo "$out" | grep -q FAIL && fails=1

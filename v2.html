@@ -375,6 +375,23 @@
   .q:last-child{margin-bottom:0;}
   .qh{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:9px;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
   .qh .sub{font-weight:500;color:var(--mist);font-size:11px;}
+  .statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;}
+  .stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 11px;}
+  .stat .sl{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--mist);}
+  .stat .sv{font-family:var(--display);font-weight:800;font-size:20px;color:var(--ink);margin-top:5px;}
+  .stat .sv em{font-style:normal;font-size:12px;font-weight:600;color:var(--mist);}
+  .journey{display:flex;align-items:center;gap:0;margin-top:12px;}
+  .journey .jst{flex:1;text-align:center;font-size:10px;font-weight:700;color:var(--mist);position:relative;}
+  .journey .jst i{display:block;width:30px;height:30px;margin:0 auto 6px;border-radius:10px;
+    border:1px solid var(--line);background:var(--paper);line-height:28px;font-style:normal;
+    font-size:11px;font-weight:800;color:var(--mist);}
+  .journey .jst.on{color:var(--teal);}
+  .journey .jst.on i{background:var(--teal);border-color:var(--teal);color:#fff;}
+  @media (max-width:520px){ .statrow{grid-template-columns:repeat(2,1fr);} }
+  .tickbox{flex:0 0 auto;width:22px;height:22px;margin-right:9px;border-radius:7px;cursor:pointer;
+    border:1.5px solid var(--line);background:var(--paper);color:#fff;font-size:13px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;font-family:var(--ui);}
+  .tickbox.on{background:var(--teal);border-color:var(--teal);}
   .chipset{display:flex;flex-wrap:wrap;gap:7px;}
   .selchip{font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--slate);background:var(--paper);
     border:1.5px solid var(--line);border-radius:100px;padding:8px 13px;cursor:pointer;user-select:none;transition:background .12s,border-color .12s,color .12s;}
@@ -770,6 +787,11 @@
         <div class="row" style="justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;font-weight:700;font-size:14px;color:#fff">Start today's check-in
           <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       </button>
+      <!-- v2: the four latest ratings and the journey strip, mirroring the
+           prototype's home. Populated from the most recent check-in, or hidden
+           entirely if there isn't one — an empty row of dashes reads as broken. -->
+      <div id="homeStats" class="statrow" style="display:none"></div>
+      <div id="homeJourney" class="journey" style="display:none"></div>
       <div class="quick" style="margin-top:12px">
         <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
         <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
@@ -1222,6 +1244,47 @@
       </div>
     </section>
 
+    <!-- PATIENT: DAILY CARE (v2) — the detailed record, kept apart from the
+         60-second check-in on purpose. See migration 0018 for why. -->
+    <section class="view" data-view="dailycare">
+      <div class="kic">Daily care</div>
+      <div class="h">Today&rsquo;s detail</div>
+      <p class="ssub" style="margin:-6px 0 14px">The check-in is the quick one. This is for the days
+        when there&rsquo;s more to say, or when your nurse has asked you to keep track.</p>
+      <div class="card">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <label class="fl" style="margin:0">Output today <input class="input numin" id="clOutput" type="number" min="0" max="10000" inputmode="numeric" placeholder="ml"></label>
+          <label class="fl" style="margin:0">Fluids drunk <input class="input numin" id="clHydration" type="number" min="0" max="20000" inputmode="numeric" placeholder="ml"></label>
+          <label class="fl" style="margin:0">Pouch changes <input class="input numin" id="clPouch" type="number" min="0" max="20" inputmode="numeric" placeholder="0"></label>
+        </div>
+        <div id="clChips"></div>
+        <label class="fl" style="display:block;margin:12px 0 5px">Anything you ate that didn&rsquo;t agree</label>
+        <input class="input" id="clFood" maxlength="200" placeholder="Optional">
+        <label class="fl" style="display:block;margin:10px 0 5px">Anything else you noticed</label>
+        <input class="input" id="clSymptoms" maxlength="300" placeholder="Optional">
+        <button class="btn" id="clSave" style="margin-top:14px">Save today&rsquo;s detail</button>
+      </div>
+      <button class="chkPill" id="clHistPill" type="button" aria-expanded="false" aria-controls="clHistWrap" style="margin-top:16px"><span class="chkLbl">Recent days</span><span class="chev">&#9662;</span></button>
+      <div class="chkList collapsed" id="clHistWrap"><div id="clHist"></div></div>
+      <p class="ssub" style="text-align:center;margin-top:12px">Recorded for you and your care team. Not a diagnosis.</p>
+    </section>
+
+    <!-- PATIENT: CARE PLAN (v2) -->
+    <section class="view" data-view="careplan">
+      <div class="kic">Care plan</div>
+      <div class="h">What&rsquo;s coming up</div>
+      <p class="ssub" style="margin:-6px 0 14px">Things you or your nurse have set. Tick them off as you go.</p>
+      <div id="taskList"></div>
+      <button class="chkPill" id="taskAddPill" type="button" aria-expanded="false" aria-controls="taskAddWrap" style="margin-top:14px"><span class="chkLbl">Add something</span><span class="chev">&#9662;</span></button>
+      <div class="chkList collapsed" id="taskAddWrap">
+        <label class="fl" style="display:block;margin:10px 0 5px">What is it?</label>
+        <input class="input" id="taskTitle" maxlength="120" placeholder="e.g. Re-measure my stoma">
+        <label class="fl" style="display:block;margin:0 0 5px">When by?</label>
+        <input class="input" id="taskDue" type="date">
+        <button class="btn ghost" id="taskAddBtn" style="margin-top:10px">Add to my plan</button>
+      </div>
+    </section>
+
     <!-- NURSE: PATIENT DETAIL (scoring behind a caseload flag) -->
     <section class="view" data-view="ndetail">
       <button class="btn ghost" id="ndetailBack" style="width:auto;padding:9px 14px;margin-bottom:14px">← Caseload</button>
@@ -1236,6 +1299,8 @@
     <button class="tab" data-view="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5" stroke-linecap="round"/></svg>Profile</button>
     <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M12 6C10.5 5 7.5 4.5 4 5v13c3.5-.5 6.5 0 8 1 1.5-1 4.5-1.5 8-1V5c-3.5-.5-6.5 0-8 1z" stroke-linejoin="round"/><path d="M12 6v13" stroke-linecap="round"/></svg>Diary</button>
     <!-- Messages tab hidden per request 2026-07-14 (Messages view + logic retained) -->
+    <button class="tab" data-view="dailycare"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.7 12 20 12 20z" stroke-linejoin="round"/></svg>Daily care</button>
+    <button class="tab" data-view="careplan"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z" stroke-linejoin="round"/><path d="M9 9h6M9 13h6M9 17h3" stroke-linecap="round"/></svg>Care plan</button>
     <button class="tab" data-view="progress"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Progress</button>
       <div class="sb-help"><b>Need help?</b>Contact your care team</div><div class="sb-foot">Secure patient experience</div>
   </nav>
@@ -1445,6 +1510,8 @@ function showView(name){
   if(name==='capture'){ capEnter(); loadPhotoDiary(); } else { capStopCamera(); }
   if(name==='profile') loadProfile();
   if(name==='progress') loadProgress();
+  if(name==='dailycare') loadDailyCare();
+  if(name==='careplan') loadCarePlan();
   if(name==='supplies') loadSupplies();
   if(name==='support') renderSupport();
   if(name==='learn') loadLearn();
@@ -1656,6 +1723,7 @@ $('#submitCheckin').onclick = async () => {
   if(error){ toast('Error: '+error.message); return; }
   toast('Check-in updated ✓');
   $('#homeStatus').textContent = 'Check-in saved — thank you';
+  loadHomeStats();
   showView('history');
 };
 // note-for-nurse: collapsible box (feature not yet live)
@@ -2956,6 +3024,221 @@ async function loadProgress(){
   $('#streakText').textContent = `${logged} of last 28 days logged · shared with your care team`;
 }
 
+// ---------- home: latest ratings + journey strip (v2) ----------
+// Mirrors the prototype's home. Shown only when there is a check-in to show:
+// four dashes where the numbers should be reads as a broken app, not an empty one.
+async function loadHomeStats(){
+  const stats = $('#homeStats'), journey = $('#homeJourney');
+  if(!stats) return;
+  const { data, error } = await sb.from('check_ins')
+    .select('output,skin,comfort,mood,created_at').order('created_at',{ascending:false}).limit(1);
+  if(error || !data || !data.length){
+    stats.style.display = 'none'; journey.style.display = 'none';
+    if(error) console.warn('[home stats]', error.message);
+    return;
+  }
+  const r = data[0];
+  const tile = (label, v) => `<div class="stat"><div class="sl">${label}</div>
+    <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div></div>`;
+  stats.innerHTML = tile('Output',r.output) + tile('Skin',r.skin) + tile('Comfort',r.comfort) + tile('Mood',r.mood);
+  stats.style.display = '';
+
+  // The strip marks where you are, it does not claim progress through treatment.
+  // "Check-in" is complete once today's is in; the rest are simply where to go next.
+  const doneToday = new Date(r.created_at).toDateString() === new Date().toDateString();
+  const steps = [['Check-in',doneToday],['Diary',false],['Supplies',false],['Progress',false]];
+  journey.innerHTML = steps.map(([label,on],i) =>
+    `<div class="jst${on ? ' on' : ''}"><i>${on ? '✓' : '0'+(i+1)}</i>${label}</div>`).join('');
+  journey.style.display = '';
+}
+
+// ---------- daily care log (v2) ----------
+// Kept separate from the check-in on purpose: the check-in is the thing we ask
+// for every day and it has to stay a minute long, or it stops being done. This
+// is the fuller record for the days that need one. See migration 0018.
+const CL_CONSISTENCY = ['Liquid','Porridge','Thick','Formed'];
+const CL_SKIN        = ['Healthy','Pink','Red','Broken'];
+const CL_LEAK        = ['No','Yes'];
+// The one figure here that is measured rather than felt. Around 1500ml/day is
+// where dehydration becomes a real concern on an ileostomy, so it is shown back
+// as a plain note — never as advice, and never as a diagnosis.
+const HIGH_OUTPUT_ML = 1500;
+let cl = {};                     // the answers in progress
+let careLogsAvailable = true;
+
+function renderCareChips(){
+  const box = $('#clChips'); if(!box) return;
+  const set = (label,name,opts) =>
+    `<div class="subq">${subh(label)}${chipSetHtml('single',name,opts)}</div>`;
+  box.innerHTML =
+    set('Consistency','consistency',CL_CONSISTENCY) +
+    set('Skin today','skin_status',CL_SKIN) +
+    set('Any leak today?','leak',CL_LEAK) +
+    set('Pain, 0 (none) to 10 (worst)','pain',['0','1','2','3','4','5','6','7','8','9','10']);
+  box.querySelectorAll('[data-single]').forEach(chip => chip.onclick = () => {
+    const name = chip.dataset.single, val = chip.dataset.val;
+    // Tapping the chosen answer again clears it: a required-looking question
+    // with no way back is how people end up recording something untrue.
+    if(cl[name] === val) delete cl[name]; else cl[name] = val;
+    box.querySelectorAll(`[data-single="${name}"]`).forEach(c =>
+      c.classList.toggle('on', cl[name] === c.dataset.val));
+  });
+}
+
+function careLogRow(r){
+  const when = new Date(r.created_at).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  const bits = [];
+  if(r.output_ml    != null) bits.push(`${r.output_ml}ml out`);
+  if(r.hydration_ml != null) bits.push(`${r.hydration_ml}ml in`);
+  if(r.consistency)          bits.push(esc(r.consistency));
+  if(r.pain != null && r.pain > 0) bits.push(`pain ${r.pain}/10`);
+  if(r.pouch_changed) bits.push(`${r.pouch_changed} change${r.pouch_changed===1?'':'s'}`);
+  const flags = [];
+  if(r.leak) flags.push('<span class="ivflag warn">Leak</span>');
+  if(r.output_ml != null && r.output_ml >= HIGH_OUTPUT_ML) flags.push('<span class="ivflag warn">High output</span>');
+  if(r.skin_status === 'Broken') flags.push('<span class="ivflag bad">Broken skin</span>');
+  else if(r.skin_status === 'Red') flags.push('<span class="ivflag warn">Red skin</span>');
+  return `<div class="entry"><div class="top">
+      <span class="nm">${esc(bits.join(' · ') || 'Recorded')}</span>
+      <span class="when">${when}</span></div>
+    ${flags.length ? `<div class="ivflags">${flags.join('')}</div>` : ''}
+    ${r.food     ? `<div class="ssub" style="margin-top:5px">Food: ${esc(r.food)}</div>` : ''}
+    ${r.symptoms ? `<div class="ssub" style="margin-top:3px">${esc(r.symptoms)}</div>` : ''}
+  </div>`;
+}
+
+async function loadDailyCare(){
+  cl = {};
+  renderCareChips();
+  ['clOutput','clHydration','clPouch','clFood','clSymptoms'].forEach(id => { const e = $('#'+id); if(e) e.value=''; });
+  wireChkPill($('#clHistPill'), $('#clHistWrap'), {show:'Recent days', hide:'Recent days'});
+  $('#clSave').onclick = saveCareLog;
+  const { data, error } = await sb.from('care_logs')
+    .select('*').order('created_at',{ascending:false}).limit(14);
+  if(error){
+    careLogsAvailable = false;
+    console.warn('[care logs] unavailable — is migration 0018 applied?', error.message);
+    $('#clHist').innerHTML = '<div class="empty" style="padding:16px 8px">Not switched on yet.</div>';
+    return;
+  }
+  careLogsAvailable = true;
+  $('#clHist').innerHTML = data.length ? data.map(careLogRow).join('')
+    : '<div class="empty" style="padding:16px 8px">Nothing recorded yet.</div>';
+  wireChkPill($('#clHistPill'), $('#clHistWrap'),
+    {show:`Recent days${data.length ? ` (${data.length})` : ''}`, hide:'Recent days'});
+}
+
+async function saveCareLog(){
+  const num = id => { const v = $('#'+id).value.trim(); if(!v) return null;
+    const n = parseInt(v,10); return Number.isFinite(n) ? n : null; };
+  const row = {
+    output_ml: num('clOutput'), hydration_ml: num('clHydration'), pouch_changed: num('clPouch'),
+    consistency: cl.consistency || null,
+    skin_status: cl.skin_status || null,
+    // Same rule as the check-in: unanswered stays null, because "not asked"
+    // and "asked and no" are different facts.
+    leak: cl.leak ? cl.leak === 'Yes' : null,
+    pain: cl.pain != null ? parseInt(cl.pain,10) : null,
+    food: $('#clFood').value.trim() || null,
+    symptoms: $('#clSymptoms').value.trim() || null,
+  };
+  if(Object.values(row).every(v => v === null)){ toast('Add something first'); return; }
+  const u = (await sb.auth.getUser()).data.user;
+  if(!u){ toast('Please sign in'); return; }
+  $('#clSave').disabled = true;
+  const { error } = await sb.from('care_logs').insert({ ...row, user_id: u.id });
+  $('#clSave').disabled = false;
+  if(error){
+    console.error('[care logs] save failed', error.message);
+    toast('That didn’t save — please try again');
+    return;
+  }
+  // Reflected back, not interpreted. The app does not tell anyone what a number
+  // means; it tells them it is worth mentioning.
+  toast(row.output_ml >= HIGH_OUTPUT_ML
+    ? 'Saved. That’s a high output day — worth telling your nurse'
+    : 'Saved ✓');
+  loadDailyCare();
+}
+
+// ---------- care plan (v2) ----------
+let tasks = [];
+function taskRow(t){
+  const due  = t.due_date ? new Date(t.due_date + 'T00:00:00') : null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const overdue = due && !t.completed && due < today;
+  const soon = due ? due.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+  return `<div class="entry" data-task="${esc(t.id)}" style="align-items:flex-start">
+    <div class="top" style="width:100%">
+      <button class="tickbox${t.completed ? ' on' : ''}" aria-pressed="${t.completed}"
+        aria-label="${t.completed ? 'Mark not done' : 'Mark done'}: ${esc(t.title)}">${t.completed ? '✓' : ''}</button>
+      <span class="nm" style="${t.completed ? 'text-decoration:line-through;opacity:.55' : ''}">${esc(t.title)}</span>
+      ${due ? `<span class="when"${overdue ? ' style="color:var(--amber);font-weight:700"' : ''}>${overdue ? 'was ' : ''}${soon}</span>` : ''}
+    </div>
+    ${t.detail ? `<div class="ssub" style="margin-top:4px">${esc(t.detail)}</div>` : ''}
+  </div>`;
+}
+
+function renderTasks(){
+  const box = $('#taskList'); if(!box) return;
+  if(!tasks.length){
+    box.innerHTML = '<div class="empty" style="padding:18px 8px">Nothing on your plan. Add something, or your nurse can.</div>';
+    return;
+  }
+  // Outstanding first, soonest first; done ones fall to the bottom.
+  const sorted = [...tasks].sort((a,b) =>
+    (a.completed - b.completed) || String(a.due_date||'9999').localeCompare(String(b.due_date||'9999')));
+  box.innerHTML = sorted.map(taskRow).join('');
+  box.querySelectorAll('[data-task]').forEach(row =>
+    row.querySelector('.tickbox').onclick = () => toggleTask(row.dataset.task));
+}
+
+async function loadCarePlan(){
+  wireChkPill($('#taskAddPill'), $('#taskAddWrap'), {show:'Add something', hide:'Add something'});
+  $('#taskAddBtn').onclick = addTask;
+  const { data, error } = await sb.from('care_tasks')
+    .select('id,title,detail,due_date,completed').order('due_date',{ascending:true});
+  if(error){
+    console.warn('[care plan] unavailable — is migration 0018 applied?', error.message);
+    $('#taskList').innerHTML = '<div class="empty" style="padding:18px 8px">Not switched on yet.</div>';
+    return;
+  }
+  tasks = data || [];
+  renderTasks();
+}
+
+async function toggleTask(id){
+  const t = tasks.find(x => x.id === id); if(!t) return;
+  const was = t.completed;
+  t.completed = !was; renderTasks();                 // optimistic
+  const { error } = await sb.from('care_tasks').update({ completed: t.completed }).eq('id', id);
+  if(error){
+    t.completed = was; renderTasks();
+    console.error('[care plan] toggle failed', error.message);
+    toast('That didn’t save — please try again');
+  }
+}
+
+async function addTask(){
+  const title = $('#taskTitle').value.trim();
+  if(!title){ toast('What would you like to add?'); $('#taskTitle').focus(); return; }
+  const u = (await sb.auth.getUser()).data.user;
+  if(!u){ toast('Please sign in'); return; }
+  $('#taskAddBtn').disabled = true;
+  const { data, error } = await sb.from('care_tasks')
+    .insert({ user_id: u.id, title, due_date: $('#taskDue').value || null })
+    .select('id,title,detail,due_date,completed').single();
+  $('#taskAddBtn').disabled = false;
+  if(error){
+    console.error('[care plan] add failed', error.message);
+    toast('That didn’t save — please try again');
+    return;
+  }
+  tasks = [...tasks, data];
+  $('#taskTitle').value = ''; $('#taskDue').value = '';
+  renderTasks(); toast('Added to your plan');
+}
+
 // ---------- supplies / reorders (live) ----------
 let REORDER_ITEM = 'Drainable pouch · 60mm';
 let SUPPLIERS = ['Fittleworth','Coloplast Charter','SecuriCare','Amcare','Bullen','Respond','Salts Healthcare','Medilink','Other'];
@@ -4197,6 +4480,7 @@ async function boot(){
     $('#homeAvatar').textContent = (myName[0]||'?').toUpperCase();
     updateProfileSub();
     loadCommunities();
+    loadHomeStats();
     showView('home');
   }
 }
