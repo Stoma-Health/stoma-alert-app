@@ -67,18 +67,19 @@
   --t-h2:20px;                       /* small enough that fluid adds nothing */
   --t-h3:18px;
 
-  /* Lead is 17px flat and must stay BELOW h3. At these sizes the gaps are only a
-     point or two, so anything fluid here overtakes a heading at some width and
-     the hierarchy silently inverts. Fixed is correct once the scale is this
-     tight. */
-  --t-lead:17px;
+  /* Lead is flat, not fluid, and must stay BELOW h3. At these sizes the gaps are
+     only a point or two, so anything fluid here overtakes a heading at some
+     width and the hierarchy silently inverts. */
+  --t-lead:15.5px;
 
-  /* Body deliberately not reduced further: 16px is the floor I would defend for
-     prose read by people who are older, tired or worried. h3 sits only 2px above
-     it, which works because h3 is 700 weight, not because of size. */
-  --t-body:16px;
-  --t-small:13.5px;
-  --t-label:11px;
+  /* Reading text, reduced at Virginia's request 21 Aug 2026 after the 16px
+     version still read as too big on the page. 14.5px is the floor: it is the
+     smallest size that stays comfortable for prose read by people who are
+     older, tired or worried about a symptom. Do not go under it without a
+     deliberate decision. Small print and labels are set relative to it. */
+  --t-body:14.5px;
+  --t-small:12.5px;
+  --t-label:10.5px;
 
   /* Tracking is the signature of this style. Tight on big type, wide on small
      uppercase labels. Copy the colours and miss this and it reads as a copy.  */
