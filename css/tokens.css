@@ -62,16 +62,20 @@
      Minimums were set by hand rather than scaled, because a literal third off
      them would have put the lead BELOW body size and flattened the hierarchy on
      a phone. Sizes are a system, not a multiplier.                            */
-  --t-hero:clamp(32px,4.2vw,58px);   /* was 50/5.7/88 */
-  --t-h1:clamp(28px,3.4vw,46px);     /* was 42/5/70   */
-  --t-h2:clamp(21px,2.2vw,28px);     /* was 25/3/42   */
-  --t-h3:clamp(18px,1.7vw,23px);     /* was 24/2.8/40 */
-  --t-lead:clamp(17px,1.3vw,18.5px); /* was 17/1.4/21 — must stay above body */
+  --t-hero:clamp(32px,3.7vw,50px);   /* 50 max — Virginia, 21 Aug */
+  --t-h1:clamp(27px,3vw,40px);       /* 40 max */
+  --t-h2:20px;                       /* small enough that fluid adds nothing */
+  --t-h3:18px;
 
-  /* Body deliberately NOT cut by a third: 11px is not readable prose, and these
-     sites are read by people who are older, tired, or worried. 16px is the
-     floor I would defend. Say the word and it comes down, but that is a
-     legibility decision rather than a style one.                              */
+  /* Lead is 17px flat and must stay BELOW h3. At these sizes the gaps are only a
+     point or two, so anything fluid here overtakes a heading at some width and
+     the hierarchy silently inverts. Fixed is correct once the scale is this
+     tight. */
+  --t-lead:17px;
+
+  /* Body deliberately not reduced further: 16px is the floor I would defend for
+     prose read by people who are older, tired or worried. h3 sits only 2px above
+     it, which works because h3 is 700 weight, not because of size. */
   --t-body:16px;
   --t-small:13.5px;
   --t-label:11px;
@@ -80,6 +84,10 @@
      uppercase labels. Copy the colours and miss this and it reads as a copy.  */
   --track-hero:-.055em;
   --track-head:-.04em;
+  /* Now the scale is tight, h2/h3 need their own value. Negative tracking is a
+     large-type device: at 20px it stops looking confident and starts looking
+     cramped. */
+  --track-head-sm:-.012em;
   --track-label:.13em;
 
   /* ---- Space and shape --------------------------------------------------- */

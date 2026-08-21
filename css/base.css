@@ -27,9 +27,9 @@ img,svg,video{display:block;max-width:100%;height:auto}
 /* ---- Type ---------------------------------------------------------------- */
 h1,h2,h3,h4{font-weight:800;line-height:1.04;letter-spacing:var(--track-head);color:var(--ink)}
 .hero-title{font-size:var(--t-hero);letter-spacing:var(--track-hero);line-height:.98}
-h1{font-size:var(--t-h1)}
-h2{font-size:var(--t-h2);line-height:1.1}
-h3{font-size:var(--t-h3);font-weight:700}
+h1{font-size:var(--t-h1);line-height:1.1}
+h2{font-size:var(--t-h2);line-height:1.25;letter-spacing:var(--track-head-sm)}
+h3{font-size:var(--t-h3);font-weight:700;line-height:1.35;letter-spacing:var(--track-head-sm)}
 
 .lead{font-size:var(--t-lead);color:var(--muted);line-height:1.55;max-width:var(--measure)}
 .small{font-size:var(--t-small)}
