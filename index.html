@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
 <style>
   :root{
     /* Sage. Chosen 19 Aug 2026 over the original navy, which was cold enough
@@ -31,6 +32,47 @@
        that says "screen" rather than "paper", and pure near-black is harsh at
        body size. Both lift very slightly. */
     --paper:#fffefb; --ink:#26332e;
+  }
+
+
+  /* ---- Looks borrowed from the stomaalertapp.vercel.app prototype ----------
+     Virginia found a Next.js design prototype she prefers the look of. It has no
+     backend — its own banner says "Demo only, No real patient information" — so
+     it cannot replace this app, but it is a fair thing to copy a look from.
+
+     Extracted from its stylesheet: primary #2563eb, light-blue grounds #f7faff /
+     #f5f8fc / #e8f0ff, muted slate-blues #405a77 / #526b87 / #6b7f9c, borders
+     #dfe8f2 / #d4e0ee, DM Sans throughout, corners 9-18px.
+
+     Two trials, because there is a real decision buried here. The prototype is
+     BLUE and cool, and cool-and-clinical is exactly what we moved away from on
+     19 Aug when Virginia called this app sterile. So:
+
+       ?look=blue     the prototype's palette and type, faithfully
+       ?look=dmsans   the prototype's TYPE and card style on our sage palette
+
+     The second is the interesting one: most of what makes that prototype feel
+     better is DM Sans and its spacing, not the blue. */
+
+  body[data-look="blue"], body[data-look="dmsans"]{
+    --display:"DM Sans",sans-serif;
+    --ui:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  /* Its corners are tighter than ours and its cards sit on a hairline rather
+     than a shadow — closer to a document, further from a phone app. */
+  body[data-look="blue"] .card, body[data-look="dmsans"] .card{
+    border-radius:14px; box-shadow:none; border:1px solid var(--line);
+  }
+  body[data-look="blue"] .input, body[data-look="dmsans"] .input{ border-radius:10px; }
+  body[data-look="blue"] .btn, body[data-look="dmsans"] .btn{ border-radius:12px; }
+  body[data-look="blue"] .h, body[data-look="dmsans"] .h{ letter-spacing:-.015em; font-weight:700; }
+
+  body[data-look="blue"]{
+    --ink:#16233a; --slate:#405a77; --mist:#6b7f9c; --line:#dfe8f2;
+    --paper:#fff; --wash:#f7faff;
+    --teal:#2563eb; --teal-deep:#1d4ed8; --teal-soft:#e8f0ff;
+    --green:#0e9f6e; --green-soft:#e6f6f0; --amber:#b45309; --amber-soft:#fdf3e7;
+    --red:#dc2626; --red-soft:#fdeaea;
   }
 
   /* ---- Theme trials -------------------------------------------------------
@@ -3612,6 +3654,8 @@ function friendlyError(err, what){
   if(['warm','navy','dusk'].includes(t)) document.body.dataset.theme = t;
   const soft = q.get('soft');
   if(soft === '0') document.body.dataset.soft = '0';   // the original flat look
+  const look = q.get('look');
+  if(['blue','dmsans'].includes(look)) document.body.dataset.look = look;
 }
 
 // ---------- your data: export and erasure ----------
