@@ -993,7 +993,7 @@
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your supplier</div>
         <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
-        <select class="input" id="supplierPicker" style="margin-bottom:10px" aria-label="Choose your supplier"></select>
+        <div class="suppliers" id="supplierPicker" role="group" aria-label="Choose your supplier"></div>
         <a id="supplierOpen" class="sup-open attn" target="_blank" rel="noopener noreferrer" style="display:none">Open website ↗</a>
       </div>
       <div class="card">
@@ -3576,14 +3576,18 @@ function renderSuppliers(){
   // A drop-down rather than nine chips. The list only grows, and a wall of
   // supplier names was the loudest thing on a screen whose actual subject is
   // the cupboard below it.
-  const sel = $('#supplierPicker');
+  // Pills, not a select. Six of them fit, and on a phone the whole list is
+  // readable at a glance instead of one name and a chevron. Tried the drop-down
+  // on 24 Aug 2026 and it read worse on the device than it did in the file.
+  //
   // A supplier that has since left the list still appears while it is theirs.
   // Dropping it would show them someone else's supplier, or none, and the first
   // they would know is a delivery that never came.
   const opts = SUPPLIERS.includes(mySupplier) || !mySupplier ? SUPPLIERS : [...SUPPLIERS, mySupplier];
-  sel.innerHTML = `<option value="" ${mySupplier ? '' : 'selected'} disabled>Choose your supplier…</option>` +
-    opts.map(s => `<option value="${esc(s)}" ${s===mySupplier?'selected':''}>${esc(s)}</option>`).join('');
-  sel.onchange = () => { if(sel.value) chooseSupplier(sel.value); };
+  const box = $('#supplierPicker');
+  box.innerHTML = opts.map(s =>
+    `<button class="sup ${s===mySupplier?'on':''}" type="button" data-sup="${esc(s)}" aria-pressed="${s===mySupplier}">${esc(s)}</button>`).join('');
+  box.querySelectorAll('.sup').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
   $('#supplierLine').textContent = mySupplier || 'your chosen DAC supplier';
   const a = $('#supplierOpen'), url = SUPPLIER_URL[mySupplier];
   if(mySupplier && url){ a.href = url; a.textContent = SUPPLIER_CTA[mySupplier] || `Browse ${mySupplier} products ↗`; a.style.display = 'flex'; }
