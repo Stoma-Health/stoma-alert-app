@@ -717,6 +717,10 @@
       <div class="statuscard hero">
         <div class="hero-main">
           <span class="hpill"><i></i><span id="heroPill">Your check-in is ready</span></span>
+          <!-- Day count sits with the check-in, which is the thing it counts.
+               Down in the stats row it read as a statistic; up here it reads as
+               where you are. -->
+          <span class="hpill" id="heroDay" style="display:none;margin-left:6px"></span>
           <div class="big" id="homeStatus">Your care,<em>clearly together.</em></div>
           <div class="smt" id="homeSub">A 60-second check-in keeps you in the loop.</div>
           <div class="hero-cta">
@@ -740,7 +744,10 @@
           </div>
           <div class="hp-steps" id="heroSteps"></div>
           <button class="hp-now" id="heroNow" type="button"></button>
-          <div class="hp-stats" id="heroStats"></div>
+          <!-- The three-figure row came off 2026-08-24. "Latest average" turned
+               four ratings into one percentage that meant nothing on its own,
+               and "Next step" repeated the card directly above it. The day
+               count moved up beside the check-in. -->
         </div>
       </div>
 
@@ -3245,29 +3252,18 @@ async function loadHomeStats(){
     now.setAttribute('aria-label', 'Add a photo: open the camera');
   }
 
-  // Three facts, and only the ones we actually hold.
-  const cells = [];
-  if(last){
-    const vals = ['output','skin','comfort','mood'].map(k => last[k]).filter(v => v != null);
-    if(vals.length){
-      const pct = Math.round((vals.reduce((a,b) => a+b, 0) / (vals.length*5)) * 100);
-      const words = ['one','two','three','four'][vals.length-1];
-      cells.push(['Latest average', pct + '%', `From ${words} answer${vals.length===1?'':'s'}`]);
-    }
-  }
   // Day count comes off the recorded surgery date or it is not shown at all.
   // A day one that is really day 200 is worse than no day count.
   const sd = prof && prof.data && prof.data.stoma_date ? new Date(prof.data.stoma_date + 'T00:00:00') : null;
-  if(sd && !isNaN(sd)){
-    const t0 = new Date(today); t0.setHours(0,0,0,0);
-    const days = Math.floor((t0 - sd) / 86400000) + 1;
-    if(days >= 1) cells.push(['Your journey', 'Day ' + days, 'Since your stoma was created']);
+  const dayEl = $('#heroDay');
+  if(dayEl){
+    dayEl.style.display = 'none';
+    if(sd && !isNaN(sd)){
+      const t0 = new Date(today); t0.setHours(0,0,0,0);
+      const days = Math.floor((t0 - sd) / 86400000) + 1;
+      if(days >= 1){ dayEl.textContent = 'Day ' + days; dayEl.style.display = ''; }
+    }
   }
-  cells.push(['Next step', doneToday ? 'Add a photo' : 'Check in',
-              doneToday ? 'Whenever you want to' : 'About 60 seconds']);
-  const hs = $('#heroStats');
-  if(hs) hs.innerHTML = cells.map(([k,v,d]) =>
-    `<div class="hp-stat"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 
   loadCareDueBadge();
   loadCupboardLowBadge();
