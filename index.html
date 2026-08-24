@@ -3155,8 +3155,11 @@ async function loadHomeStats(){
     <span class="si"><svg viewBox="0 0 24 24" aria-hidden="true">${RATING_ICONS[label]}</svg></span>
     <div class="sb"><div class="sl">${label}</div><div class="sd">Latest rating</div></div>
     <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div></div>`;
-  stats.innerHTML = tile('Output',last.output) + tile('Skin',last.skin)
-                  + tile('Comfort',last.comfort) + tile('Mood',last.mood);
+  // Mood first, output last. How someone feels is the thing they recognise as
+  // theirs; output is the most clinical of the four and the least inviting to
+  // land on first.
+  stats.innerHTML = tile('Mood',last.mood) + tile('Comfort',last.comfort)
+                  + tile('Skin',last.skin) + tile('Output',last.output);
   stats.style.display = '';
 }
 
