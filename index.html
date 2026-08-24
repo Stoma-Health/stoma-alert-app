@@ -1003,7 +1003,13 @@
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your cupboard</div>
         <div class="ssub" style="margin-bottom:11px">List what you use and pick when you want reminding. You set the date; we do the remembering.</div>
-        <div id="cupboard"></div>
+        <!-- The "Time to order" banner sits OUTSIDE the fold. Collapsing the list
+             is about length, not about hiding what is due; a prompt you have to
+             open a drawer to see is not a prompt. -->
+        <div id="cupBanner"></div>
+        <div id="cupEmpty"></div>
+        <button class="chkPill" id="cupListPill" type="button" aria-expanded="false" aria-controls="cupListWrap" style="display:none"><span class="chkLbl">Your items</span><span class="chev">&#9662;</span></button>
+        <div class="chkList collapsed" id="cupListWrap"><div id="cupboard"></div></div>
         <button class="chkPill" id="cupAddPill" type="button" aria-expanded="false" aria-controls="cupAddWrap" style="margin-top:12px"><span class="chkLbl">Add an item</span><span class="chev">&#9662;</span></button>
         <div class="chkList collapsed" id="cupAddWrap">
           <label class="fl" style="display:block;margin:10px 0 5px">What is it?</label>
@@ -3649,6 +3655,9 @@ async function loadSupplies(){
 // to the app. The counts are patient-maintained, so this is a reminder and must
 // never be presented to a nurse as verified stock.
 let cupboard = [];               // [{id,name,remind_on,updated_at}]
+// Changing a date re-renders the whole list. Without this the drawer you were
+// working in would slam shut under you on every edit.
+let cupListOpen = false, cupPillApi = null;
 let cupboardAvailable = true;    // false until migration 0017 is applied
 
 // A row is now a name and a date, not a running count. See migration 0020 for
@@ -3683,14 +3692,18 @@ function cupRow(it){
 
 function renderCupboard(){
   const box = $('#cupboard'); if(!box) return;
-  if(!cupboardAvailable){
-    box.innerHTML = '<div class="empty" style="padding:16px 8px">Your cupboard isn\u2019t switched on yet.</div>';
-    return;
-  }
-  if(!cupboard.length){
-    box.innerHTML = '<div class="empty" style="padding:16px 8px">Nothing in your cupboard yet. Add what you use and pick a date to be reminded.</div>';
-    return;
-  }
+  const pill = $('#cupListPill'), empty = $('#cupEmpty'), bannerBox = $('#cupBanner');
+  // Nothing to fold: say so in the open, and keep the toggle out of the way.
+  const bare = msg => {
+    box.innerHTML = ''; bannerBox.innerHTML = '';
+    empty.innerHTML = `<div class="empty" style="padding:16px 8px">${msg}</div>`;
+    pill.style.display = 'none';
+    $('#cupListWrap').classList.add('collapsed');
+  };
+  if(!cupboardAvailable) return bare('Your cupboard isn\u2019t switched on yet.');
+  if(!cupboard.length)   return bare('Nothing in your cupboard yet. Add what you use and pick a date to be reminded.');
+  empty.innerHTML = '';
+  pill.style.display = '';
   // The app does NOT place orders. Ordering happens on the supplier's own site,
   // so the most this can honestly do is tell you what you need and take you
   // there with the list to hand. Anything that looks like an order button would
@@ -3713,7 +3726,20 @@ function renderCupboard(){
          </div>
        </div>`
     : '';
-  box.innerHTML = banner + cupboard.map(cupRow).join('');
+  bannerBox.innerHTML = banner;
+  box.innerHTML = cupboard.map(cupRow).join('');
+  // Re-wired every render because innerHTML above throws the old handlers away.
+  // The label carries the count so the pill is useful while shut, and how many
+  // are due, because that is the reason to open it.
+  const dueTxt = low.length ? ` \u00b7 ${low.length} due` : '';
+  cupPillApi = wireChkPill(pill, $('#cupListWrap'),
+    { show:`Your items (${cupboard.length})${dueTxt}`, hide:'Hide items' });
+  // Wrap the handler wireChkPill just assigned rather than adding a second
+  // listener: this runs on every render, and addEventListener would stack up a
+  // fresh copy each time on a node that is never replaced.
+  const toggle = pill.onclick;
+  pill.onclick = () => { toggle(); cupListOpen = !$('#cupListWrap').classList.contains('collapsed'); };
+  if(cupListOpen) cupPillApi.open();
   // Copying the list matters because the supplier's site has no idea what you
   // are short of: the list is the thing you actually carry across.
   const copyBtn = $('#cupCopy');
