@@ -3592,6 +3592,11 @@ function renderSuppliers(){
 async function chooseSupplier(name){
   mySupplier = name;
   renderSuppliers();                                   // optimistic
+  // The cupboard's "Time to order" banner names the supplier too, and it is
+  // built at render time from mySupplier. Without this it kept offering the
+  // previous one — the screen showed Coloplast at the top and "Order from
+  // Fittleworth" a few centimetres below it.
+  renderCupboard();
   const { error } = await sb.auth.updateUser({ data:{ supplier:name } });
   if(error){ toast('Error: '+error.message); return; }
   toast('Supplier set: ' + name);
