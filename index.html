@@ -548,8 +548,6 @@
   .sup-open:active{transform:scale(.99);}
   @keyframes supPulse{0%,100%{box-shadow:0 0 0 0 rgba(10,138,143,0);} 50%{box-shadow:0 0 0 6px rgba(10,138,143,.16);}}
   .sup-open.attn{animation:supPulse 1.5s ease-in-out 2;}
-  .sup-advice{display:none;margin-top:9px;text-align:center;font-size:12.5px;font-weight:600;color:var(--green);text-decoration:none;}
-  .sup-advice:active{opacity:.7;}
 
   /* outcome tracking */
   .chart{height:120px;position:relative;margin:8px 0 4px;}
@@ -997,7 +995,6 @@
         <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
         <select class="input" id="supplierPicker" style="margin-bottom:10px" aria-label="Choose your supplier"></select>
         <a id="supplierOpen" class="sup-open attn" target="_blank" rel="noopener noreferrer" style="display:none">Open website ↗</a>
-        <a id="supplierAdvice" class="sup-advice" target="_blank" rel="noopener noreferrer">Advice &amp; support ↗</a>
       </div>
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your cupboard</div>
@@ -1039,11 +1036,8 @@
         <span class="copy"><span class="t">Quick help</span><span class="d">Instant answers to common product questions</span></span>
         <span class="chev">›</span>
       </button>
-      <button class="opt" id="optSupplier">
-        <span class="ic" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" stroke="#c98a17"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/><path d="M4 7l8 4 8-4" stroke-linejoin="round"/></svg></span>
-        <span class="copy"><span class="t" id="optSupplierName">Contact your supplier</span><span class="d">Stock, fitting, returns &amp; product advice</span></span>
-        <span class="chev">›</span>
-      </button>
+      <!-- Contacting the supplier lives on Supplies, one screen back, where you
+           choose them. Advice lives here. Each route appears once. -->
       <a class="opt" id="optSupplierAdvice" target="_blank" rel="noopener noreferrer" style="display:none;text-decoration:none">
         <span class="ic" style="background:var(--wash)"><svg viewBox="0 0 24 24" stroke="var(--slate)"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5" stroke-linecap="round"/><path d="M12 8h.01" stroke-linecap="round"/></svg></span>
         <span class="copy"><span class="t" id="optSupplierAdviceName">Advice &amp; support</span><span class="d">Guides and help from your supplier</span></span>
@@ -3583,9 +3577,6 @@ function renderSuppliers(){
   const a = $('#supplierOpen'), url = SUPPLIER_URL[mySupplier];
   if(mySupplier && url){ a.href = url; a.textContent = SUPPLIER_CTA[mySupplier] || `Browse ${mySupplier} products ↗`; a.style.display = 'flex'; }
   else { a.style.display = 'none'; a.removeAttribute('href'); }
-  const av = $('#supplierAdvice'), adv = SUPPLIER_ADVICE[mySupplier];
-  if(mySupplier && adv){ av.href = adv; av.textContent = `${mySupplier} advice & support ↗`; av.style.display = 'block'; }
-  else { av.style.display = 'none'; av.removeAttribute('href'); }
 }
 async function chooseSupplier(name){
   mySupplier = name;
@@ -3841,7 +3832,6 @@ function showFaq(key){
 function renderSupport(){
   $('#supportAI').style.display = 'none';
   $('#faqAnswer').style.display = 'none';
-  $('#optSupplierName').textContent = mySupplier ? `Contact ${mySupplier}` : 'Contact your supplier';
   // The same advice link the Supplies screen offers. It belongs here too: this
   // is the screen someone reaches when they already have a problem, and
   // "contact them" and "read what they have written about it" are different
@@ -3856,7 +3846,6 @@ function renderSupport(){
 }
 $('#supportBack').onclick = () => showView('supplies');
 $('#optAI').onclick = () => { $('#supportAI').style.display = 'block'; renderFaqChips(); $('#supportAI').scrollIntoView({ behavior:'smooth', block:'nearest' }); };
-$('#optSupplier').onclick = openSupplierSite;
 $('#optNurse').onclick = () => { if(!NURSE_MESSAGING_ENABLED){ toast('Messaging your nurse is coming soon'); return; } showView('messages'); };
 if(!NURSE_MESSAGING_ENABLED) $('#optNurse').classList.add('locked');
 
