@@ -1695,6 +1695,23 @@ wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurs
 // everywhere: both entry points and the route guard read this one flag.
 const NURSE_MESSAGING_ENABLED = false;
 
+// Sharing with a nurse is built end to end — the policy on diary_photos and the
+// nurse's photo-diary screen both work — but there are no stoma nurses onboarded
+// for the soft launch, so nothing is reaching anyone. The wording says so.
+//
+// This is a claim about the world, not about the code: the moment a nurse
+// account exists, "coming soon" stops being true and this must be flipped in
+// the same breath as onboarding them. It is one line, and it is the only line.
+const NURSE_SHARING_ENABLED = false;
+function applyNurseSharingCopy(){
+  const b = $('#capSave'); if(!b) return;
+  const tick = b.querySelector('svg')?.outerHTML || '';
+  b.innerHTML = NURSE_SHARING_ENABLED
+    ? `Save to diary &amp; share with nurse ${tick}`
+    : `Save to diary <span class="pill soon">Sharing with nurse coming soon</span> ${tick}`;
+}
+applyNurseSharingCopy();
+
 // ---------- community directory ----------
 // Groups live in Supabase (community_groups), not in this file, so an admin can add
 // one from the table editor without a redeploy. Memberships are SELF-DECLARED:

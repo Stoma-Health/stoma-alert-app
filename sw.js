@@ -1,5 +1,5 @@
 // Stoma Alert — prototype service worker (network-first so updates show immediately)
-const CACHE = 'stoma-alert-app-v136';
+const CACHE = 'stoma-alert-app-v137';
 const SHELL = ['./','./index.html','./zip.js','./chart-worker.js','./manifest.webmanifest','./icons/icon-192.png','./icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
