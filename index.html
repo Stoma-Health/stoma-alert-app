@@ -705,7 +705,7 @@
           <div class="hero-cta">
             <button class="btn hbtn" id="startCheckin">Start today's check-in
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <button class="hlink" data-go="progress">See your progress &rarr;</button>
+            <button class="hlink" data-go="careplan">Open my care plan &rarr;</button>
           </div>
           <!-- Said plainly rather than buried in the privacy notice. All three are
                true of this app today; if one stops being true it comes off. -->
@@ -848,6 +848,19 @@
       <div class="cal chkList collapsed" id="diaryCal"></div>
       <button class="chkPill" id="diaryHistPill" type="button" aria-expanded="false" aria-controls="historyWrap" style="margin-top:2px"><span class="chkLbl">Previous check-ins</span><span class="chev">▾</span></button>
       <div class="chkList collapsed" id="historyWrap"><div id="historyList"></div></div>
+
+      <!-- A private note. Deliberately below the check-ins: it is the thing you
+           reach for when the four ratings did not cover it, not instead of them. -->
+      <button class="chkPill" id="noteAddPill" type="button" aria-expanded="false" aria-controls="noteAddWrap" style="margin-top:2px"><span class="chkLbl">Add a private note</span><span class="chev">&#9662;</span></button>
+      <div class="chkList collapsed" id="noteAddWrap">
+        <p class="ssub" style="margin:10px 0 8px">Capture a meal, symptom, question or moment you want to remember. Only you can see these.</p>
+        <label class="fl" style="display:block;margin:0 0 5px">Title</label>
+        <input class="input" id="noteTitle" maxlength="120" placeholder="A short heading">
+        <label class="fl" style="display:block;margin:0 0 5px">Note</label>
+        <textarea class="input" id="noteBody" rows="4" maxlength="4000" placeholder="Write your note&hellip;" style="resize:vertical"></textarea>
+        <button class="btn ghost" id="noteAddBtn" style="margin-top:10px">Save note</button>
+      </div>
+      <div id="noteList" style="margin-top:12px"></div>
     </section>
 
     <!-- PATIENT: CAPTURE (live — photo diary) -->
@@ -1447,7 +1460,7 @@ function showView(name){
   $('#views').scrollTop = 0;
   // camera mode: drop the fixed chrome so the viewfinder + shutter fit one screen
   document.querySelector('.app').classList.toggle('cam-mode', name==='capture');
-  if(name==='history') loadHistory();
+  if(name==='history'){ loadHistory(); loadDiaryNotes(); }
   if(name==='checkin') renderInterview();
   if(name==='capture'){ capEnter(); loadPhotoDiary(); } else { capStopCamera(); }
   if(name==='profile') loadProfile();
@@ -3248,6 +3261,83 @@ async function loadCarePlan(){
   }
   tasks = data || [];
   renderTasks();
+}
+
+// ---------- diary: private notes ----------
+// Owned by the patient outright: no nurse policy on diary_notes, because the
+// button says private. See migration 0019.
+let notes = [];
+
+function renderNotes(){
+  const box = $('#noteList'); if(!box) return;
+  if(!notes.length){
+    box.innerHTML = '<div class="empty" style="padding:14px 8px">No notes yet.</div>';
+    return;
+  }
+  box.innerHTML = notes.map(n => {
+    const when = new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const head = n.title ? `<div class="t" style="font-weight:700">${esc(n.title)}</div>` : '';
+    return `<div class="card" data-note="${n.id}" style="margin-bottom:8px">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:0;flex:1">
+          ${head}
+          <div class="d" style="white-space:pre-wrap">${esc(n.body)}</div>
+          <div class="ssub" style="margin-top:6px">${when}</div>
+        </div>
+        <button class="noteDel" type="button" aria-label="Delete this note" style="flex:0 0 auto;background:none;border:0;cursor:pointer;font:inherit;color:var(--mist);padding:2px 4px">&times;</button>
+      </div>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-note]').forEach(row =>
+    row.querySelector('.noteDel').onclick = () => deleteNote(row.dataset.note));
+}
+
+async function loadDiaryNotes(){
+  wireChkPill($('#noteAddPill'), $('#noteAddWrap'), {show:'Add a private note', hide:'Add a private note'});
+  $('#noteAddBtn').onclick = addNote;
+  const { data, error } = await sb.from('diary_notes')
+    .select('id,title,body,created_at').order('created_at',{ascending:false});
+  if(error){
+    console.warn('[notes] unavailable — is migration 0019 applied?', error.message);
+    $('#noteList').innerHTML = '<div class="empty" style="padding:14px 8px">Not switched on yet.</div>';
+    return;
+  }
+  notes = data || [];
+  renderNotes();
+}
+
+async function addNote(){
+  const body = $('#noteBody').value.trim();
+  // The title is optional; the note is the point. Refusing to save because a
+  // heading is missing would lose what someone actually came to write down.
+  if(!body){ toast('What would you like to remember?'); $('#noteBody').focus(); return; }
+  const u = (await sb.auth.getUser()).data.user;
+  if(!u){ toast('Please sign in'); return; }
+  $('#noteAddBtn').disabled = true;
+  const { data, error } = await sb.from('diary_notes')
+    .insert({ user_id: u.id, title: $('#noteTitle').value.trim() || null, body })
+    .select('id,title,body,created_at').single();
+  $('#noteAddBtn').disabled = false;
+  if(error){
+    console.error('[notes] save failed', error.message);
+    toast('That didn’t save — please try again');
+    return;
+  }
+  notes = [data, ...notes];
+  $('#noteTitle').value = ''; $('#noteBody').value = '';
+  renderNotes(); toast('Note saved');
+}
+
+async function deleteNote(id){
+  const i = notes.findIndex(n => n.id === id); if(i < 0) return;
+  const gone = notes[i];
+  notes = notes.filter(n => n.id !== id); renderNotes();   // optimistic
+  const { error } = await sb.from('diary_notes').delete().eq('id', id);
+  if(error){
+    notes.splice(i, 0, gone); renderNotes();
+    console.error('[notes] delete failed', error.message);
+    toast('That didn’t delete — please try again');
+  }
 }
 
 async function toggleTask(id){
