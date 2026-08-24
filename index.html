@@ -1341,9 +1341,12 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = s => document.querySelector(s);
 
 // ---------- self-interview schema ("How are things today?") ----------
+// Mood first, to match the home tiles and the diary chips. The four ratings
+// should read the same way wherever you meet them; they were in three different
+// orders across the app until 24 Aug 2026.
 const IV_SCALES = [
-  { key:'comfort', label:'Comfort',            hint:'1 poor · 5 great' },
   { key:'mood',    label:'Mood & Confidence',  hint:'1 low · 5 confident' },
+  { key:'comfort', label:'Comfort',            hint:'1 poor · 5 great' },
 ];
 const IV_FEEL    = ['Normal','Fever','Weakness','Abdominal pain','Nausea','Vomiting','Other'];
 const IV_ABDOMEN = ['Normal','Sunken','Flat','Slightly protruding','Clearly protruding'];
@@ -2708,7 +2711,7 @@ function rowHtml(r, withName){
     <div class="top"><span class="flagdot ${c}"></span>
       ${withName?`<span class="nm">${esc(r.patient_name||r.patient_email||'Patient')}</span>`:`<span class="nm">Check-in</span>`}
       <span class="when">${when}</span></div>
-    <div class="chips">${chip('Comfort',r.comfort)}${chip('Mood',r.mood)}${chip('Skin',r.skin)}${chip('Output',r.output)}</div>
+    <div class="chips">${chip('Mood',r.mood)}${chip('Comfort',r.comfort)}${chip('Skin',r.skin)}${chip('Output',r.output)}</div>
     ${flagsHtml(r.details)}
     ${r.note?`<div class="note">${esc(r.note)}</div>`:''}
   </div>`;
