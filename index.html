@@ -243,6 +243,10 @@
   .duepill{display:none;margin-left:7px;padding:2px 8px;border-radius:999px;font-size:11px;
     font-weight:800;letter-spacing:.02em;background:#fff;color:var(--amber);vertical-align:middle;}
   .duepill.on{display:inline-block;}
+  /* Same idea on a paper card rather than the sage hero. */
+  .lowpill{display:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;
+    font-weight:800;letter-spacing:.02em;background:var(--amber-soft);color:var(--amber);vertical-align:middle;}
+  .lowpill.on{display:inline-block;}
   .hlink{background:none;border:none;color:#fff;opacity:.88;font:inherit;font-weight:700;
     font-size:13px;cursor:pointer;padding:4px 0;}
   .hero-trust{display:flex;flex-wrap:wrap;gap:7px 15px;margin-top:18px;opacity:.6;position:relative;z-index:1;
@@ -759,7 +763,7 @@
       </button>
       <button class="card" data-go="supplies" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
         <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:var(--teal-deep)" stroke-width="1.9"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span>
-        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Supplies &amp; your cupboard</div><div class="ssub">What you have, and when to reorder</div></div>
+        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Supplies &amp; your cupboard<span class="lowpill" id="cupLow"></span></div><div class="ssub">What you have, and when to reorder</div></div>
         <span style="color:var(--mist);font-size:20px;font-weight:300">&rsaquo;</span>
       </button>
       <button class="card" data-go="learn" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
@@ -3168,6 +3172,7 @@ async function loadHomeStats(){
     `<div class="hp-stat"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 
   loadCareDueBadge();
+  loadCupboardLowBadge();
 
   // The four ratings, hidden entirely until there is a check-in behind them.
   if(!last){ stats.style.display = 'none'; return; }
@@ -3251,6 +3256,24 @@ async function loadCareDueBadge(){
     return;
   }
   if(count > 0){ el.textContent = count + ' due'; el.classList.add('on'); }
+}
+
+// Anything in the cupboard at or below its own reorder level. Read through the
+// supply_items_low view rather than re-deriving the rule here: "running low"
+// is defined once, in the database, and this is the second screen to ask.
+//
+// Hidden on error, like the care-plan badge. The point of a flag that only
+// appears when something is wrong is that its absence means nothing is.
+async function loadCupboardLowBadge(){
+  const el = $('#cupLow'); if(!el) return;
+  el.classList.remove('on');
+  const { count, error } = await sb.from('supply_items_low')
+    .select('id', { count:'exact', head:true });
+  if(error){
+    console.warn('[cupboard low] unavailable — is migration 0017 applied?', error.message);
+    return;
+  }
+  if(count > 0){ el.textContent = count === 1 ? '1 low' : count + ' low'; el.classList.add('on'); }
 }
 
 // ---------- daily care log ----------
