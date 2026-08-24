@@ -3537,7 +3537,11 @@ async function addTask(){
 
 // ---------- supplies / reorders (live) ----------
 let REORDER_ITEM = 'Drainable pouch · 60mm';
-let SUPPLIERS = ['Fittleworth','Coloplast Charter','SecuriCare','Amcare','Bullen','Respond','Salts Healthcare','Medilink','Other'];
+// Amcare and SecuriCare came off the list on 24 Aug 2026: they are not product
+// suppliers. Their entries stay in the maps below on purpose — anyone who
+// already chose one keeps a working link, and the select adds their choice back
+// for them rather than quietly resetting it.
+let SUPPLIERS = ['Fittleworth','Coloplast Charter','Bullen','Respond','Salts Healthcare','Medilink','Other'];
 const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering page
   'Fittleworth':'https://www.fittleworth.com/order-online/',
   'Coloplast Charter':'https://www.coloplastcharter.co.uk/products-and-samples/',
@@ -3570,8 +3574,12 @@ function renderSuppliers(){
   // supplier names was the loudest thing on a screen whose actual subject is
   // the cupboard below it.
   const sel = $('#supplierPicker');
+  // A supplier that has since left the list still appears while it is theirs.
+  // Dropping it would show them someone else's supplier, or none, and the first
+  // they would know is a delivery that never came.
+  const opts = SUPPLIERS.includes(mySupplier) || !mySupplier ? SUPPLIERS : [...SUPPLIERS, mySupplier];
   sel.innerHTML = `<option value="" ${mySupplier ? '' : 'selected'} disabled>Choose your supplier…</option>` +
-    SUPPLIERS.map(s => `<option value="${esc(s)}" ${s===mySupplier?'selected':''}>${esc(s)}</option>`).join('');
+    opts.map(s => `<option value="${esc(s)}" ${s===mySupplier?'selected':''}>${esc(s)}</option>`).join('');
   sel.onchange = () => { if(sel.value) chooseSupplier(sel.value); };
   $('#supplierLine').textContent = mySupplier || 'your chosen DAC supplier';
   const a = $('#supplierOpen'), url = SUPPLIER_URL[mySupplier];
