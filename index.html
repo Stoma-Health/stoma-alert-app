@@ -1016,8 +1016,13 @@
           <button class="btn ghost" id="cupAddBtn" style="margin-top:10px">Add to cupboard</button>
         </div>
       </div>
-      <button class="btn" id="reorderBtn">Reorder now
-        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <!-- "Reorder now" removed 2026-08-24. It wrote a row to `reorders` and said
+           "Reorder placed ✓", but nothing reached the supplier: they are already
+           connected to the NHS prescription route and take the order there. The
+           patient orders with them directly. Saying otherwise risked someone
+           waiting on a delivery that was never requested.
+           The cupboard's "Time to order" banner is the honest version — it links
+           to the supplier and hands over the list. -->
       <div class="card" style="margin-top:12px">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Having a problem?</div>
         <div class="ssub" style="margin-bottom:11px">Leaks, sore skin or fitting — get product help.</div>
@@ -3824,25 +3829,9 @@ async function removeCupItem(id){
   toast('Removed from your cupboard');
 }
 
-$('#reorderBtn').onclick = async () => {
-  const u = (await sb.auth.getUser()).data.user;
-  if(!u){ toast('Please sign in'); return; }
-  $('#reorderBtn').disabled = true;
-  const base = {
-    user_id: u.id,
-    patient_name: u.user_metadata?.full_name || u.email,
-    patient_email: u.email,
-    item: REORDER_ITEM,
-    status: 'requested',
-  };
-  let { error } = await sb.from('reorders').insert({ ...base, supplier: mySupplier || null });
-  // migration 0009 (supplier column) not applied yet? fall back so reorders still work
-  if(error && /supplier/i.test(error.message)){ ({ error } = await sb.from('reorders').insert(base)); }
-  $('#reorderBtn').disabled = false;
-  if(error){ toast('Error: ' + error.message); return; }
-  toast(mySupplier ? `Reorder placed with ${mySupplier} ✓` : 'Reorder placed ✓');
-  loadSupplies();
-};
+// The reorder handler went with the button. Nothing in the app writes to
+// `reorders` any more; the table and the rows already in it are untouched, and
+// the admin view still reads them.
 
 // ---------- product support triage ----------
 let FAQ = {
