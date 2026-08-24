@@ -276,7 +276,8 @@
   .hp-stat{padding:12px 9px 2px;min-width:0;}
   .hp-stat + .hp-stat{border-left:1px solid rgba(255,255,255,.14);}
   .hp-stat .k{font-size:10px;font-weight:700;opacity:.6;}
-  .hp-stat .v{font-family:var(--display);font-size:15px;font-weight:700;margin-top:3px;line-height:1.18;}
+  .hp-stat .v{font-family:var(--display);font-size:14px;font-weight:700;margin-top:3px;line-height:1.2;
+    overflow-wrap:break-word;}
   .hp-stat .d{font-size:9.5px;opacity:.6;line-height:1.4;margin-top:3px;}
   /* No two-column variant on purpose. .app is capped at 480px, so a viewport
      media query would fire on a desktop window while the card itself stayed
@@ -725,11 +726,10 @@
       <!-- The four latest ratings. Hidden entirely until there is a check-in to
            show: four dashes reads as broken, not as new. -->
       <div id="homeStats" class="statrow" style="display:none"></div>
-      <div class="quick" style="margin-top:12px">
-        <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
-        <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
-        <!-- Message nurse quick-action hidden 2026-07-14; Learning & Education moved to Community below -->
-      </div>
+      <!-- The Capture image / Reorder quick-action pills were removed 2026-08-24
+           at Virginia's request. They were the ONLY route into the Capture and
+           Supplies views, so both are re-homed rather than orphaned: Capture is
+           reached from the Diary screen, Supplies from the card list below. -->
       <!-- Home profile card removed 2026-07-14 — Profile is reached via the bottom tab; Update pill lives on the Profile page -->
 
       <!-- Community — directory-driven; groups live in Supabase, not in this file -->
@@ -738,6 +738,11 @@
         <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:var(--teal-deep)" stroke-width="1.9"><circle cx="9" cy="8" r="3"/><path d="M2.5 19c0-3.1 2.9-4.8 6.5-4.8s6.5 1.7 6.5 4.8" stroke-linecap="round"/><circle cx="17.5" cy="7" r="2.4"/><path d="M16 13.4c3.1.2 5.5 1.8 5.5 4.6" stroke-linecap="round"/></svg></span>
         <div style="flex:1"><div style="font-weight:700;font-size:13.5px" id="browseCommunitiesTitle">Find your communities</div><div class="ssub" id="browseCommunitiesSub">Support groups and people who get it</div></div>
         <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
+      </button>
+      <button class="card" data-go="supplies" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
+        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:var(--teal-deep)" stroke-width="1.9"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span>
+        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Supplies &amp; your cupboard</div><div class="ssub">What you have, and when to reorder</div></div>
+        <span style="color:var(--mist);font-size:20px;font-weight:300">&rsaquo;</span>
       </button>
       <button class="card" data-go="learn" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
         <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--amber-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c98a17" stroke-width="1.9"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span>
@@ -829,6 +834,12 @@
     <section class="view" data-view="history">
       <div class="kic">Your diary</div>
       <div class="h">Past check-ins</div>
+      <!-- Capture lives here now. It was only ever reachable from the home
+           quick-actions, and this is where the photos end up, so it is the
+           screen a patient is already on when they want to add one. -->
+      <button class="btn" data-go="capture" style="margin:2px 0 14px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.9" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg>
+        Add a photo</button>
       <button class="chkPill" id="diaryPill" type="button" aria-expanded="false" aria-controls="diaryCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
       <div class="cal chkList collapsed" id="diaryCal"></div>
       <button class="chkPill" id="diaryHistPill" type="button" aria-expanded="false" aria-controls="historyWrap" style="margin-top:2px"><span class="chkLbl">Previous check-ins</span><span class="chev">▾</span></button>
