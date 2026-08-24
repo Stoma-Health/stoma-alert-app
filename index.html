@@ -316,6 +316,16 @@
   .stat .sd{font-size:11px;font-weight:700;color:var(--ink);margin-top:1px;}
   .stat .sv{font-family:var(--display);font-weight:800;font-size:18px;color:var(--teal);flex:0 0 auto;}
   .stat .sv em{font-style:normal;font-size:11px;font-weight:600;color:var(--mist);}
+  /* A tile that can be opened has to look like one. Without this the panel
+     existed and nobody had any reason to go looking for it. */
+  .stat .sc{flex:0 0 auto;margin-left:3px;color:var(--mist);font-size:13px;font-weight:300;line-height:1;
+    transition:transform .16s ease;}
+  /* "Latest rating" wrapped to two lines once the chevron took its width, which
+     made two tiles side by side different heights. */
+  .stat .sd{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .stat.open .sc{transform:rotate(90deg);}
+  .stat.open{border-color:var(--teal);}
+  .statshint{font-size:11.5px;color:var(--mist);margin-top:8px;text-align:center;}
   .tickbox{flex:0 0 auto;width:22px;height:22px;margin-right:9px;border-radius:7px;cursor:pointer;
     border:1.5px solid var(--line);background:var(--paper);color:#fff;font-size:13px;font-weight:800;
     display:flex;align-items:center;justify-content:center;font-family:var(--ui);}
@@ -755,6 +765,7 @@
            show: four dashes reads as broken, not as new. -->
       <div id="homeStats" class="statrow" style="display:none"></div>
       <div id="ratingWhy" class="why" aria-live="polite"></div>
+      <div class="statshint" id="statsHint">Tap a rating to see what it&rsquo;s based on</div>
       <!-- The Capture image / Reorder quick-action pills were removed 2026-08-24
            at Virginia's request. They were the ONLY route into the Capture and
            Supplies views, so both are re-homed rather than orphaned: Capture is
@@ -3269,11 +3280,13 @@ async function loadHomeStats(){
   loadCupboardLowBadge();
 
   // The four ratings, hidden entirely until there is a check-in behind them.
-  if(!last){ stats.style.display = 'none'; return; }
+  if(!last){ stats.style.display = 'none'; const h = $('#statsHint'); if(h) h.style.display = 'none'; return; }
+  { const h = $('#statsHint'); if(h) h.style.display = ''; }
   const tile = (label, v) => `<button class="stat" type="button" data-rating="${label}" aria-label="${label}: what this is based on">
     <span class="si"><svg viewBox="0 0 24 24" aria-hidden="true">${RATING_ICONS[label]}</svg></span>
     <div class="sb"><div class="sl">${label}</div><div class="sd">Latest rating</div></div>
-    <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div></button>`;
+    <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div>
+    <span class="sc" aria-hidden="true">&rsaquo;</span></button>`;
   // Mood first, output last. How someone feels is the thing they recognise as
   // theirs; output is the most clinical of the four and the least inviting to
   // land on first.
@@ -3284,13 +3297,24 @@ async function loadHomeStats(){
   if(why){
     why.classList.remove('on'); why.innerHTML = '';
     let openLabel = null;
+    const hint = $('#statsHint');
+    const paint = () => {
+      stats.querySelectorAll('[data-rating]').forEach(x => {
+        const on = x.dataset.rating === openLabel;
+        x.classList.toggle('open', on);
+        x.setAttribute('aria-expanded', on ? 'true' : 'false');
+      });
+      if(hint) hint.textContent = openLabel ? 'Tap it again to close' : 'Tap a rating to see what it\u2019s based on';
+    };
     stats.querySelectorAll('[data-rating]').forEach(b => b.onclick = () => {
       const label = b.dataset.rating;
-      if(openLabel === label){ openLabel = null; why.classList.remove('on'); return; }
+      if(openLabel === label){ openLabel = null; why.classList.remove('on'); paint(); return; }
       openLabel = label;
       why.innerHTML = explainRating(label, last);
       why.classList.add('on');
+      paint();
     });
+    paint();
   }
 }
 
