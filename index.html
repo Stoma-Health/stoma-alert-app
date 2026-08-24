@@ -1027,8 +1027,10 @@
         <button class="btn ghost" id="supportChatBtn">Product support chat</button>
         <div class="supplier"><span style="font-size:15px">🚚</span> Delivered by <b style="color:var(--ink)" id="supplierLine">&nbsp;your chosen DAC supplier</b></div>
       </div>
-      <button class="chkPill" id="reorderHistPill" type="button" aria-expanded="false" aria-controls="reorderWrap" style="margin-top:18px"><span class="chkLbl">Recent requests</span><span class="chev">▾</span></button>
-      <div class="chkList collapsed" id="reorderWrap"><div id="reorderList"></div></div>
+      <!-- "Recent requests" removed 2026-08-24, with the "Reorder now" button that
+           filled it. Nothing writes to `reorders` from the app any more, so the
+           list could only ever shrink into history — and the entries in it were
+           never orders anyone received. The rows and the admin view remain. -->
     </section>
 
     <!-- PATIENT: PRODUCT SUPPORT TRIAGE -->
@@ -3631,39 +3633,14 @@ async function chooseSupplier(name){
   if(error){ toast('Error: '+error.message); return; }
   toast('Supplier set: ' + name);
 }
-function reorderRow(r){
-  const when = new Date(r.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  const map = { requested:['t','Requested'], processing:['a','Processing'], shipped:['g','Shipped'], delivered:['g','Delivered'] };
-  const s = map[r.status] || ['t', r.status || 'Requested'];
-  return `<div class="entry"><div class="top">
-      <span class="flagdot ${s[0]==='t'?'a':s[0]}"></span>
-      <span class="nm">${esc(r.item||REORDER_ITEM)}</span>
-      <span class="when">${when}</span></div>
-    <span class="pill ${s[0]}">${s[1]}</span></div>`;
-}
 async function loadSupplies(){
   const { data:{ user } } = await sb.auth.getUser();
   mySupplier = user?.user_metadata?.supplier || null;
   renderSuppliers();
-  $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Loading…</div>';
-  // Wire the toggle BEFORE the query: on the error path we return early, and an
-  // unwired pill would trap the error message inside a section that won't open.
-  wireChkPill($('#reorderHistPill'), $('#reorderWrap'), {show:'Recent requests', hide:'Recent requests'});
   wireChkPill($('#cupAddPill'), $('#cupAddWrap'), {show:'Add an item', hide:'Add an item'});
   $('#cupAddBtn').onclick = addCupItem;
   $('#cupName').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); addCupItem(); } };
   await loadCupboard();
-  const { data, error } = await sb.from('reorders').select('*').order('created_at',{ascending:false}).limit(10);
-  if(error){
-    $('#reorderList').innerHTML = '<div class="empty" style="padding:22px 8px">Reorder history isn’t available right now.</div>';
-    return;
-  }
-  $('#reorderList').innerHTML = data.length ? data.map(reorderRow).join('')
-    : '<div class="empty" style="padding:22px 8px">No orders yet. Tap “Reorder now” when you’re running low.</div>';
-  // Collapsed by default: the reorder button is the point of this screen, the
-  // history is reference. Count in the label so it's useful while shut.
-  wireChkPill($('#reorderHistPill'), $('#reorderWrap'),
-    {show:`Recent requests${data.length ? ` (${data.length})` : ''}`, hide:'Recent requests'});
 }
 // ---------- the cupboard: what you have, and when to nudge ----------
 // Ported from the stomaalertapp prototype's inventory_items idea. A plain
