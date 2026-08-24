@@ -263,8 +263,12 @@
   .hp-step.on{opacity:1;}
   .hp-step.on i{background:var(--hero-accent);border-color:transparent;}
   .hp-step.on svg{stroke:var(--teal-deep);}
-  .hp-now{margin-top:13px;padding:12px;border-radius:12px;display:flex;gap:11px;align-items:flex-start;
+  .hp-now{margin-top:13px;padding:12px;border-radius:12px;display:flex;gap:11px;align-items:center;
+    width:100%;text-align:left;font:inherit;color:#fff;cursor:pointer;
     background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);}
+  .hp-now:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.24);}
+  .hp-now:active{transform:scale(.995);}
+  .hp-now .go{margin-left:auto;flex:0 0 auto;opacity:.7;font-size:19px;font-weight:300;line-height:1;}
   .hp-now .hic{display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex:0 0 auto;
     border-radius:11px;background:var(--hero-accent);}
   .hp-now .hic svg{width:19px;height:19px;stroke:var(--teal-deep);fill:none;stroke-width:1.9;}
@@ -718,7 +722,7 @@
             <span class="hp-state"><i></i><span id="heroState">Up to date</span></span>
           </div>
           <div class="hp-steps" id="heroSteps"></div>
-          <div class="hp-now" id="heroNow"></div>
+          <button class="hp-now" id="heroNow" type="button"></button>
           <div class="hp-stats" id="heroStats"></div>
         </div>
       </div>
@@ -3032,9 +3036,15 @@ async function loadHomeStats(){
 
   // The current step, with the record behind it stated plainly. "3 check-ins
   // saved" is a fact; "you're doing well" would be a judgement we cannot make.
+  // The step card is the button. Where it goes depends on what the step IS:
+  // "add to your diary" means open the camera, not the list of past check-ins.
+  // Sending someone to a screen that only shows what they have already done,
+  // when the card just asked them to add something, is a dead end.
   const now = $('#heroNow');
   if(now){
     const st = HOME_STEPS[currentIdx];
+    const dest = doneToday ? 'capture' : 'checkin';
+    now.onclick = () => showView(dest);
     const savedLine = total
       ? `${total} check-in${total === 1 ? '' : 's'} saved · last ${new Date(last.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`
       : 'Nothing saved yet. Your first check-in starts the record.';
@@ -3043,7 +3053,10 @@ async function loadHomeStats(){
         <div class="k">Step 0${currentIdx+1}</div>
         <div class="t">${doneToday ? 'Add to your diary' : 'Check-in'}</div>
         <div class="d">${savedLine}</div>
-      </div>`;
+      </div>
+      <span class="go" aria-hidden="true">&rsaquo;</span>`;
+    now.setAttribute('aria-label',
+      doneToday ? 'Add to your diary: open the camera' : 'Start your check-in');
   }
 
   // Three facts, and only the ones we actually hold.
