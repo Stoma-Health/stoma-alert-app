@@ -1002,17 +1002,15 @@
       </div>
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your cupboard</div>
-        <div class="ssub" style="margin-bottom:11px">Tell us what you have and when to nudge you. You keep the counts; we watch the level.</div>
+        <div class="ssub" style="margin-bottom:11px">List what you use and pick when you want reminding. You set the date; we do the remembering.</div>
         <div id="cupboard"></div>
         <button class="chkPill" id="cupAddPill" type="button" aria-expanded="false" aria-controls="cupAddWrap" style="margin-top:12px"><span class="chkLbl">Add an item</span><span class="chev">&#9662;</span></button>
         <div class="chkList collapsed" id="cupAddWrap">
           <label class="fl" style="display:block;margin:10px 0 5px">What is it?</label>
           <input class="input" id="cupName" placeholder="e.g. Drainable pouch 60mm" maxlength="80">
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <label class="fl" style="margin:0">How many now? <input class="input numin" id="cupQty" type="number" min="0" max="9999" inputmode="numeric" value="0"></label>
-            <label class="fl" style="margin:0">Nudge me at <input class="input numin" id="cupAt" type="number" min="0" max="9999" inputmode="numeric" value="5"></label>
-            <label class="fl" style="margin:0">Counted in <input class="input" id="cupUnit" style="width:96px" placeholder="box" maxlength="20"></label>
-          </div>
+          <label class="fl" style="display:block;margin:0 0 5px">Remind me to reorder on</label>
+          <input class="input" id="cupRemind" type="date">
+          <div class="ssub" style="margin:-4px 0 0">You can change the date any time. Leave it blank and the item is just listed.</div>
           <button class="btn ghost" id="cupAddBtn" style="margin-top:10px">Add to cupboard</button>
         </div>
       </div>
@@ -3673,35 +3671,34 @@ async function loadSupplies(){
 // is exactly what fails in the week they feel worst. A threshold moves that job
 // to the app. The counts are patient-maintained, so this is a reminder and must
 // never be presented to a nurse as verified stock.
-let cupboard = [];               // [{id,name,quantity,reorder_at,unit,updated_at}]
+let cupboard = [];               // [{id,name,remind_on,updated_at}]
 let cupboardAvailable = true;    // false until migration 0017 is applied
 
+// A row is now a name and a date, not a running count. See migration 0020 for
+// why: an inventory a patient has to maintain stops being true in exactly the
+// week it matters, and a date they chose does not.
 function cupRow(it){
-  const low  = it.quantity <= it.reorder_at;
-  const unit = it.unit || 'box';
-  const plural = n => n === 1 ? unit
-    : /(s|x|z|ch|sh)$/i.test(unit) ? unit + 'es'
-    : /[^aeiou]y$/i.test(unit)     ? unit.slice(0,-1) + 'ies'
-    : unit + 's';
-  // The bar is relative to twice the threshold, so "comfortable" is a full bar
-  // and reaching the threshold is always half. A percentage of nothing in
-  // particular would look precise while meaning nothing.
-  const span = Math.max(1, it.reorder_at * 2);
-  const pct  = Math.max(4, Math.min(100, Math.round((it.quantity / span) * 100)));
-  const ago  = it.updated_at ? new Date(it.updated_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = it.remind_on ? new Date(it.remind_on + 'T00:00:00') : null;
+  const overdue = due && due <= today;
+  const when = due ? due.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : null;
+  const line = !due ? 'No reminder set'
+    : overdue ? (due.getTime() === today.getTime() ? 'Reorder today' : 'Was due ' + when)
+    : 'Remind me on ' + when;
   return `<div class="cupitem" data-id="${esc(it.id)}" style="padding:11px 0;border-top:1px solid var(--line)">
     <div class="prod" style="margin:0">
       <span class="box"><svg viewBox="0 0 24 24"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/><path d="M4 7l8 4 8-4M12 11v10" stroke-linejoin="round"/></svg></span>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.name)}</div>
-        <div class="ssub">${it.quantity} ${esc(plural(it.quantity))} &middot; nudge at ${it.reorder_at}${ago ? ' &middot; updated ' + ago : ''}</div>
+        <div class="ssub">${esc(line)}</div>
       </div>
-      ${low ? '<span class="pill a">Low</span>' : ''}
+      ${overdue ? '<span class="pill a">Due</span>' : ''}
     </div>
-    <div class="stockbar${low ? '' : ' lvl-ok'}" style="margin-top:8px"><i style="width:${pct}%"></i></div>
-    <div style="display:flex;gap:7px;margin-top:9px;align-items:center">
-      <button class="btn ghost cupminus" style="width:auto;padding:5px 12px" aria-label="One fewer ${esc(it.name)}">&minus;</button>
-      <button class="btn ghost cupplus"  style="width:auto;padding:5px 12px" aria-label="One more ${esc(it.name)}">+</button>
+    <div style="display:flex;gap:7px;margin-top:9px;align-items:center;flex-wrap:wrap">
+      <label class="fl" style="margin:0;display:flex;align-items:center;gap:7px">
+        <span>Reminder</span>
+        <input class="input cupdate" type="date" value="${it.remind_on || ''}" style="width:auto;margin:0" aria-label="Reminder date for ${esc(it.name)}">
+      </label>
       <button class="btn ghost cupdel" style="width:auto;padding:5px 12px;margin-left:auto;opacity:.65" aria-label="Remove ${esc(it.name)} from your cupboard">Remove</button>
     </div>
   </div>`;
@@ -3714,14 +3711,18 @@ function renderCupboard(){
     return;
   }
   if(!cupboard.length){
-    box.innerHTML = '<div class="empty" style="padding:16px 8px">Nothing in your cupboard yet. Add what you keep at home and we\u2019ll tell you when it\u2019s time to reorder.</div>';
+    box.innerHTML = '<div class="empty" style="padding:16px 8px">Nothing in your cupboard yet. Add what you use and pick a date to be reminded.</div>';
     return;
   }
   // The app does NOT place orders. Ordering happens on the supplier's own site,
   // so the most this can honestly do is tell you what you need and take you
   // there with the list to hand. Anything that looks like an order button would
   // be promising something the app cannot do.
-  const low = cupboard.filter(i => i.quantity <= i.reorder_at);
+  // Due = a reminder the patient set that has arrived. Items with no reminder
+  // are listed but never nag: unset is not the same as overdue.
+  const todayK = (() => { const d = new Date(); d.setHours(0,0,0,0);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
+  const low = cupboard.filter(i => i.remind_on && i.remind_on <= todayK);
   const url = SUPPLIER_URL[mySupplier];
   const banner = low.length
     ? `<div style="margin:0 0 12px;padding:11px 12px;border-radius:10px;background:var(--amber-soft);color:var(--amber)">
@@ -3740,21 +3741,20 @@ function renderCupboard(){
   // are short of: the list is the thing you actually carry across.
   const copyBtn = $('#cupCopy');
   if(copyBtn) copyBtn.onclick = async () => {
-    const text = low.map(i => `${i.name} (have ${i.quantity} ${i.unit || 'box'})`).join('\n');
+    const text = low.map(i => i.name).join('\n');
     try { await navigator.clipboard.writeText(text); toast('List copied'); }
     catch { toast('Couldn\u2019t copy \u2014 long-press the list to select it'); }
   };
   box.querySelectorAll('.cupitem').forEach(row => {
     const id = row.dataset.id;
-    row.querySelector('.cupplus').onclick  = () => adjustCupItem(id, +1);
-    row.querySelector('.cupminus').onclick = () => adjustCupItem(id, -1);
+    row.querySelector('.cupdate').onchange = e => setCupReminder(id, e.target.value || null);
     row.querySelector('.cupdel').onclick   = () => removeCupItem(id);
   });
 }
 
 async function loadCupboard(){
   const { data, error } = await sb.from('supply_items')
-    .select('id,name,quantity,reorder_at,unit,updated_at').order('name');
+    .select('id,name,remind_on,updated_at').order('name');
   if(error){
     // migration 0017 not applied yet: say nothing alarming, log the real reason.
     cupboardAvailable = false;
@@ -3766,23 +3766,24 @@ async function loadCupboard(){
   renderCupboard();
 }
 
-// Optimistic, then reconciled. A tap on + that waits for a round trip feels
-// broken on a phone, but a tap that silently fails is worse, so the failure
-// path puts the old value back and says so.
-async function adjustCupItem(id, delta){
+// Optimistic, then reconciled. A date picker that waits for a round trip before
+// it looks changed feels broken on a phone, but a change that silently fails is
+// worse, so the failure path puts the old date back and says so.
+async function setCupReminder(id, when){
   const it = cupboard.find(x => x.id === id); if(!it) return;
-  const next = Math.max(0, it.quantity + delta);
-  if(next === it.quantity) return;
-  const was = it.quantity;
-  it.quantity = next; renderCupboard();
-  const { error } = await sb.from('supply_items').update({ quantity: next }).eq('id', id);
+  const was = it.remind_on || null;
+  if(was === when) return;
+  it.remind_on = when; renderCupboard();
+  const { error } = await sb.from('supply_items').update({ remind_on: when }).eq('id', id);
   if(error){
-    it.quantity = was; renderCupboard();
-    console.error('[cupboard] count not saved', error.message);
-    toast('That count didn\u2019t save \u2014 please try again');
+    it.remind_on = was; renderCupboard();
+    console.error('[cupboard] reminder not saved', error.message);
+    toast('That date didn\u2019t save \u2014 please try again');
     return;
   }
   it.updated_at = new Date().toISOString(); renderCupboard();
+  toast(when ? 'Reminder set' : 'Reminder cleared');
+  loadCupboardLowBadge();   // the home flag counts what is due; it just changed
 }
 
 async function addCupItem(){
@@ -3791,17 +3792,17 @@ async function addCupItem(){
   if(cupboard.some(i => i.name.toLowerCase() === name.toLowerCase())){
     toast('That\u2019s already in your cupboard'); return;
   }
-  const num = (sel, dflt) => { const n = parseInt($(sel).value, 10); return Number.isFinite(n) && n >= 0 ? n : dflt; };
   const u = (await sb.auth.getUser()).data.user;
   if(!u){ toast('Please sign in'); return; }
   const btn = $('#cupAddBtn'); btn.disabled = true;
+  // quantity and reorder_at still carry their defaults from 0017. They are not
+  // shown or read any more, but they are NOT NULL, so the insert must satisfy
+  // them rather than pretend the columns are gone.
   const { data, error } = await sb.from('supply_items').insert({
     user_id: u.id,
     name,
-    quantity:   num('#cupQty', 0),
-    reorder_at: num('#cupAt', 5),
-    unit: ($('#cupUnit').value.trim() || 'box'),
-  }).select('id,name,quantity,reorder_at,unit,updated_at').single();
+    remind_on: $('#cupRemind').value || null,
+  }).select('id,name,remind_on,updated_at').single();
   btn.disabled = false;
   if(error){
     console.error('[cupboard] add failed', error.message);
@@ -3809,8 +3810,9 @@ async function addCupItem(){
     return;
   }
   cupboard = [...cupboard, data].sort((a,b) => a.name.localeCompare(b.name));
-  $('#cupName').value = ''; $('#cupQty').value = '0'; $('#cupAt').value = '5'; $('#cupUnit').value = '';
+  $('#cupName').value = ''; $('#cupRemind').value = '';
   renderCupboard();
+  loadCupboardLowBadge();
   toast('Added to your cupboard');
   $('#cupName').focus();          // adding one usually means adding three
 }

@@ -33,36 +33,43 @@ select pg_temp.t('null leak is not counted as no-leak either', true,
 select pg_temp.t('the untouched historic row stayed null', true,
   (select count(*) from public.check_ins where leak is null)=1);
 
--- Alice's cupboard: one item comfortably stocked, one at its threshold, one under.
-insert into public.supply_items (user_id,name,quantity,reorder_at,unit) values
-  ('11111111-1111-1111-1111-111111111111','Drainable pouch 60mm',20,5,'box'),
-  ('11111111-1111-1111-1111-111111111111','Barrier rings',       5,5,'pack'),
-  ('11111111-1111-1111-1111-111111111111','Adhesive remover',    1,3,'spray');
-insert into public.supply_items (user_id,name,quantity,reorder_at) values
-  ('22222222-2222-2222-2222-222222222222','Mallory pouches',0,99);
+-- Alice's cupboard, on the 0020 model: a reminder in the future, one landing
+-- today, one already past, and one with no reminder at all.
+insert into public.supply_items (user_id,name,remind_on,unit) values
+  ('11111111-1111-1111-1111-111111111111','Drainable pouch 60mm', current_date + 30,'box'),
+  ('11111111-1111-1111-1111-111111111111','Barrier rings',        current_date,     'pack'),
+  ('11111111-1111-1111-1111-111111111111','Adhesive remover',     current_date - 4, 'spray'),
+  ('11111111-1111-1111-1111-111111111111','Disposal bags',        null,             'roll');
+insert into public.supply_items (user_id,name,remind_on) values
+  ('22222222-2222-2222-2222-222222222222','Mallory pouches', current_date - 1);
 
 set role authenticated;
 
 -- ---------------------------------------------------------------- the patient
 select public.act_as('11111111-1111-1111-1111-111111111111');
-select pg_temp.t('patient sees only her own 3 items', true,
-  (select count(*) from public.supply_items)=3);
-select pg_temp.t('at-threshold counts as low (<=, not <)', true,
+select pg_temp.t('patient sees only her own 4 items', true,
+  (select count(*) from public.supply_items)=4);
+select pg_temp.t('a reminder falling today is due (<=, not <)', true,
   (select count(*) from public.supply_items_low where name='Barrier rings')=1);
-select pg_temp.t('below threshold is low', true,
+select pg_temp.t('a reminder already past is due', true,
   (select count(*) from public.supply_items_low where name='Adhesive remover')=1);
-select pg_temp.t('well-stocked item is not low', true,
+select pg_temp.t('a reminder in the future is not due', true,
   (select count(*) from public.supply_items_low where name like 'Drainable%')=0);
-select pg_temp.t('short_by is the gap, not the quantity', true,
-  (select short_by from public.supply_items_low where name='Adhesive remover')=2);
-select pg_temp.t('low view does not leak other patients', true,
+-- The one that stops the home badge crying wolf: no reminder is not overdue.
+select pg_temp.t('an item with NO reminder is never due', true,
+  (select count(*) from public.supply_items_low where name='Disposal bags')=0);
+select pg_temp.t('days_overdue counts the days, not the date', true,
+  (select days_overdue from public.supply_items_low where name='Adhesive remover')=4);
+select pg_temp.t('a reminder landing today is 0 days overdue, not null', true,
+  (select days_overdue from public.supply_items_low where name='Barrier rings')=0);
+select pg_temp.t('due view does not leak other patients', true,
   (select count(*) from public.supply_items_low where name like 'Mallory%')=0);
 
 -- updated_at must move on its own, or a stale count looks freshly checked.
 do $$ declare before timestamptz; after timestamptz; begin
   select updated_at into before from public.supply_items where name='Barrier rings';
   perform pg_sleep(0.05);
-  update public.supply_items set quantity=4 where name='Barrier rings';
+  update public.supply_items set remind_on = current_date + 7 where name='Barrier rings';
   select updated_at into after from public.supply_items where name='Barrier rings';
   perform pg_temp.t('updated_at is bumped by the trigger', true, after > before);
 end $$;
@@ -87,7 +94,7 @@ end $$;
 -- --------------------------------------------------------------------- nurse
 select public.act_as('33333333-3333-3333-3333-333333333333');
 select pg_temp.t('nurse reads across patients', true,
-  (select count(*) from public.supply_items)=4);
+  (select count(*) from public.supply_items)=5);
 select pg_temp.t('nurse sees the leak', true,
   (select count(*) from public.check_ins where leak is true)=1);
 do $$ declare ok boolean := false; begin
