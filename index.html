@@ -218,19 +218,85 @@
   .q:last-child{margin-bottom:0;}
   .qh{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:9px;display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
   .qh .sub{font-weight:500;color:var(--mist);font-size:11px;}
-  .statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;}
-  .stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 11px;}
+  /* ---- home hero: the summary panel ----------------------------------------
+     One dark card carrying the greeting state, the single next action, and the
+     record so far. The accent is a light sage, not the reference's cyan: the
+     19 Aug move to warm sage was a decision, and borrowing a layout is not a
+     reason to quietly reopen it. --hero-accent is scoped to the card so it
+     cannot leak into the rest of the app. */
+  .hero{--hero-accent:#8fdcbe;padding:22px 20px;}
+  .hero::after{right:-56px;top:-56px;width:180px;height:180px;background:rgba(255,255,255,.06);}
+  .hero .big{font-family:var(--display);font-weight:700;font-size:clamp(28px,8vw,40px);
+    line-height:1.05;letter-spacing:-.03em;margin:14px 0 10px;}
+  .hero .big em{display:block;font-style:normal;color:var(--hero-accent);}
+  .hero .smt{max-width:36ch;line-height:1.6;position:relative;z-index:1;}
+  .hpill{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;
+    background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);position:relative;z-index:1;
+    font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;}
+  .hpill i{width:6px;height:6px;border-radius:50%;background:var(--hero-accent);flex:0 0 auto;}
+  .hero-cta{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-top:17px;position:relative;z-index:1;}
+  .hero .hbtn{width:auto;min-height:44px;padding:0 17px;background:#fff;color:var(--teal-deep);
+    border:none;font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;}
+  .hero .hbtn svg{width:17px;height:17px;stroke:var(--teal-deep);fill:none;stroke-width:2;}
+  .hlink{background:none;border:none;color:#fff;opacity:.88;font:inherit;font-weight:700;
+    font-size:13px;cursor:pointer;padding:4px 0;}
+  .hero-trust{display:flex;flex-wrap:wrap;gap:7px 15px;margin-top:18px;opacity:.6;position:relative;z-index:1;
+    font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;}
+  .hero-trust span{display:inline-flex;align-items:center;gap:5px;}
+  .hero-trust svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:1.8;}
+  .hero-panel{position:relative;z-index:1;margin-top:20px;padding:15px;border-radius:16px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);}
+  .hp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .hp-head b{display:block;font-size:13.5px;font-weight:800;}
+  .hp-head > div > span{font-size:11px;opacity:.6;}
+  .hp-state{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;
+    letter-spacing:.06em;opacity:.9;white-space:nowrap;}
+  .hp-state i{width:6px;height:6px;border-radius:50%;background:var(--hero-accent);flex:0 0 auto;}
+  .hp-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:15px;}
+  .hp-step{background:none;border:none;font:inherit;color:#fff;cursor:pointer;text-align:center;
+    padding:0;opacity:.48;}
+  .hp-step .n{font-size:9px;font-weight:800;letter-spacing:.1em;}
+  .hp-step i{display:flex;align-items:center;justify-content:center;width:36px;height:36px;
+    margin:5px auto;border-radius:11px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);}
+  .hp-step svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.8;}
+  .hp-step .l{font-size:10px;font-weight:700;}
+  .hp-step.on{opacity:1;}
+  .hp-step.on i{background:var(--hero-accent);border-color:transparent;}
+  .hp-step.on svg{stroke:var(--teal-deep);}
+  .hp-now{margin-top:13px;padding:12px;border-radius:12px;display:flex;gap:11px;align-items:center;
+    width:100%;text-align:left;font:inherit;color:#fff;cursor:pointer;
+    background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);}
+  .hp-now:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.24);}
+  .hp-now:active{transform:scale(.995);}
+  .hp-now .go{margin-left:auto;flex:0 0 auto;opacity:.7;font-size:19px;font-weight:300;line-height:1;}
+  .hp-now .hic{display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex:0 0 auto;
+    border-radius:11px;background:var(--hero-accent);}
+  .hp-now .hic svg{width:19px;height:19px;stroke:var(--teal-deep);fill:none;stroke-width:1.9;}
+  .hp-now .k{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--hero-accent);}
+  .hp-now .t{font-family:var(--display);font-size:15px;font-weight:700;margin-top:2px;}
+  .hp-now .d{font-size:11.5px;opacity:.72;margin-top:3px;line-height:1.45;}
+  .hp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));margin-top:13px;
+    border-top:1px solid rgba(255,255,255,.14);}
+  .hp-stat{padding:12px 9px 2px;min-width:0;}
+  .hp-stat + .hp-stat{border-left:1px solid rgba(255,255,255,.14);}
+  .hp-stat .k{font-size:10px;font-weight:700;opacity:.6;}
+  .hp-stat .v{font-family:var(--display);font-size:14px;font-weight:700;margin-top:3px;line-height:1.2;
+    overflow-wrap:break-word;}
+  .hp-stat .d{font-size:9.5px;opacity:.6;line-height:1.4;margin-top:3px;}
+  /* No two-column variant on purpose. .app is capped at 480px, so a viewport
+     media query would fire on a desktop window while the card itself stayed
+     phone-width, and the columns would collapse into each other. */
+  .statrow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px;}
+  .stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:11px;
+    display:flex;align-items:center;gap:9px;}
+  .stat .si{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 auto;
+    border-radius:9px;background:var(--teal-soft);}
+  .stat .si svg{width:16px;height:16px;stroke:var(--teal-deep);fill:none;stroke-width:1.8;}
+  .stat .sb{flex:1;min-width:0;}
   .stat .sl{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--mist);}
-  .stat .sv{font-family:var(--display);font-weight:800;font-size:20px;color:var(--ink);margin-top:5px;}
-  .stat .sv em{font-style:normal;font-size:12px;font-weight:600;color:var(--mist);}
-  .journey{display:flex;align-items:center;gap:0;margin-top:12px;}
-  .journey .jst{flex:1;text-align:center;font-size:10px;font-weight:700;color:var(--mist);position:relative;}
-  .journey .jst i{display:block;width:30px;height:30px;margin:0 auto 6px;border-radius:10px;
-    border:1px solid var(--line);background:var(--paper);line-height:28px;font-style:normal;
-    font-size:11px;font-weight:800;color:var(--mist);}
-  .journey .jst.on{color:var(--teal);}
-  .journey .jst.on i{background:var(--teal);border-color:var(--teal);color:#fff;}
-  @media (max-width:520px){ .statrow{grid-template-columns:repeat(2,1fr);} }
+  .stat .sd{font-size:11px;font-weight:700;color:var(--ink);margin-top:1px;}
+  .stat .sv{font-family:var(--display);font-weight:800;font-size:18px;color:var(--teal);flex:0 0 auto;}
+  .stat .sv em{font-style:normal;font-size:11px;font-weight:600;color:var(--mist);}
   .tickbox{flex:0 0 auto;width:22px;height:22px;margin-right:9px;border-radius:7px;cursor:pointer;
     border:1.5px solid var(--line);background:var(--paper);color:#fff;font-size:13px;font-weight:800;
     display:flex;align-items:center;justify-content:center;font-family:var(--ui);}
@@ -617,29 +683,57 @@
   <div class="views" id="views" style="display:none">
     <!-- PATIENT: HOME -->
     <section class="view" data-view="home">
-      <div class="row" style="justify-content:space-between">
-        <div>
+      <!-- Home is a summary: what you have saved, where you are, what is next.
+           Every figure on this page comes from a row that exists. Where there is
+           no row the tile is removed rather than filled with a dash, because a
+           page of dashes reads as a broken app to someone three weeks out of
+           surgery. Nothing here is estimated or dressed up as progress through
+           treatment. -->
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div style="min-width:0">
+          <div class="kic" id="homeEyebrow">Your home</div>
           <div class="greet" id="greet">Hello</div>
-          <span class="daychip" style="font-size:14.5px;padding:8px 16px;margin-top:8px;">● Your recovery journey</span>
         </div>
         <div class="avatar" id="homeAvatar" style="background:var(--amber)">M</div>
       </div>
-      <button class="statuscard" id="startCheckin" style="display:block;width:100%;text-align:left;border:none;cursor:pointer;font:inherit">
-        <div class="big" id="homeStatus">Ready for your check-in</div>
-        <div class="smt" id="homeSub">A 60-second check-in keeps you in the loop.</div>
-        <div class="row" style="justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;font-weight:700;font-size:14px;color:#fff">Start today's check-in
-          <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      </button>
-      <!-- The four latest ratings and the journey strip. Populated from the most
-           recent check-in, or hidden entirely if there isn't one: an empty row of
-           dashes reads as a broken app rather than a new one. -->
-      <div id="homeStats" class="statrow" style="display:none"></div>
-      <div id="homeJourney" class="journey" style="display:none"></div>
-      <div class="quick" style="margin-top:12px">
-        <button class="qa" data-go="capture"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg></span><div><div class="t">Capture image</div><div class="d">Add to your diary</div></div></button>
-        <button class="qa" data-go="supplies"><span class="ic" style="background:var(--teal-soft)"><svg viewBox="0 0 24 24" style="stroke:var(--teal-deep)"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span><div><div class="t">Reorder</div><div class="d">Supplies</div></div></button>
-        <!-- Message nurse quick-action hidden 2026-07-14; Learning & Education moved to Community below -->
+
+      <div class="statuscard hero">
+        <div class="hero-main">
+          <span class="hpill"><i></i><span id="heroPill">Your check-in is ready</span></span>
+          <div class="big" id="homeStatus">Your care,<em>clearly together.</em></div>
+          <div class="smt" id="homeSub">A 60-second check-in keeps you in the loop.</div>
+          <div class="hero-cta">
+            <button class="btn hbtn" id="startCheckin">Start today's check-in
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="hlink" data-go="progress">See your progress &rarr;</button>
+          </div>
+          <!-- Said plainly rather than buried in the privacy notice. All three are
+               true of this app today; if one stops being true it comes off. -->
+          <div class="hero-trust">
+            <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.2-3 7.4-7 9-4-1.6-7-4.8-7-9V6z" stroke-linejoin="round"/></svg>Private</span>
+            <span>Not a diagnosis</span>
+            <span>You control what is shared</span>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="hp-head">
+            <div><b>Your recovery journey</b><span>Your private record</span></div>
+            <span class="hp-state"><i></i><span id="heroState">Up to date</span></span>
+          </div>
+          <div class="hp-steps" id="heroSteps"></div>
+          <button class="hp-now" id="heroNow" type="button"></button>
+          <div class="hp-stats" id="heroStats"></div>
+        </div>
       </div>
+
+      <!-- The four latest ratings. Hidden entirely until there is a check-in to
+           show: four dashes reads as broken, not as new. -->
+      <div id="homeStats" class="statrow" style="display:none"></div>
+      <!-- The Capture image / Reorder quick-action pills were removed 2026-08-24
+           at Virginia's request. They were the ONLY route into the Capture and
+           Supplies views, so both are re-homed rather than orphaned: Capture is
+           reached from the Diary screen, Supplies from the card list below. -->
       <!-- Home profile card removed 2026-07-14 — Profile is reached via the bottom tab; Update pill lives on the Profile page -->
 
       <!-- Community — directory-driven; groups live in Supabase, not in this file -->
@@ -648,6 +742,11 @@
         <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:var(--teal-deep)" stroke-width="1.9"><circle cx="9" cy="8" r="3"/><path d="M2.5 19c0-3.1 2.9-4.8 6.5-4.8s6.5 1.7 6.5 4.8" stroke-linecap="round"/><circle cx="17.5" cy="7" r="2.4"/><path d="M16 13.4c3.1.2 5.5 1.8 5.5 4.6" stroke-linecap="round"/></svg></span>
         <div style="flex:1"><div style="font-weight:700;font-size:13.5px" id="browseCommunitiesTitle">Find your communities</div><div class="ssub" id="browseCommunitiesSub">Support groups and people who get it</div></div>
         <span style="color:var(--mist);font-size:20px;font-weight:300">›</span>
+      </button>
+      <button class="card" data-go="supplies" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
+        <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--teal-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke:var(--teal-deep)" stroke-width="1.9"><path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/></svg></span>
+        <div style="flex:1"><div style="font-weight:700;font-size:13.5px">Supplies &amp; your cupboard</div><div class="ssub">What you have, and when to reorder</div></div>
+        <span style="color:var(--mist);font-size:20px;font-weight:300">&rsaquo;</span>
       </button>
       <button class="card" data-go="learn" style="display:flex;align-items:center;gap:12px;text-align:left;color:inherit;margin-top:8px;width:100%;cursor:pointer;font:inherit">
         <span class="ic" style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--amber-soft);flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c98a17" stroke-width="1.9"><path d="M4 6l8-2 8 2v11l-8 2-8-2z" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="19"/></svg></span>
@@ -739,6 +838,12 @@
     <section class="view" data-view="history">
       <div class="kic">Your diary</div>
       <div class="h">Past check-ins</div>
+      <!-- Capture lives here now. It was only ever reachable from the home
+           quick-actions, and this is where the photos end up, so it is the
+           screen a patient is already on when they want to add one. -->
+      <button class="btn" data-go="capture" style="margin:2px 0 14px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.9" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg>
+        Add a photo</button>
       <button class="chkPill" id="diaryPill" type="button" aria-expanded="false" aria-controls="diaryCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
       <div class="cal chkList collapsed" id="diaryCal"></div>
       <button class="chkPill" id="diaryHistPill" type="button" aria-expanded="false" aria-controls="historyWrap" style="margin-top:2px"><span class="chkLbl">Previous check-ins</span><span class="chev">▾</span></button>
@@ -1559,7 +1664,10 @@ $('#submitCheckin').onclick = async () => {
   $('#submitCheckin').disabled = false;
   if(error){ toast('Error: '+error.message); return; }
   toast('Check-in updated ✓');
-  $('#homeStatus').textContent = 'Check-in saved — thank you';
+  // The headline is the app's name for itself, not a status line. State belongs
+  // on the pill, which loadHomeStats sets from the data a moment later; this
+  // just stops home showing "check-in ready" during that gap.
+  $('#heroPill').textContent = 'Check-in saved — thank you';
   loadHomeStats();
   showView('history');
 };
@@ -2861,32 +2969,129 @@ async function loadProgress(){
   $('#streakText').textContent = `${logged} of last 28 days logged · shared with your care team`;
 }
 
-// ---------- home: latest ratings + journey strip ----------
-// Shown only when there is a check-in to show:
-// four dashes where the numbers should be reads as a broken app, not an empty one.
-async function loadHomeStats(){
-  const stats = $('#homeStats'), journey = $('#homeJourney');
-  if(!stats) return;
-  const { data, error } = await sb.from('check_ins')
-    .select('output,skin,comfort,mood,created_at').order('created_at',{ascending:false}).limit(1);
-  if(error || !data || !data.length){
-    stats.style.display = 'none'; journey.style.display = 'none';
-    if(error) console.warn('[home stats]', error.message);
-    return;
-  }
-  const r = data[0];
-  const tile = (label, v) => `<div class="stat"><div class="sl">${label}</div>
-    <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div></div>`;
-  stats.innerHTML = tile('Output',r.output) + tile('Skin',r.skin) + tile('Comfort',r.comfort) + tile('Mood',r.mood);
-  stats.style.display = '';
+// ---------- home: the summary page ----------
+// Every number on the home page is read from a row that exists. Nothing is
+// estimated, and nothing that is missing gets a placeholder: a tile with no
+// data behind it is removed instead. A row of dashes tells a patient the app
+// is broken, which is the last thing they need to be wondering about.
+//
+// The four steps are WHERE TO GO NEXT, not progress through treatment. Nobody
+// gets to imply someone is 50% recovered.
+const HOME_STEPS = [
+  { view:'checkin',   label:'Check-in',   icon:'<path d="M9 4h6v3H9z" stroke-linejoin="round"/><path d="M6 6H5v14h14V6h-1" stroke-linejoin="round"/><path d="M9 13l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>' },
+  { view:'history',   label:'Diary',      icon:'<path d="M4 8h3l1.5-2h7L17 8h3v11H4z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/>' },
+  { view:'dailycare', label:'Daily care', icon:'<path d="M12 20s-7-4.3-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.7 12 20 12 20z" stroke-linejoin="round"/>' },
+  { view:'progress',  label:'Progress',   icon:'<path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/>' },
+];
+const RATING_ICONS = {
+  Output:  '<path d="M12 3.5S6 10 6 14a6 6 0 0 0 12 0c0-4-6-10.5-6-10.5z" stroke-linejoin="round"/>',
+  Skin:    '<path d="M12 4v16M4 12h16" stroke-linecap="round"/><circle cx="12" cy="12" r="8"/>',
+  Comfort: '<path d="M12 20s-7-4.3-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.7 12 20 12 20z" stroke-linejoin="round"/>',
+  Mood:    '<circle cx="12" cy="12" r="8"/><path d="M9 14c.8.9 1.8 1.4 3 1.4s2.2-.5 3-1.4" stroke-linecap="round"/><path d="M9.5 9.5h.01M14.5 9.5h.01" stroke-linecap="round"/>',
+};
 
-  // The strip marks where you are, it does not claim progress through treatment.
-  // "Check-in" is complete once today's is in; the rest are simply where to go next.
-  const doneToday = new Date(r.created_at).toDateString() === new Date().toDateString();
-  const steps = [['Check-in',doneToday],['Diary',false],['Supplies',false],['Progress',false]];
-  journey.innerHTML = steps.map(([label,on],i) =>
-    `<div class="jst${on ? ' on' : ''}"><i>${on ? '✓' : '0'+(i+1)}</i>${label}</div>`).join('');
-  journey.style.display = '';
+async function loadHomeStats(){
+  const stats = $('#homeStats');
+  if(!stats) return;
+  const today = new Date();
+  const eyebrow = $('#homeEyebrow');
+  if(eyebrow) eyebrow.textContent = 'Your home · ' +
+    today.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+  // One request for the latest row and the running total; a second for the
+  // stoma date. count:'exact' with head:false means the total costs nothing extra.
+  const [ci, prof] = await Promise.all([
+    sb.from('check_ins').select('output,skin,comfort,mood,created_at',{count:'exact'})
+      .order('created_at',{ascending:false}).limit(1),
+    sb.from('patient_profile').select('stoma_date').maybeSingle(),
+  ]);
+  if(ci.error) console.warn('[home]', ci.error.message);
+
+  const last  = (!ci.error && ci.data && ci.data.length) ? ci.data[0] : null;
+  const total = ci.count || 0;
+  const doneToday = last && new Date(last.created_at).toDateString() === today.toDateString();
+
+  // State. "Up to date" is only ever said when today's check-in is actually in.
+  const setTxtIf = (id, v) => { const e = $('#'+id); if(e) e.textContent = v; };
+  setTxtIf('heroPill',  doneToday ? "Today's check-in is done" : 'Your check-in is ready');
+  setTxtIf('heroState', doneToday ? 'Up to date' : 'Check-in due');
+  // The button has to agree with the pill. Offering "start today's check-in" to
+  // someone who has already done today's is how an app loses their trust in the
+  // small things, and then in the large ones.
+  const cta = $('#startCheckin');
+  if(cta) cta.childNodes[0].nodeValue = doneToday ? "Update today's check-in " : "Start today's check-in ";
+
+  // Where to go next: the check-in until it is done, the diary once it is.
+  const currentIdx = doneToday ? 1 : 0;
+  const steps = $('#heroSteps');
+  if(steps){
+    steps.innerHTML = HOME_STEPS.map((st,i) =>
+      `<button class="hp-step${i===currentIdx ? ' on' : ''}" data-go="${st.view}">
+         <div class="n">0${i+1}</div>
+         <i><svg viewBox="0 0 24 24" aria-hidden="true">${st.icon}</svg></i>
+         <div class="l">${st.label}</div>
+       </button>`).join('');
+    steps.querySelectorAll('[data-go]').forEach(b => b.onclick = () => showView(b.dataset.go));
+  }
+
+  // The current step, with the record behind it stated plainly. "3 check-ins
+  // saved" is a fact; "you're doing well" would be a judgement we cannot make.
+  // The step card is the button. Where it goes depends on what the step IS:
+  // "add to your diary" means open the camera, not the list of past check-ins.
+  // Sending someone to a screen that only shows what they have already done,
+  // when the card just asked them to add something, is a dead end.
+  const now = $('#heroNow');
+  if(now){
+    const st = HOME_STEPS[currentIdx];
+    const dest = doneToday ? 'capture' : 'checkin';
+    now.onclick = () => showView(dest);
+    const savedLine = total
+      ? `${total} check-in${total === 1 ? '' : 's'} saved · last ${new Date(last.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}`
+      : 'Nothing saved yet. Your first check-in starts the record.';
+    now.innerHTML = `<span class="hic"><svg viewBox="0 0 24 24" aria-hidden="true">${st.icon}</svg></span>
+      <div style="min-width:0">
+        <div class="k">Step 0${currentIdx+1}</div>
+        <div class="t">${doneToday ? 'Add to your diary' : 'Check-in'}</div>
+        <div class="d">${savedLine}</div>
+      </div>
+      <span class="go" aria-hidden="true">&rsaquo;</span>`;
+    now.setAttribute('aria-label',
+      doneToday ? 'Add to your diary: open the camera' : 'Start your check-in');
+  }
+
+  // Three facts, and only the ones we actually hold.
+  const cells = [];
+  if(last){
+    const vals = ['output','skin','comfort','mood'].map(k => last[k]).filter(v => v != null);
+    if(vals.length){
+      const pct = Math.round((vals.reduce((a,b) => a+b, 0) / (vals.length*5)) * 100);
+      const words = ['one','two','three','four'][vals.length-1];
+      cells.push(['Latest average', pct + '%', `From ${words} answer${vals.length===1?'':'s'}`]);
+    }
+  }
+  // Day count comes off the recorded surgery date or it is not shown at all.
+  // A day one that is really day 200 is worse than no day count.
+  const sd = prof && prof.data && prof.data.stoma_date ? new Date(prof.data.stoma_date + 'T00:00:00') : null;
+  if(sd && !isNaN(sd)){
+    const t0 = new Date(today); t0.setHours(0,0,0,0);
+    const days = Math.floor((t0 - sd) / 86400000) + 1;
+    if(days >= 1) cells.push(['Your journey', 'Day ' + days, 'Since your stoma was created']);
+  }
+  cells.push(['Next step', doneToday ? 'Add a photo' : 'Check in',
+              doneToday ? 'Whenever you want to' : 'About 60 seconds']);
+  const hs = $('#heroStats');
+  if(hs) hs.innerHTML = cells.map(([k,v,d]) =>
+    `<div class="hp-stat"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+
+  // The four ratings, hidden entirely until there is a check-in behind them.
+  if(!last){ stats.style.display = 'none'; return; }
+  const tile = (label, v) => `<div class="stat">
+    <span class="si"><svg viewBox="0 0 24 24" aria-hidden="true">${RATING_ICONS[label]}</svg></span>
+    <div class="sb"><div class="sl">${label}</div><div class="sd">Latest rating</div></div>
+    <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div></div>`;
+  stats.innerHTML = tile('Output',last.output) + tile('Skin',last.skin)
+                  + tile('Comfort',last.comfort) + tile('Mood',last.mood);
+  stats.style.display = '';
 }
 
 // ---------- daily care log ----------
