@@ -736,7 +736,7 @@
           <div class="hero-cta">
             <button class="btn hbtn" id="startCheckin">Start today's check-in
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <button class="hlink" data-go="careplan">Open my daily care plan <span class="duepill" id="careDue"></span> &rarr;</button>
+            <button class="hlink" data-go="careplan">Open my reminders <span class="duepill" id="careDue"></span> &rarr;</button>
           </div>
           <!-- Said plainly rather than buried in the privacy notice. All three are
                true of this app today; if one stops being true it comes off. -->
@@ -1296,9 +1296,9 @@
 
     <!-- PATIENT: CARE PLAN -->
     <section class="view" data-view="careplan">
-      <div class="kic">Care plan</div>
+      <div class="kic">Reminders</div>
       <div class="h">What&rsquo;s coming up</div>
-      <p class="ssub" style="margin:-6px 0 14px">Things you or your nurse have set. Tick them off as you go.</p>
+      <p class="ssub" style="margin:-6px 0 14px">Things you or your nurse have set, with a date. Tick them off as you go.</p>
       <div id="taskList"></div>
       <button class="chkPill" id="taskAddPill" type="button" aria-expanded="false" aria-controls="taskAddWrap" style="margin-top:14px"><span class="chkLbl">Add something</span><span class="chev">&#9662;</span></button>
       <div class="chkList collapsed" id="taskAddWrap">
@@ -1306,7 +1306,7 @@
         <input class="input" id="taskTitle" maxlength="120" placeholder="e.g. Re-measure my stoma">
         <label class="fl" style="display:block;margin:0 0 5px">When by?</label>
         <input class="input" id="taskDue" type="date">
-        <button class="btn ghost" id="taskAddBtn" style="margin-top:10px">Add to my plan</button>
+        <button class="btn ghost" id="taskAddBtn" style="margin-top:10px">Add a reminder</button>
       </div>
     </section>
 
@@ -1324,7 +1324,7 @@
     <button class="tab" data-view="history"><svg viewBox="0 0 24 24"><path d="M12 6C10.5 5 7.5 4.5 4 5v13c3.5-.5 6.5 0 8 1 1.5-1 4.5-1.5 8-1V5c-3.5-.5-6.5 0-8 1z" stroke-linejoin="round"/><path d="M12 6v13" stroke-linecap="round"/></svg>Diary</button>
     <!-- Messages tab hidden per request 2026-07-14 (Messages view + logic retained) -->
     <button class="tab" data-view="dailycare"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.7 12 20 12 20z" stroke-linejoin="round"/></svg>My Daily Care</button>
-    <button class="tab" data-view="careplan"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z" stroke-linejoin="round"/><path d="M9 9h6M9 13h6M9 17h3" stroke-linecap="round"/></svg>Care plan</button>
+    <button class="tab" data-view="careplan"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z" stroke-linejoin="round"/><path d="M9 9h6M9 13h6M9 17h3" stroke-linecap="round"/></svg>Reminders</button>
     <button class="tab" data-view="progress"><svg viewBox="0 0 24 24"><path d="M4 18V6m0 12h16M7 15l3.5-4 3 2.5L19 8" stroke-linejoin="round"/></svg>Progress</button>
   </nav>
 
@@ -3526,7 +3526,7 @@ function taskRow(t){
 function renderTasks(){
   const box = $('#taskList'); if(!box) return;
   if(!tasks.length){
-    box.innerHTML = '<div class="empty" style="padding:18px 8px">Nothing on your plan. Add something, or your nurse can.</div>';
+    box.innerHTML = '<div class="empty" style="padding:18px 8px">No reminders yet. Add one, or your nurse can.</div>';
     return;
   }
   // Outstanding first, soonest first; done ones fall to the bottom.
@@ -3675,7 +3675,7 @@ async function addTask(){
   }
   tasks = [...tasks, data];
   $('#taskTitle').value = ''; $('#taskDue').value = '';
-  renderTasks(); toast('Added to your plan');
+  renderTasks(); toast('Reminder added');
 }
 
 // ---------- supplies / reorders (live) ----------
