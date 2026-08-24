@@ -3538,10 +3538,13 @@ async function addTask(){
 // ---------- supplies / reorders (live) ----------
 let REORDER_ITEM = 'Drainable pouch · 60mm';
 // Amcare and SecuriCare came off the list on 24 Aug 2026: they are not product
-// suppliers. Their entries stay in the maps below on purpose — anyone who
-// already chose one keeps a working link, and the select adds their choice back
-// for them rather than quietly resetting it.
-let SUPPLIERS = ['Fittleworth','Coloplast Charter','Bullen','Respond','Salts Healthcare','Medilink','Other'];
+// suppliers. "Other" went with them — it had no ordering link and no advice
+// link, so choosing it set a preference that led nowhere.
+//
+// Removed names stay in the maps below on purpose. Anyone who already chose one
+// keeps a working link, and the select adds their choice back for them rather
+// than quietly resetting it.
+let SUPPLIERS = ['Fittleworth','Coloplast Charter','Bullen','Respond','Salts Healthcare','Medilink'];
 const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering page
   'Fittleworth':'https://www.fittleworth.com/order-online/',
   'Coloplast Charter':'https://www.coloplastcharter.co.uk/products-and-samples/',
