@@ -293,7 +293,17 @@
      phone-width, and the columns would collapse into each other. */
   .statrow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px;}
   .stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:11px;
-    display:flex;align-items:center;gap:9px;}
+    display:flex;align-items:center;gap:9px;
+    width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;}
+  .stat:active{transform:scale(.995);}
+  /* Two of the four ratings are picked and two are worked out. This panel is
+     the only place that difference is ever stated. */
+  .why{background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:12px 13px;margin-top:9px;display:none;}
+  .why.on{display:block;}
+  .why .wh{font-weight:800;font-size:13px;margin-bottom:5px;}
+  .why ul{margin:6px 0 0;padding-left:17px;}
+  .why li{font-size:12.5px;line-height:1.5;}
   .stat .si{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 auto;
     border-radius:9px;background:var(--teal-soft);}
   .stat .si svg{width:16px;height:16px;stroke:var(--teal-deep);fill:none;stroke-width:1.8;}
@@ -735,6 +745,7 @@
       <!-- The four latest ratings. Hidden entirely until there is a check-in to
            show: four dashes reads as broken, not as new. -->
       <div id="homeStats" class="statrow" style="display:none"></div>
+      <div id="ratingWhy" class="why" aria-live="polite"></div>
       <!-- The Capture image / Reorder quick-action pills were removed 2026-08-24
            at Virginia's request. They were the ONLY route into the Capture and
            Supplies views, so both are re-homed rather than orphaned: Capture is
@@ -3074,7 +3085,7 @@ async function loadHomeStats(){
   // One request for the latest row and the running total; a second for the
   // stoma date. count:'exact' with head:false means the total costs nothing extra.
   const [ci, prof] = await Promise.all([
-    sb.from('check_ins').select('output,skin,comfort,mood,created_at',{count:'exact'})
+    sb.from('check_ins').select('output,skin,comfort,mood,details,created_at',{count:'exact'})
       .order('created_at',{ascending:false}).limit(1),
     sb.from('patient_profile').select('stoma_date').maybeSingle(),
   ]);
@@ -3161,16 +3172,62 @@ async function loadHomeStats(){
 
   // The four ratings, hidden entirely until there is a check-in behind them.
   if(!last){ stats.style.display = 'none'; return; }
-  const tile = (label, v) => `<div class="stat">
+  const tile = (label, v) => `<button class="stat" type="button" data-rating="${label}" aria-label="${label}: what this is based on">
     <span class="si"><svg viewBox="0 0 24 24" aria-hidden="true">${RATING_ICONS[label]}</svg></span>
     <div class="sb"><div class="sl">${label}</div><div class="sd">Latest rating</div></div>
-    <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div></div>`;
+    <div class="sv">${v == null ? '—' : Math.round(v)}<em>/5</em></div></button>`;
   // Mood first, output last. How someone feels is the thing they recognise as
   // theirs; output is the most clinical of the four and the least inviting to
   // land on first.
   stats.innerHTML = tile('Mood',last.mood) + tile('Comfort',last.comfort)
                   + tile('Skin',last.skin) + tile('Output',last.output);
   stats.style.display = '';
+  const why = $('#ratingWhy');
+  if(why){
+    why.classList.remove('on'); why.innerHTML = '';
+    let openLabel = null;
+    stats.querySelectorAll('[data-rating]').forEach(b => b.onclick = () => {
+      const label = b.dataset.rating;
+      if(openLabel === label){ openLabel = null; why.classList.remove('on'); return; }
+      openLabel = label;
+      why.innerHTML = explainRating(label, last);
+      why.classList.add('on');
+    });
+  }
+}
+
+// What went into a rating. Mood and comfort are a number the patient chose, so
+// the honest answer is to say so and stop. Skin and output are worked out from
+// the symptom answers by deriveScores, and a patient looking at a 1 out of 5
+// they never typed deserves to see where it came from.
+//
+// This lists what the app noticed. It does not say what any of it means: that
+// would be reading a set of tick-boxes as a clinical opinion, which is exactly
+// the line this app does not cross.
+function explainRating(label, r){
+  const d = (r && r.details) || {};
+  const li = a => a.length ? `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+  if(label === 'Mood' || label === 'Comfort'){
+    const v = label === 'Mood' ? r.mood : r.comfort;
+    return `<div class="wh">${label}</div><div class="ssub">You chose ${v == null ? 'nothing' : v + ' out of 5'} at your last check-in. This one is yours, not worked out.</div>`;
+  }
+  const reasons = [];
+  if(label === 'Skin'){
+    (d.skinSym || []).filter(x => x !== 'Normal').forEach(x => reasons.push('Skin: ' + x));
+    if(d.skinBleed && d.skinBleed !== 'No') reasons.push('Bleeding from the skin: ' + d.skinBleed.toLowerCase());
+    if(d.skinDischarge) reasons.push('Discharge from the skin: ' + String(d.skinDischarge).toLowerCase());
+  } else {
+    if(d.stoma && d.stoma !== 'Normal') reasons.push('Stoma: ' + String(d.stoma).toLowerCase());
+    if(d.stomaPain === 'Yes') reasons.push('Pain when passing output');
+    if(d.empties === 'Three times') reasons.push('Emptying three times a day');
+    else if(d.empties === 'More') reasons.push('Emptying ' + (d.emptiesCount ? d.emptiesCount + ' times' : 'more than three times') + ' a day');
+    if(d.stomaBleed && d.stomaBleed !== 'No') reasons.push('Bleeding from the stoma: ' + d.stomaBleed.toLowerCase());
+    if(d.stomaDischarge) reasons.push('Discharge from the stoma: ' + String(d.stomaDischarge).toLowerCase());
+    (d.feel || []).filter(x => ['Fever','Vomiting','Abdominal pain'].includes(x)).forEach(x => reasons.push('You reported ' + x.toLowerCase()));
+  }
+  const head = `<div class="wh">${label}</div>`;
+  if(!reasons.length) return head + `<div class="ssub">Worked out from your check-in answers. Nothing you reported counted against it, so it sits at 5 out of 5.</div>`;
+  return head + `<div class="ssub">Worked out from your check-in answers. These are what counted:</div>` + li(reasons);
 }
 
 // Anything on the care plan that is due today or already past, still unticked.
