@@ -837,7 +837,11 @@
     <!-- PATIENT: DIARY / HISTORY -->
     <section class="view" data-view="history">
       <div class="kic">Your diary</div>
-      <div class="h">Past check-ins</div>
+      <div class="h">Your check-ins</div>
+      <!-- Today's is shown open. It is the one you just did and the one you are
+           most likely to want to look at, so making it the thing you unfold to
+           reach had it hiding behind a tap the moment it mattered most. -->
+      <div id="todayWrap" style="margin:2px 0 14px"></div>
       <!-- Capture lives here now. It was only ever reachable from the home
            quick-actions, and this is where the photos end up, so it is the
            screen a patient is already on when they want to add one. -->
@@ -860,7 +864,8 @@
         <textarea class="input" id="noteBody" rows="4" maxlength="4000" placeholder="Write your note&hellip;" style="resize:vertical"></textarea>
         <button class="btn ghost" id="noteAddBtn" style="margin-top:10px">Save note</button>
       </div>
-      <div id="noteList" style="margin-top:12px"></div>
+      <button class="chkPill" id="notesPill" type="button" aria-expanded="false" aria-controls="noteListWrap" style="margin-top:2px"><span class="chkLbl">Saved notes</span><span class="chev">&#9662;</span></button>
+      <div class="chkList collapsed" id="noteListWrap"><div id="noteList"></div></div>
     </section>
 
     <!-- PATIENT: CAPTURE (live — photo diary) -->
@@ -1689,6 +1694,23 @@ wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurs
 // Nurse messaging is built but not launched. Flip to true to switch it on
 // everywhere: both entry points and the route guard read this one flag.
 const NURSE_MESSAGING_ENABLED = false;
+
+// Sharing with a nurse is built end to end — the policy on diary_photos and the
+// nurse's photo-diary screen both work — but there are no stoma nurses onboarded
+// for the soft launch, so nothing is reaching anyone. The wording says so.
+//
+// This is a claim about the world, not about the code: the moment a nurse
+// account exists, "coming soon" stops being true and this must be flipped in
+// the same breath as onboarding them. It is one line, and it is the only line.
+const NURSE_SHARING_ENABLED = false;
+function applyNurseSharingCopy(){
+  const b = $('#capSave'); if(!b) return;
+  const tick = b.querySelector('svg')?.outerHTML || '';
+  b.innerHTML = NURSE_SHARING_ENABLED
+    ? `Save to diary &amp; share with nurse ${tick}`
+    : `Save to diary <span class="pill soon">Sharing with nurse coming soon</span> ${tick}`;
+}
+applyNurseSharingCopy();
 
 // ---------- community directory ----------
 // Groups live in Supabase (community_groups), not in this file, so an admin can add
@@ -2755,24 +2777,54 @@ function mountCalendar(container, items, onSelect){
 }
 
 // ---------- diary: check-in history + calendar ----------
-let histAll = [], histSel = null, histCal = null, histPillApi = null;
+let histAll = [], histPrev = [], histSel = null, histCal = null, histPillApi = null;
 async function loadHistory(){
   $('#diaryCal').innerHTML = ''; $('#historyList').innerHTML = '<div class="empty">Loading…</div>';
   const { data, error } = await sb.from('check_ins').select('*').order('created_at',{ascending:false}).limit(200);
   if(error){ $('#historyList').innerHTML = `<div class="empty">${friendlyError(error, 'history')}</div>`; return; }
   histAll = data || []; histSel = null;
+
+  // "Previous" has to mean previous. Today's check-in is rendered above, so
+  // leaving it in the drop-down as well would show the same entry twice and
+  // make the count one higher than the number of earlier check-ins.
+  histPrev = histAll.filter(r => !isToday(r.created_at));
+  renderToday();
+
+  // The calendar still spans everything, today included: it is a way into the
+  // whole record, not into the drop-down, and a date you cannot pick because it
+  // happens to be today would be its own small bug.
   histCal = mountCalendar($('#diaryCal'),
     histAll.map(r => ({ ts:r.created_at, colour:colourFor(Math.min(r.output,r.skin,r.comfort,r.mood)) })),
     key => { histSel = key; renderHistoryList();
       if(key){ $('#historyWrap').classList.remove('collapsed'); $('#diaryHistPill').classList.add('open'); } });
   histPillApi = wireChkPill($('#diaryPill'), $('#diaryCal'), {show:'Show calendar', hide:'Hide calendar'});
-  wireChkPill($('#diaryHistPill'), $('#historyWrap'), {show:`Previous check-ins${histAll.length?` (${histAll.length})`:''}`, hide:'Previous check-ins'});
+  wireChkPill($('#diaryHistPill'), $('#historyWrap'), {show:`Previous check-ins${histPrev.length?` (${histPrev.length})`:''}`, hide:'Previous check-ins'});
   renderHistoryList();
+}
+
+const isToday = ts => new Date(ts).toDateString() === new Date().toDateString();
+
+function renderToday(){
+  const el = $('#todayWrap'); if(!el) return;
+  const mine = histAll.filter(r => isToday(r.created_at));
+  if(!mine.length){
+    el.innerHTML = `<div class="entry" style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <div><div class="nm" style="font-weight:700">No check-in today yet</div>
+        <div class="ssub">It takes about a minute.</div></div>
+      <button class="btn ghost" data-go="checkin" style="width:auto;padding:9px 14px">Start today&rsquo;s check-in</button></div>`;
+    el.querySelector('[data-go]').onclick = () => showView('checkin');
+    return;
+  }
+  el.innerHTML = `<div class="fl" style="margin:0 0 6px">Today</div>` + mine.map(r => rowHtml(r,false)).join('');
 }
 function renderHistoryList(){
   const el = $('#historyList'); if(!el) return;
   if(!histAll.length){ el.innerHTML = emptyIllo('Nothing here yet', 'Your first check-in takes about a minute, and starts your record.'); return; }
-  const rows = histSel ? histAll.filter(r => ymdLocal(r.created_at) === histSel) : histAll;
+  if(!histSel && !histPrev.length){ el.innerHTML = '<div class="empty">Nothing before today yet.</div>'; return; }
+  // No day picked: the earlier ones only, because today's is already above.
+  // A day picked: search the whole record, or picking today would come back
+  // empty while the entry sits in plain sight further up the screen.
+  const rows = histSel ? histAll.filter(r => ymdLocal(r.created_at) === histSel) : histPrev;
   const banner = histSel ? `<div class="histfilter">Showing <b>${niceDay(histSel)}</b> · ${rows.length} check-in${rows.length!==1?'s':''}<button data-histclear>Show all</button></div>` : '';
   el.innerHTML = banner + (rows.length ? rows.map(r=>rowHtml(r,false)).join('') : '<div class="empty">No check-ins on this day.</div>');
   const clr = el.querySelector('[data-histclear]'); if(clr) clr.onclick = () => { if(histCal) histCal.clear(); };
@@ -3268,8 +3320,18 @@ async function loadCarePlan(){
 // button says private. See migration 0019.
 let notes = [];
 
+// Same trick as setPhotoPillCount: only rewrite the label while the pill is
+// closed. Writing a count into it while open would overwrite the "hide" text
+// that wireChkPill owns, and the two would then fight every time it is tapped.
+function setNotesPillCount(n){
+  const pill = $('#notesPill'); if(!pill) return;
+  const lbl = pill.querySelector('.chkLbl');
+  if(lbl && !pill.classList.contains('open')) lbl.textContent = n ? `Saved notes (${n})` : 'Saved notes';
+}
+
 function renderNotes(){
   const box = $('#noteList'); if(!box) return;
+  setNotesPillCount(notes.length);
   if(!notes.length){
     box.innerHTML = '<div class="empty" style="padding:14px 8px">No notes yet.</div>';
     return;
@@ -3297,6 +3359,9 @@ async function loadDiaryNotes(){
   $('#noteAddBtn').onclick = addNote;
   const { data, error } = await sb.from('diary_notes')
     .select('id,title,body,created_at').order('created_at',{ascending:false});
+  // Wired after the fetch so the pill can carry the count on first paint,
+  // rather than saying "Saved notes" and correcting itself a moment later.
+  wireChkPill($('#notesPill'), $('#noteListWrap'), {show:'Saved notes', hide:'Saved notes'});
   if(error){
     console.warn('[notes] unavailable — is migration 0019 applied?', error.message);
     $('#noteList').innerHTML = '<div class="empty" style="padding:14px 8px">Not switched on yet.</div>';
@@ -3325,7 +3390,12 @@ async function addNote(){
   }
   notes = [data, ...notes];
   $('#noteTitle').value = ''; $('#noteBody').value = '';
-  renderNotes(); toast('Note saved');
+  renderNotes();
+  // Open the list on save. Otherwise the note you just wrote disappears behind
+  // a closed pill and the only evidence it worked is a toast that fades.
+  const w = $('#noteListWrap'), pill = $('#notesPill');
+  if(w && pill && w.classList.contains('collapsed')) pill.click();
+  toast('Note saved');
 }
 
 async function deleteNote(id){
