@@ -864,7 +864,8 @@
         <textarea class="input" id="noteBody" rows="4" maxlength="4000" placeholder="Write your note&hellip;" style="resize:vertical"></textarea>
         <button class="btn ghost" id="noteAddBtn" style="margin-top:10px">Save note</button>
       </div>
-      <div id="noteList" style="margin-top:12px"></div>
+      <button class="chkPill" id="notesPill" type="button" aria-expanded="false" aria-controls="noteListWrap" style="margin-top:2px"><span class="chkLbl">Saved notes</span><span class="chev">&#9662;</span></button>
+      <div class="chkList collapsed" id="noteListWrap"><div id="noteList"></div></div>
     </section>
 
     <!-- PATIENT: CAPTURE (live — photo diary) -->
@@ -3302,8 +3303,18 @@ async function loadCarePlan(){
 // button says private. See migration 0019.
 let notes = [];
 
+// Same trick as setPhotoPillCount: only rewrite the label while the pill is
+// closed. Writing a count into it while open would overwrite the "hide" text
+// that wireChkPill owns, and the two would then fight every time it is tapped.
+function setNotesPillCount(n){
+  const pill = $('#notesPill'); if(!pill) return;
+  const lbl = pill.querySelector('.chkLbl');
+  if(lbl && !pill.classList.contains('open')) lbl.textContent = n ? `Saved notes (${n})` : 'Saved notes';
+}
+
 function renderNotes(){
   const box = $('#noteList'); if(!box) return;
+  setNotesPillCount(notes.length);
   if(!notes.length){
     box.innerHTML = '<div class="empty" style="padding:14px 8px">No notes yet.</div>';
     return;
@@ -3331,6 +3342,9 @@ async function loadDiaryNotes(){
   $('#noteAddBtn').onclick = addNote;
   const { data, error } = await sb.from('diary_notes')
     .select('id,title,body,created_at').order('created_at',{ascending:false});
+  // Wired after the fetch so the pill can carry the count on first paint,
+  // rather than saying "Saved notes" and correcting itself a moment later.
+  wireChkPill($('#notesPill'), $('#noteListWrap'), {show:'Saved notes', hide:'Saved notes'});
   if(error){
     console.warn('[notes] unavailable — is migration 0019 applied?', error.message);
     $('#noteList').innerHTML = '<div class="empty" style="padding:14px 8px">Not switched on yet.</div>';
@@ -3359,7 +3373,12 @@ async function addNote(){
   }
   notes = [data, ...notes];
   $('#noteTitle').value = ''; $('#noteBody').value = '';
-  renderNotes(); toast('Note saved');
+  renderNotes();
+  // Open the list on save. Otherwise the note you just wrote disappears behind
+  // a closed pill and the only evidence it worked is a toast that fades.
+  const w = $('#noteListWrap'), pill = $('#notesPill');
+  if(w && pill && w.classList.contains('collapsed')) pill.click();
+  toast('Note saved');
 }
 
 async function deleteNote(id){
