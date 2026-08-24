@@ -238,6 +238,11 @@
   .hero .hbtn{width:auto;min-height:44px;padding:0 17px;background:#fff;color:var(--teal-deep);
     border:none;font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;}
   .hero .hbtn svg{width:17px;height:17px;stroke:var(--teal-deep);fill:none;stroke-width:2;}
+  /* Nothing here nags. The badge appears only when something is actually due,
+     and says how many, so it can be believed rather than tuned out. */
+  .duepill{display:none;margin-left:7px;padding:2px 8px;border-radius:999px;font-size:11px;
+    font-weight:800;letter-spacing:.02em;background:#fff;color:var(--amber);vertical-align:middle;}
+  .duepill.on{display:inline-block;}
   .hlink{background:none;border:none;color:#fff;opacity:.88;font:inherit;font-weight:700;
     font-size:13px;cursor:pointer;padding:4px 0;}
   .hero-trust{display:flex;flex-wrap:wrap;gap:7px 15px;margin-top:18px;opacity:.6;position:relative;z-index:1;
@@ -705,7 +710,7 @@
           <div class="hero-cta">
             <button class="btn hbtn" id="startCheckin">Start today's check-in
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <button class="hlink" data-go="careplan">Open my care plan &rarr;</button>
+            <button class="hlink" data-go="careplan">Open my care plan <span class="duepill" id="careDue"></span> &rarr;</button>
           </div>
           <!-- Said plainly rather than buried in the privacy notice. All three are
                true of this app today; if one stops being true it comes off. -->
@@ -3152,6 +3157,8 @@ async function loadHomeStats(){
   if(hs) hs.innerHTML = cells.map(([k,v,d]) =>
     `<div class="hp-stat"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 
+  loadCareDueBadge();
+
   // The four ratings, hidden entirely until there is a check-in behind them.
   if(!last){ stats.style.display = 'none'; return; }
   const tile = (label, v) => `<div class="stat">
@@ -3164,6 +3171,30 @@ async function loadHomeStats(){
   stats.innerHTML = tile('Mood',last.mood) + tile('Comfort',last.comfort)
                   + tile('Skin',last.skin) + tile('Output',last.output);
   stats.style.display = '';
+}
+
+// Anything on the care plan that is due today or already past, still unticked.
+// Overdue and due-today are counted together on purpose: to a patient they are
+// the same instruction, and splitting them into two numbers on a badge this
+// small would say less, not more.
+//
+// Errors are swallowed to leave the badge hidden rather than shown wrong. A
+// count that cannot be trusted is worse here than no count, because the whole
+// point of it is that it only appears when something really is waiting.
+async function loadCareDueBadge(){
+  const el = $('#careDue'); if(!el) return;
+  el.classList.remove('on');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const ymd = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0')
+            + '-' + String(today.getDate()).padStart(2,'0');
+  const { count, error } = await sb.from('care_tasks')
+    .select('id', { count:'exact', head:true })
+    .eq('completed', false).not('due_date','is',null).lte('due_date', ymd);
+  if(error){
+    console.warn('[care due] unavailable — is migration 0018 applied?', error.message);
+    return;
+  }
+  if(count > 0){ el.textContent = count + ' due'; el.classList.add('on'); }
 }
 
 // ---------- daily care log ----------
