@@ -995,7 +995,7 @@
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your supplier</div>
         <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
-        <div class="suppliers" id="supplierPicker"></div>
+        <select class="input" id="supplierPicker" style="margin-bottom:10px" aria-label="Choose your supplier"></select>
         <a id="supplierOpen" class="sup-open attn" target="_blank" rel="noopener noreferrer" style="display:none">Open website ↗</a>
         <a id="supplierAdvice" class="sup-advice" target="_blank" rel="noopener noreferrer">Advice &amp; support ↗</a>
       </div>
@@ -1044,6 +1044,11 @@
         <span class="copy"><span class="t" id="optSupplierName">Contact your supplier</span><span class="d">Stock, fitting, returns &amp; product advice</span></span>
         <span class="chev">›</span>
       </button>
+      <a class="opt" id="optSupplierAdvice" target="_blank" rel="noopener noreferrer" style="display:none;text-decoration:none">
+        <span class="ic" style="background:var(--wash)"><svg viewBox="0 0 24 24" stroke="var(--slate)"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5" stroke-linecap="round"/><path d="M12 8h.01" stroke-linecap="round"/></svg></span>
+        <span class="copy"><span class="t" id="optSupplierAdviceName">Advice &amp; support</span><span class="d">Guides and help from your supplier</span></span>
+        <span class="chev">›</span>
+      </a>
       <button class="opt" id="optNurse">
         <span class="ic" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" stroke="#4f9d7b"><path d="M12 21s-7-4.6-9.2-9.4C1.2 8 3 4.5 6.4 4.5c2 0 3.4 1.2 4.2 2.6.8-1.4 2.2-2.6 4.2-2.6 3.4 0 5.2 3.5 3.6 7.1C19 16.4 12 21 12 21Z" stroke-linejoin="round"/></svg></span>
         <span class="copy"><span class="t">Message your nurse</span><span class="d">For symptoms or anything clinical</span></span>
@@ -3542,7 +3547,7 @@ let SUPPLIERS = ['Fittleworth','Coloplast Charter','SecuriCare','Amcare','Bullen
 const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering page
   'Fittleworth':'https://www.fittleworth.com/order-online/',
   'Coloplast Charter':'https://www.coloplastcharter.co.uk/products-and-samples/',
-  'SecuriCare':'https://www.securicaremedical.co.uk/advice-and-support/stoma-care',
+  'SecuriCare':'https://www.securicaremedical.co.uk/contact-us',
   'Amcare':'https://www.amcarebyconvatec.com/for-customers/',
   'Bullen':'https://www.bullens.com/bullens-products/',
   'Respond':'https://www.respond.co.uk/prescription-service/existing-customers/',
@@ -3551,11 +3556,12 @@ const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering pag
   'Other':null,
 };
 const SUPPLIER_CTA = {   // per-supplier button text override (default: "Browse <name> products ↗")
-  'SecuriCare':'SecuriCare advice & support ↗',
+  'SecuriCare':'Contact SecuriCare ↗',
   'Amcare':'Amcare customer area ↗',
   'Respond':'Order with Respond ↗',
 };
 const SUPPLIER_ADVICE = {   // optional secondary "advice & support" link for suppliers that have both
+  'SecuriCare':'https://www.securicaremedical.co.uk/advice-and-support/stoma-care',
   'Fittleworth':'https://www.fittleworth.com/advice-centre/stoma/',
   'Coloplast Charter':'https://www.coloplastcharter.co.uk/advice-and-support/',
   'Amcare':'https://www.amcarebyconvatec.com/for-customers/my-amcare/customer-care/',
@@ -3566,9 +3572,13 @@ const SUPPLIER_ADVICE = {   // optional secondary "advice & support" link for su
 };
 let mySupplier = null;
 function renderSuppliers(){
-  $('#supplierPicker').innerHTML = SUPPLIERS.map(s =>
-    `<button class="sup ${s===mySupplier?'on':''}" data-sup="${esc(s)}">${esc(s)}</button>`).join('');
-  $('#supplierPicker').querySelectorAll('.sup').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
+  // A drop-down rather than nine chips. The list only grows, and a wall of
+  // supplier names was the loudest thing on a screen whose actual subject is
+  // the cupboard below it.
+  const sel = $('#supplierPicker');
+  sel.innerHTML = `<option value="" ${mySupplier ? '' : 'selected'} disabled>Choose your supplier…</option>` +
+    SUPPLIERS.map(s => `<option value="${esc(s)}" ${s===mySupplier?'selected':''}>${esc(s)}</option>`).join('');
+  sel.onchange = () => { if(sel.value) chooseSupplier(sel.value); };
   $('#supplierLine').textContent = mySupplier || 'your chosen DAC supplier';
   const a = $('#supplierOpen'), url = SUPPLIER_URL[mySupplier];
   if(mySupplier && url){ a.href = url; a.textContent = SUPPLIER_CTA[mySupplier] || `Browse ${mySupplier} products ↗`; a.style.display = 'flex'; }
@@ -3832,6 +3842,16 @@ function renderSupport(){
   $('#supportAI').style.display = 'none';
   $('#faqAnswer').style.display = 'none';
   $('#optSupplierName').textContent = mySupplier ? `Contact ${mySupplier}` : 'Contact your supplier';
+  // The same advice link the Supplies screen offers. It belongs here too: this
+  // is the screen someone reaches when they already have a problem, and
+  // "contact them" and "read what they have written about it" are different
+  // amounts of effort on a bad day.
+  const av = $('#optSupplierAdvice'), adv = SUPPLIER_ADVICE[mySupplier];
+  if(mySupplier && adv){
+    av.href = adv;
+    $('#optSupplierAdviceName').textContent = `${mySupplier} advice & support`;
+    av.style.display = '';
+  } else { av.style.display = 'none'; av.removeAttribute('href'); }
   renderFaqChips();
 }
 $('#supportBack').onclick = () => showView('supplies');
