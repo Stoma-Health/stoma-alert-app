@@ -1107,10 +1107,10 @@
         <div style="font-size:10px;color:var(--mist);line-height:1.4;margin-top:6px">Measured in millimetres from photos taken with the reference chart. A guide to help you and your nurse notice change over time — not a diagnosis.</div>
       </div>
       <div class="card" id="fluidCard" style="display:none">
-        <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Output &amp; hydration <span style="font-weight:600;color:var(--mist);font-size:11px">· from your daily care log</span></div><span class="pill t" id="fluidPill">—</span></div>
+        <div class="row" style="justify-content:space-between"><div style="font-size:12.5px;font-weight:700">Fluids &amp; pouch changes <span style="font-weight:600;color:var(--mist);font-size:11px">· from your daily care log</span></div><span class="pill t" id="fluidPill">—</span></div>
         <div class="chart" id="fluidChart"></div>
         <div class="legend" id="fluidLegend"></div>
-        <div style="font-size:10px;color:var(--mist);line-height:1.4;margin-top:6px">Only days you recorded a figure are plotted; a gap is a day you did not log, not a zero. Around 1500 ml of output a day is where dehydration becomes a concern on an ileostomy — the line is there so you can see it, not as a diagnosis. If your output stays high, tell your stoma nurse.</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.4;margin-top:6px">Only days you recorded a figure are plotted; a gap is a day you did not log, not a zero. The two are on separate scales — millilitres and a count of changes cannot share an axis — so read each against itself. A guide to help you and your nurse notice change, not a diagnosis.</div>
       </div>
       <div class="card" style="display:flex;align-items:center;gap:14px">
         <div id="streakRing" style="flex:0 0 auto"></div>
@@ -1255,7 +1255,12 @@
         when there&rsquo;s more to say, or when your nurse has asked you to keep track.</p>
       <div class="card">
         <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <label class="fl" style="margin:0">Output today <input class="input numin" id="clOutput" type="number" min="0" max="10000" inputmode="numeric" placeholder="ml"></label>
+          <!-- "Output today" removed 2026-08-24. Measuring output in millilitres
+               asks for a jug and a discipline most people do not have, so the
+               figure was either absent or a guess dressed as a measurement.
+               Pouch changes is the thing a patient can actually count.
+               output_ml stays in the table and historic rows still display it;
+               it is simply no longer collected. -->
           <label class="fl" style="margin:0">Fluids drunk <input class="input numin" id="clHydration" type="number" min="0" max="20000" inputmode="numeric" placeholder="ml"></label>
           <label class="fl" style="margin:0">Pouch changes <input class="input numin" id="clPouch" type="number" min="0" max="20" inputmode="numeric" placeholder="0"></label>
         </div>
@@ -2923,68 +2928,79 @@ function sizeTrendSvg(vals){
     <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4.5" fill="${themeColour('--teal','#2f6f5e')}" stroke="#fff" stroke-width="2"/>
   </svg>`;
 }
-// Two series on one set of axes, plus the 1500 ml mark. Each series plots only
-// the days it actually has: a day with no figure is a gap, and joining across it
-// would invent a reading. Points are placed by DATE, not by position in the
-// array, or a fortnight's break would look like a day.
+// Fluids drunk as a line in millilitres, pouch changes as bars underneath.
+// Deliberately NOT one shared axis: 2000 ml and 3 changes are different units,
+// and putting them on one scale would make the smaller number look like nothing
+// happened. Separate scales, separate shapes, said plainly in the footnote.
+//
+// Points are placed by DATE, not by position in the array, or a fortnight's
+// break would read as a single day. Each series plots only the days it holds a
+// figure: a missing day is a gap, and joining across it would invent a reading.
 function fluidTrendSvg(rows){
-  const W = 240, H = 120, padX = 6, padY = 14;
+  const W = 240, H = 120, padX = 6, padTop = 12, bandH = 26;   // bars live in the bottom band
+  const lineBottom = H - bandH - 6;
   const t0 = rows[0].t, t1 = rows[rows.length-1].t, spanT = Math.max(1, t1 - t0);
-  const vals = rows.flatMap(r => [r.out, r.hyd]).filter(v => v != null);
-  const hi = Math.max(HIGH_OUTPUT_ML * 1.15, ...vals);
   const x = t => padX + (W - 2*padX) * ((t - t0) / spanT);
-  const y = v => padY + (H - 2*padY) * (1 - v / hi);
-  const series = (key, colour) => {
-    const P = rows.filter(r => r[key] != null).map(r => [x(r.t), y(r[key])]);
-    if(!P.length) return '';
-    if(P.length === 1) return `<circle cx="${P[0][0].toFixed(1)}" cy="${P[0][1].toFixed(1)}" r="4" fill="${colour}"/>`;
-    const line = P.map((p,i) => (i?'L':'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-    const last = P[P.length-1];
-    return `<path d="${line}" fill="none" stroke="${colour}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` +
-           `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4" fill="${colour}" stroke="#fff" stroke-width="2"/>`;
-  };
-  const amber = themeColour('--amber','#bf8419'), teal = themeColour('--teal','#2f6f5e');
-  const yHigh = y(HIGH_OUTPUT_ML).toFixed(1);
+  const teal = themeColour('--teal','#2f6f5e'), amber = themeColour('--amber','#bf8419');
+
+  const hyd = rows.filter(r => r.hyd != null);
+  const hiH = Math.max(1, ...hyd.map(r => r.hyd));
+  const yH = v => padTop + (lineBottom - padTop) * (1 - v / hiH);
+  let line = '';
+  if(hyd.length){
+    const P = hyd.map(r => [x(r.t), yH(r.hyd)]);
+    line = P.length === 1
+      ? `<circle cx="${P[0][0].toFixed(1)}" cy="${P[0][1].toFixed(1)}" r="4" fill="${teal}"/>`
+      : `<path d="${P.map((p,i) => (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')}" fill="none" stroke="${teal}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<circle cx="${P[P.length-1][0].toFixed(1)}" cy="${P[P.length-1][1].toFixed(1)}" r="4" fill="${teal}" stroke="#fff" stroke-width="2"/>`;
+  }
+
+  const pou = rows.filter(r => r.pou != null && r.pou > 0);
+  const hiP = Math.max(1, ...pou.map(r => r.pou));
+  const bw = Math.max(3, Math.min(9, (W - 2*padX) / Math.max(rows.length, 1) * 0.55));
+  const bars = pou.map(r => {
+    const h = Math.max(2, (bandH - 4) * (r.pou / hiP));
+    return `<rect x="${(x(r.t) - bw/2).toFixed(1)}" y="${(H - 2 - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="${amber}" opacity=".8"/>`;
+  }).join('');
+
   return `<svg viewBox="0 0 240 120" width="100%" height="120" preserveAspectRatio="none">
-    <line x1="${padX}" y1="${yHigh}" x2="${W-padX}" y2="${yHigh}" stroke="${amber}" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>
-    ${series('hyd', teal)}
-    ${series('out', amber)}
+    <line x1="${padX}" y1="${H - bandH - 2}" x2="${W-padX}" y2="${H - bandH - 2}" stroke="${themeColour('--line','#dfe7e2')}" stroke-width="1"/>
+    ${line}${bars}
   </svg>`;
 }
 
-// The daily care log was write-only until 24 Aug 2026: it recorded millilitres
-// and nothing ever showed them back. This is where they surface.
+// The daily care log was write-only until 24 Aug 2026: it recorded figures and
+// nothing ever showed them back. This is where they surface.
 async function loadFluidTrend(){
   const card = $('#fluidCard'); if(!card) return;
   card.style.display = 'none';
   const { data, error } = await sb.from('care_logs')
-    .select('created_at,output_ml,hydration_ml').order('created_at',{ascending:true}).limit(60);
+    .select('created_at,hydration_ml,pouch_changed').order('created_at',{ascending:true}).limit(60);
   if(error){
     console.warn('[fluid trend] unavailable — is migration 0018 applied?', error.message);
     return;
   }
   const rows = (data || [])
-    .filter(r => r.output_ml != null || r.hydration_ml != null)
-    .map(r => ({ t: new Date(r.created_at).getTime(), out: r.output_ml, hyd: r.hydration_ml }));
+    .filter(r => r.hydration_ml != null || r.pouch_changed != null)
+    .map(r => ({ t: new Date(r.created_at).getTime(), hyd: r.hydration_ml, pou: r.pouch_changed }));
   if(!rows.length) return;                       // nothing recorded: no empty chart
   card.style.display = '';
   $('#fluidChart').innerHTML = fluidTrendSvg(rows);
 
-  const outs = rows.map(r => r.out).filter(v => v != null);
   const hyds = rows.map(r => r.hyd).filter(v => v != null);
-  const high = outs.filter(v => v >= HIGH_OUTPUT_ML).length;
-  // Stated as a count, not as a verdict. "3 days at or above 1500 ml" is a fact
-  // a patient can take to a nurse; "your output is concerning" is an opinion
-  // this app is not entitled to.
+  const pous = rows.map(r => r.pou).filter(v => v != null);
+  // A typical figure, not a verdict. The app reports what was recorded and
+  // leaves what it means to the patient and their nurse.
   const pill = $('#fluidPill');
-  pill.textContent = high ? `${high} day${high===1?'':'s'} ≥ ${HIGH_OUTPUT_ML} ml` : 'No high-output days';
-  pill.className = 'pill ' + (high ? 'a' : 'g');
+  pill.textContent = hyds.length
+    ? `typically ${Math.round(hyds.reduce((a,b)=>a+b,0)/hyds.length)} ml a day`
+    : `${pous.length} day${pous.length===1?'':'s'} logged`;
+  pill.className = 'pill t';
   const last = rows[rows.length-1];
   $('#fluidLegend').innerHTML =
-    (last.out != null ? `<span><b style="color:${themeColour('--amber','#bf8419')}">${last.out} ml</b> out</span>` : '') +
-    (last.hyd != null ? `<span><b style="color:${themeColour('--teal','#2f6f5e')}">${last.hyd} ml</b> in</span>` : '') +
-    `<span style="margin-left:auto">${rows.length} day${rows.length===1?'':'s'} logged` +
-    (outs.length > 1 ? ` · typical ${Math.round(outs.reduce((a,b)=>a+b,0)/outs.length)} ml out` : '') + `</span>`;
+    (last.hyd != null ? `<span><b style="color:${themeColour('--teal','#2f6f5e')}">${last.hyd} ml</b> drunk</span>` : '') +
+    (last.pou != null ? `<span><b style="color:${themeColour('--amber','#bf8419')}">${last.pou}</b> pouch change${last.pou===1?'':'s'}</span>` : '') +
+    `<span style="margin-left:auto">${rows.length} day${rows.length===1?'':'s'} logged</span>`;
 }
 
 async function loadSizeTrend(){
@@ -3365,7 +3381,9 @@ async function loadCupboardLowBadge(){
 const CL_CONSISTENCY = ['Liquid','Porridge','Thick','Formed'];
 const CL_SKIN        = ['Healthy','Pink','Red','Broken'];
 const CL_LEAK        = ['No','Yes'];
-// The one figure here that is measured rather than felt. Around 1500ml/day is
+// Retained for HISTORIC rows only. Output in millilitres is no longer collected
+// (see the daily care form), but rows recorded before 24 Aug 2026 have real
+// figures in them and "Recent days" still flags the high ones. Around 1500ml/day is
 // where dehydration becomes a real concern on an ileostomy, so it is shown back
 // as a plain note — never as advice, and never as a diagnosis.
 const HIGH_OUTPUT_ML = 1500;
@@ -3416,7 +3434,7 @@ function careLogRow(r){
 async function loadDailyCare(){
   cl = {};
   renderCareChips();
-  ['clOutput','clHydration','clPouch','clFood','clSymptoms'].forEach(id => { const e = $('#'+id); if(e) e.value=''; });
+  ['clHydration','clPouch','clFood','clSymptoms'].forEach(id => { const e = $('#'+id); if(e) e.value=''; });
   wireChkPill($('#clHistPill'), $('#clHistWrap'), {show:'Recent days', hide:'Recent days'});
   $('#clSave').onclick = saveCareLog;
   const { data, error } = await sb.from('care_logs')
@@ -3438,7 +3456,7 @@ async function saveCareLog(){
   const num = id => { const v = $('#'+id).value.trim(); if(!v) return null;
     const n = parseInt(v,10); return Number.isFinite(n) ? n : null; };
   const row = {
-    output_ml: num('clOutput'), hydration_ml: num('clHydration'), pouch_changed: num('clPouch'),
+    hydration_ml: num('clHydration'), pouch_changed: num('clPouch'),
     consistency: cl.consistency || null,
     skin_status: cl.skin_status || null,
     // Same rule as the check-in: unanswered stays null, because "not asked"
@@ -3459,11 +3477,11 @@ async function saveCareLog(){
     toast('That didn’t save — please try again');
     return;
   }
-  // Reflected back, not interpreted. The app does not tell anyone what a number
-  // means; it tells them it is worth mentioning.
-  toast(row.output_ml >= HIGH_OUTPUT_ML
-    ? 'Saved. That’s a high output day — worth telling your nurse'
-    : 'Saved ✓');
+  // The high-output prompt went with the output field on 24 Aug 2026: it can no
+  // longer fire, because nothing collects the millilitres it read. Left as a
+  // ternary on an undefined field it would have been quietly dead code that
+  // still looked like a safety net.
+  toast('Saved ✓');
   loadDailyCare();
 }
 
