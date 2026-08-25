@@ -4360,6 +4360,17 @@ function cupIcon(name){
   return `<svg viewBox="0 0 24 24">${hit ? hit[1] : CUP_ICON_DEFAULT}</svg>`;
 }
 
+// The places this patient ticked, plus whatever is already on the item. An
+// unticked supplier is not deleted from an item that still comes from them:
+// the cupboard is a record of what happens, not of what the settings say.
+function supplierOptions(current){
+  const opts = [...mySuppliers];
+  if(current && !opts.includes(current)) opts.push(current);
+  if(!opts.length) return '<option value="">Tick a supplier above first</option>';
+  return '<option value="">Not set</option>' + opts.map(s =>
+    `<option value="${esc(s)}"${s === current ? ' selected' : ''}>${esc(s)}</option>`).join('');
+}
+
 function cupRow(it){
   const today = new Date(); today.setHours(0,0,0,0);
   const due = it.remind_on ? new Date(it.remind_on + 'T00:00:00') : null;
@@ -4387,6 +4398,17 @@ function cupRow(it){
       </label>
       <button class="btn ghost cupdel" style="width:auto;padding:5px 12px;margin-left:auto;opacity:.65" aria-label="Remove ${esc(it.name)} from your cupboard">Remove</button>
     </div>
+    <!-- Who sends this one. Virginia, 25 Aug 2026: people order different
+         products from different places, so the cupboard has to say which is
+         which. The options are the places THIS patient ticked, plus whatever
+         was already saved here — a supplier they have since unticked must not
+         vanish from an item that still comes from them. -->
+    <label class="fl" style="margin:9px 0 0;display:flex;align-items:center;gap:7px">
+      <span>From</span>
+      <select class="input cupsup" style="width:auto;margin:0" aria-label="Supplier for ${esc(it.name)}">
+        ${supplierOptions(it.supplier)}
+      </select>
+    </label>
   </div>`;
 }
 
@@ -4452,12 +4474,14 @@ function renderCupboard(){
     const id = row.dataset.id;
     row.querySelector('.cupdate').onchange = e => setCupReminder(id, e.target.value || null);
     row.querySelector('.cupdel').onclick   = () => removeCupItem(id);
+    const sup = row.querySelector('.cupsup');
+    if(sup) sup.onchange = e => setCupSupplier(id, e.target.value || null);
   });
 }
 
 async function loadCupboard(){
   const { data, error } = await sb.from('supply_items')
-    .select('id,name,remind_on,updated_at').order('name');
+    .select('id,name,remind_on,updated_at,supplier').order('name');
   if(error){
     // migration 0017 not applied yet: say nothing alarming, log the real reason.
     cupboardAvailable = false;
@@ -4505,7 +4529,7 @@ async function addCupItem(){
     user_id: u.id,
     name,
     remind_on: $('#cupRemind').value || null,
-  }).select('id,name,remind_on,updated_at').single();
+  }).select('id,name,remind_on,updated_at,supplier').single();
   btn.disabled = false;
   if(error){
     console.error('[cupboard] add failed', error.message);
@@ -4518,6 +4542,22 @@ async function addCupItem(){
   loadCupboardLowBadge();
   toast('Added to your cupboard');
   $('#cupName').focus();          // adding one usually means adding three
+}
+
+// Saved the moment it changes, like the reminder date. No Save button: a
+// dropdown that needs confirming is a dropdown people leave half-set.
+async function setCupSupplier(id, name){
+  const it = cupboard.find(x => x.id === id); if(!it) return;
+  const was = it.supplier;
+  it.supplier = name;                                    // optimistic
+  const { error } = await sb.from('supply_items').update({ supplier:name }).eq('id', id);
+  if(error){
+    it.supplier = was; renderCupboard();
+    console.error('[cupboard] supplier save failed', error.message);
+    toast('That didn\u2019t save — please try again');
+    return;
+  }
+  toast(name ? `${it.name}: ${name}` : `${it.name}: supplier cleared`);
 }
 
 async function removeCupItem(id){
