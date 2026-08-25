@@ -1304,7 +1304,13 @@
           <input class="input" id="cupName" placeholder="e.g. Drainable pouch 60mm" maxlength="80">
           <label class="fl" style="display:block;margin:0 0 5px">Remind me to reorder on</label>
           <input class="input" id="cupRemind" type="date">
-          <div class="ssub" style="margin:-4px 0 0">You can change the date any time. Leave it blank and the item is just listed.</div>
+          <!-- Supplier belongs HERE as well as on the row. Setting it after the
+               fact meant adding the item, finding it again in a folded list and
+               changing a dropdown - three steps for something you knew when you
+               typed the name. Filled in from the places already ticked. -->
+          <label class="fl" style="display:block;margin:10px 0 5px">Who sends it?</label>
+          <select class="input" id="cupSupplier"></select>
+          <div class="ssub" style="margin:-4px 0 0">You can change the date or the supplier any time. Leave the date blank and the item is just listed.</div>
           <button class="btn ghost" id="cupAddBtn" style="margin-top:10px">Add to cupboard</button>
         </div>
       </div>
@@ -4306,6 +4312,11 @@ function renderSuppliers(){
   const supToggle = $('#supPill').onclick;
   $('#supPill').onclick = () => { supToggle(); supListOpen = !$('#supWrap').classList.contains('collapsed'); };
   if(supListOpen || !n) supPillApi?.open();
+  // The add-item form offers the same list, and has to follow it: ticking a new
+  // supplier and finding it missing from the form a moment later is the kind of
+  // small lie that makes someone stop trusting the rest.
+  const addSel = $('#cupSupplier');
+  if(addSel){ const keep = addSel.value; addSel.innerHTML = supplierOptions(keep); }
   $('#supplierLinks').innerHTML = mySuppliers.filter(s => SUPPLIER_URL[s]).map(s =>
     `<a class="sup-open attn" href="${esc(SUPPLIER_URL[s])}" target="_blank" rel="noopener noreferrer">${esc(SUPPLIER_CTA[s] || `Browse ${s} products ↗`)}</a>`).join('');
 }
@@ -4566,6 +4577,7 @@ async function addCupItem(){
     user_id: u.id,
     name,
     remind_on: $('#cupRemind').value || null,
+    supplier: $('#cupSupplier')?.value || null,
   }).select('id,name,remind_on,updated_at,supplier').single();
   btn.disabled = false;
   if(error){
@@ -4575,6 +4587,8 @@ async function addCupItem(){
   }
   cupboard = [...cupboard, data].sort((a,b) => a.name.localeCompare(b.name));
   $('#cupName').value = ''; $('#cupRemind').value = '';
+  // The supplier is NOT cleared: adding one item usually means adding three, and
+  // they usually come from the same place.
   renderCupboard();
   loadCupboardLowBadge();
   toast('Added to your cupboard');
