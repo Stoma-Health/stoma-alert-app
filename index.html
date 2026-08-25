@@ -4501,10 +4501,18 @@ function renderCupboard(){
   const todayK = (() => { const d = new Date(); d.setHours(0,0,0,0);
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
   const low = cupboard.filter(i => i.remind_on && i.remind_on <= todayK);
+  // The banner has to agree with the rows beneath it. It used to paint every
+  // waiting item amber, so something the list called Overdue in red was amber
+  // three centimetres above - the same item, two colours, and the quieter one
+  // on top. Now the ground follows the most urgent thing in it and each name
+  // carries its own state.
+  const overdueItems = low.filter(i => i.remind_on < todayK);
+  const anyOverdue = overdueItems.length > 0;
   const banner = low.length
-    ? `<div style="margin:0 0 12px;padding:11px 12px;border-radius:10px;background:var(--amber-soft);color:var(--amber)">
+    ? `<div style="margin:0 0 12px;padding:11px 12px;border-radius:10px;background:var(--${anyOverdue ? 'red' : 'amber'}-soft);color:var(--${anyOverdue ? 'red' : 'amber'})">
          <div style="font-size:12.5px;font-weight:700;margin-bottom:5px">Time to order</div>
-         <div style="font-size:12.5px;font-weight:600;line-height:1.5">${low.map(i => esc(i.name)).join(' &middot; ')}</div>
+         <div style="font-size:12.5px;font-weight:600;line-height:1.5">${low.map(i =>
+           `<span style="color:var(--${i.remind_on < todayK ? 'red' : 'amber'})">${esc(i.name)}</span>`).join('<span style="opacity:.5"> &middot; </span>')}</div>
          <!-- The per-supplier "Order from X" buttons came off 25 Aug 2026.
               "Where I order" sits a few centimetres below with a Browse link
               for every supplier, so this was the same set of links twice, and
