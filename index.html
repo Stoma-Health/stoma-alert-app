@@ -96,6 +96,25 @@
     --red:#b4442c; --red-soft:#fbeae5;
   }
 
+  /* Brand — the logo's own two colours, sampled from stoma-assets/logo.jpg:
+     navy #1d396b and green #6fbf9a. Virginia, 25 Aug 2026: the logo is blue and
+     green, the app is only green.
+
+     The trick is WHERE the blue goes. Navy as a ground is what made the app
+     cold on 19 Aug, so it does not become one here. Instead it takes the deep
+     end of every gradient and the headings, while the ground, the actions and
+     the status colours stay sage. The dark panels then run green-into-navy,
+     which is the logo's own move: two colours turning into each other. */
+  body[data-theme="brand"]{
+    --navy:#1d396b; --navy-soft:#e9eef7;
+    --teal-deep:#1d396b;          /* deep end of every panel gradient */
+  }
+  body[data-theme="brand"] .h,
+  body[data-theme="brand"] .rep-h{ color:var(--navy); }
+  /* .kic stays green: the eyebrow and the heading below it become the logo's
+     two colours stacked, which is the whole point. Status colours are never
+     touched — red, amber and green are clinical signal, not decoration. */
+
   /* The original navy, kept reachable so the change can be compared against
      what it replaced rather than remembered. */
   body[data-theme="navy"]{
@@ -4875,7 +4894,7 @@ function friendlyError(err, what){
 {
   const q = new URLSearchParams(location.search);
   const t = q.get('theme');
-  if(['warm','navy','dusk'].includes(t)) document.body.dataset.theme = t;
+  if(['warm','navy','dusk','brand'].includes(t)) document.body.dataset.theme = t;
   const soft = q.get('soft');
   if(soft === '0') document.body.dataset.soft = '0';   // the original flat look
   const look = q.get('look');
