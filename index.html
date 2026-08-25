@@ -437,43 +437,49 @@
   .hero .smt{max-width:36ch;line-height:1.6;position:relative;z-index:1;}
   .hpill{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;
     background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);position:relative;z-index:1;
-    font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;}
+    font-size:10px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;}
   .hpill i{width:6px;height:6px;border-radius:50%;background:var(--hero-accent);flex:0 0 auto;}
   .hero-cta{display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin-top:17px;position:relative;z-index:1;}
   .hero .hbtn{width:auto;min-height:44px;padding:0 17px;background:#fff;color:var(--teal-deep);
-    border:none;font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;}
+    border:none;font-weight:700;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;}
   .hero .hbtn svg{width:17px;height:17px;stroke:var(--teal-deep);fill:none;stroke-width:2;}
   /* Nothing here nags. The badge appears only when something is actually due,
      and says how many, so it can be believed rather than tuned out. */
   .duepill{display:none;margin-left:7px;padding:2px 8px;border-radius:999px;font-size:11px;
-    font-weight:800;letter-spacing:.02em;background:#fff;color:var(--amber);vertical-align:middle;}
+    font-weight:700;letter-spacing:.02em;background:#fff;color:var(--amber);vertical-align:middle;}
   .duepill.on{display:inline-block;}
   /* Same idea on a paper card rather than the sage hero. */
   .lowpill{display:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;
-    font-weight:800;letter-spacing:.02em;background:var(--amber-soft);color:var(--amber);vertical-align:middle;}
+    font-weight:700;letter-spacing:.02em;background:var(--amber-soft);color:var(--amber);vertical-align:middle;}
   .lowpill.on{display:inline-block;}
   .hlink{background:none;border:none;color:#fff;opacity:.88;font:inherit;font-weight:700;
     font-size:13px;cursor:pointer;padding:4px 0;}
   .hero-trust{display:flex;flex-wrap:wrap;gap:7px 15px;margin-top:18px;opacity:.6;position:relative;z-index:1;
-    font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;}
+    font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
   .hero-trust span{display:inline-flex;align-items:center;gap:5px;}
   .hero-trust svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:1.8;}
   .hero-panel{position:relative;z-index:1;margin-top:20px;padding:15px;border-radius:16px;
     background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);}
   .hp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-  .hp-head b{display:block;font-size:13.5px;font-weight:800;}
+  .hp-head b{display:block;font-size:13.5px;font-weight:700;}
   .hp-head > div > span{font-size:11px;opacity:.6;}
-  .hp-state{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;
+  .hp-state{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;
     letter-spacing:.06em;opacity:.9;white-space:nowrap;}
   .hp-state i{width:6px;height:6px;border-radius:50%;background:var(--hero-accent);flex:0 0 auto;}
   .hp-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:15px;}
+  /* The steps you have not reached yet were at .48 opacity, which was already
+     faint on the sage panel and became unreadable once the panel went navy on
+     25 Aug. They are BUTTONS — a control you cannot read is a control you do
+     not press. Raised to .82, with a stronger tile behind the icon and a
+     slightly larger label. The current step still stands out, because it is
+     solid accent against translucent white rather than merely brighter. */
   .hp-step{background:none;border:none;font:inherit;color:#fff;cursor:pointer;text-align:center;
-    padding:0;opacity:.48;}
-  .hp-step .n{font-size:9px;font-weight:800;letter-spacing:.1em;}
-  .hp-step i{display:flex;align-items:center;justify-content:center;width:36px;height:36px;
-    margin:5px auto;border-radius:11px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);}
-  .hp-step svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:1.8;}
-  .hp-step .l{font-size:10px;font-weight:700;}
+    padding:0;opacity:.82;}
+  .hp-step .n{font-size:9.5px;font-weight:700;letter-spacing:.1em;}
+  .hp-step i{display:flex;align-items:center;justify-content:center;width:38px;height:38px;
+    margin:5px auto;border-radius:11px;background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.3);}
+  .hp-step svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;}
+  .hp-step .l{font-size:10.5px;font-weight:600;}
   .hp-step.on{opacity:1;}
   .hp-step.on i{background:var(--hero-accent);border-color:transparent;}
   .hp-step.on svg{stroke:var(--teal-deep);}
@@ -486,7 +492,7 @@
   .hp-now .hic{display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex:0 0 auto;
     border-radius:11px;background:var(--hero-accent);}
   .hp-now .hic svg{width:19px;height:19px;stroke:var(--teal-deep);fill:none;stroke-width:1.9;}
-  .hp-now .k{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--hero-accent);}
+  .hp-now .k{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--hero-accent);}
   .hp-now .t{font-family:var(--display);font-size:15px;font-weight:700;margin-top:2px;}
   .hp-now .d{font-size:11.5px;opacity:.72;margin-top:3px;line-height:1.45;}
   .hp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));margin-top:13px;
@@ -510,16 +516,16 @@
   .why{background:var(--paper);border:1px solid var(--line);border-radius:14px;
     padding:12px 13px;margin-top:9px;display:none;}
   .why.on{display:block;}
-  .why .wh{font-weight:800;font-size:13px;margin-bottom:5px;}
+  .why .wh{font-weight:700;font-size:13px;margin-bottom:5px;}
   .why ul{margin:6px 0 0;padding-left:17px;}
   .why li{font-size:12.5px;line-height:1.5;}
   .stat .si{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 auto;
     border-radius:9px;background:var(--teal-soft);}
   .stat .si svg{width:16px;height:16px;stroke:var(--teal-deep);fill:none;stroke-width:1.8;}
   .stat .sb{flex:1;min-width:0;}
-  .stat .sl{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--mist);}
+  .stat .sl{font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--mist);}
   .stat .sd{font-size:11px;font-weight:700;color:var(--ink);margin-top:1px;}
-  .stat .sv{font-family:var(--display);font-weight:800;font-size:18px;color:var(--teal);flex:0 0 auto;}
+  .stat .sv{font-family:var(--display);font-weight:700;font-size:18px;color:var(--teal);flex:0 0 auto;}
   .stat .sv em{font-style:normal;font-size:11px;font-weight:600;color:var(--mist);}
   /* A tile that can be opened has to look like one. Without this the panel
      existed and nobody had any reason to go looking for it. */
@@ -532,7 +538,7 @@
   .stat.open{border-color:var(--teal);}
   .statshint{font-size:11.5px;color:var(--mist);margin-top:8px;text-align:center;}
   .tickbox{flex:0 0 auto;width:22px;height:22px;margin-right:9px;border-radius:7px;cursor:pointer;
-    border:1.5px solid var(--line);background:var(--paper);color:#fff;font-size:13px;font-weight:800;
+    border:1.5px solid var(--line);background:var(--paper);color:#fff;font-size:13px;font-weight:700;
     display:flex;align-items:center;justify-content:center;font-family:var(--ui);}
   .tickbox.on{background:var(--teal);border-color:var(--teal);}
   .chipset{display:flex;flex-wrap:wrap;gap:7px;}
@@ -547,9 +553,9 @@
   .swatches{display:flex;flex-wrap:wrap;gap:9px;align-items:flex-start;padding-bottom:16px;}
   .swatch{width:34px;height:34px;border-radius:9px;border:2px solid var(--line);cursor:pointer;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);}
   .swatch.on{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
-  .swatch.on::after{content:"\2713";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);}
+  .swatch.on::after{content:"\2713";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);}
   .swatch .cx{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:9px;color:var(--mist);white-space:nowrap;}
-  .qnum{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;background:var(--teal-soft);color:var(--teal-deep);font-size:11px;font-weight:800;flex:0 0 auto;}
+  .qnum{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;background:var(--teal-soft);color:var(--teal-deep);font-size:11px;font-weight:700;flex:0 0 auto;}
   .ivflags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
   .ivflag{font-size:10.5px;font-weight:600;color:var(--slate);background:var(--wash);border:1px solid var(--line);border-radius:100px;padding:2px 8px;}
   .ivflag.bad{color:var(--red);background:var(--red-soft);border-color:rgba(192,73,47,.2);}
@@ -799,7 +805,7 @@
   .entry .nm{font-weight:700;font-size:14px;} .entry .when{font-size:11.5px;color:var(--mist);margin-left:auto;}
   .entry .chips{display:flex;gap:6px;flex-wrap:wrap;}
   .chip{font-size:11px;font-weight:600;padding:4px 9px;border-radius:100px;background:var(--wash);color:var(--slate);border:1px solid var(--line);}
-  .chip b{font-weight:800;}
+  .chip b{font-weight:700;}
   .flagdot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
   .flagdot.g{background:var(--green);} .flagdot.a{background:var(--amber);} .flagdot.r{background:var(--red);}
   .entry .note{font-size:12.5px;color:var(--slate);margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);}
@@ -2497,7 +2503,7 @@ function renderChartResult(el, m){
   im.style.cssText = 'width:100%;border-radius:12px;border:1px solid var(--line);margin-top:6px';
   const sizeHtml = measured
     ? `<div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 6px">
-         <span style="font-size:26px;font-weight:800;color:var(--ink)">${measured.equiv.toFixed(1)}<span style="font-size:14px;font-weight:600"> mm</span></span>
+         <span style="font-size:26px;font-weight:700;color:var(--ink)">${measured.equiv.toFixed(1)}<span style="font-size:14px;font-weight:600"> mm</span></span>
          <span style="font-size:11px;color:var(--mist)">widest ${measured.maxd.toFixed(1)} mm · area ${measured.area.toFixed(0)} mm²${measured.ell?` · ${measured.ell[0].toFixed(0)}×${measured.ell[1].toFixed(0)} mm`:''}</span>
        </div>`
     : `<div class="qwarn a">Chart corrected, but the stoma outline wasn't clear enough to size — centre it in the window and retake.</div>`;
