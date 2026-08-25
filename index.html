@@ -529,9 +529,17 @@
   /* No two-column variant on purpose. .app is capped at 480px, so a viewport
      media query would fire on a desktop window while the card itself stayed
      phone-width, and the columns would collapse into each other. */
-  .statrow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px;}
-  .stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:11px;
-    display:flex;align-items:center;gap:9px;
+  /* minmax(0,1fr), not 1fr. A bare 1fr track has an auto minimum, so it refuses
+     to go below the tile's min-content width - and "Latest rating" is nowrap.
+     At 375px that pushed the right-hand column 17px past the edge and clipped
+     its chevron silently, because the overflow does not scroll. */
+  .statrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;}
+  /* Padding, gap and icon are all a notch tighter than they look like they want
+     to be. Two tiles across a 375px phone leaves the label about 70px, and
+     "Latest rating" needs 65 of them. Loosen any of these three and it goes
+     back to reading "Latest r...". */
+  .stat{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:9px;
+    display:flex;align-items:center;gap:7px;
     width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;}
   .stat:active{transform:scale(.995);}
   /* Two of the four ratings are picked and two are worked out. This panel is
@@ -542,13 +550,13 @@
   .why .wh{font-weight:700;font-size:13px;margin-bottom:5px;}
   .why ul{margin:6px 0 0;padding-left:17px;}
   .why li{font-size:12.5px;line-height:1.5;}
-  .stat .si{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:0 0 auto;
+  .stat .si{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:0 0 auto;
     border-radius:9px;background:var(--teal-soft);}
   .stat .si svg{width:16px;height:16px;stroke:var(--teal-deep);fill:none;stroke-width:1.8;}
   .stat .sb{flex:1;min-width:0;}
   .stat .sl{font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--mist);}
-  .stat .sd{font-size:11px;font-weight:700;color:var(--ink);margin-top:1px;}
-  .stat .sv{font-family:var(--display);font-weight:700;font-size:18px;color:var(--teal);flex:0 0 auto;}
+  .stat .sd{font-size:10.5px;font-weight:700;color:var(--ink);margin-top:1px;}
+  .stat .sv{font-family:var(--display);font-weight:700;font-size:17px;color:var(--teal);flex:0 0 auto;}
   .stat .sv em{font-style:normal;font-size:11px;font-weight:600;color:var(--mist);}
   /* A tile that can be opened has to look like one. Without this the panel
      existed and nobody had any reason to go looking for it. */
@@ -573,11 +581,17 @@
   .subq{margin-top:12px;padding-left:12px;border-left:2px solid var(--teal-soft);}
   .subq.hidden{display:none;}
   .hidden{display:none;}
-  .swatches{display:flex;flex-wrap:wrap;gap:9px;align-items:flex-start;padding-bottom:16px;}
+  /* A four-column grid, not a flex row. The labels sit under the swatches and
+     "Transparent" is nearly twice the width of the 34px chip it belongs to - as
+     a centred absolute label it ran straight over "White" next to it. The cell
+     is what carries the width now, so the longest word sets the spacing. */
+  .swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;
+    justify-items:center;padding-bottom:4px;}
+  .swcell{display:flex;flex-direction:column;align-items:center;gap:3px;max-width:100%;}
   .swatch{width:34px;height:34px;border-radius:9px;border:2px solid var(--line);cursor:pointer;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04);}
   .swatch.on{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);}
   .swatch.on::after{content:"\2713";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55);}
-  .swatch .cx{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;font-size:9px;color:var(--mist);white-space:nowrap;}
+  .swcell .cx{font-size:9px;color:var(--mist);text-align:center;line-height:1.2;max-width:100%;}
   .qnum{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;background:var(--teal-soft);color:var(--teal-deep);font-size:11px;font-weight:700;flex:0 0 auto;}
   .ivflags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
   .ivflag{font-size:10.5px;font-weight:600;color:var(--slate);background:var(--wash);border:1px solid var(--line);border-radius:100px;padding:2px 8px;}
@@ -1738,7 +1752,7 @@ function chipSetHtml(kind, name, opts){ // kind: 'multi' | 'single'
 }
 function swatchHtml(name){
   return `<div class="swatches">` + IV_COLOURS.map(([lbl,hex]) =>
-    `<div class="swatch" data-swatch="${name}" data-val="${lbl}" title="${lbl}" style="background:${hex}"><span class="cx">${lbl}</span></div>`
+    `<div class="swcell"><div class="swatch" data-swatch="${name}" data-val="${lbl}" title="${lbl}" style="background:${hex}"></div><span class="cx">${lbl}</span></div>`
   ).join('') + `</div>`;
 }
 let mode = 'signin';
