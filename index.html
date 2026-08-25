@@ -1299,7 +1299,14 @@
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Where I order</div>
         <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Tick everywhere you order from. Pick as many as you use.</div>
-        <div id="supplierPicker" role="group" aria-label="Choose where you order from"></div>
+        <!-- The LIST folds away, the LINKS do not. Choosing a supplier is a
+             once-a-year job and the list only grows; ordering from one is the
+             thing you came here to do. Same call as the cupboard: collapsing is
+             about length, never about hiding the thing you act on. -->
+        <button class="chkPill" id="supPill" type="button" aria-expanded="false" aria-controls="supWrap"><span class="chkLbl">Where I order</span><span class="chev">&#9662;</span></button>
+        <div class="chkList collapsed" id="supWrap">
+          <div id="supplierPicker" role="group" aria-label="Choose where you order from"></div>
+        </div>
         <div id="supplierLinks"></div>
       </div>
       <!-- "Reorder now" removed 2026-08-24. It wrote a row to `reorders` and said
@@ -4224,6 +4231,9 @@ const SUPPLIER_ADVICE = {   // optional secondary "advice & support" link for su
 // user_metadata, which the patient owns and can change — fine for a delivery
 // preference, and note this is not a place for anything a policy trusts.
 let mySuppliers = [];
+let supPillApi = null;
+// Starts shut once a supplier is set: a chosen list is reference, not a task.
+let supListOpen = false;
 let mySupplier = null;           // the primary, = mySuppliers[0]
 function syncPrimarySupplier(){ mySupplier = mySuppliers[0] || null; }
 function renderSuppliers(){
@@ -4249,6 +4259,18 @@ function renderSuppliers(){
   box.querySelectorAll('.supRow').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
   $('#supplierLine').textContent = mySuppliers.length ? listNames(mySuppliers) : 'your chosen DAC supplier';
   // One link per place they order from, in the order they picked them.
+  // The pill carries the count, so a folded list still says how many are set —
+  // and reads "Choose where you order" when none are, which is the one case
+  // where the list should be the first thing you see.
+  // renderSuppliers runs again on every tick, and wireChkPill resets to shut.
+  // Without remembering the state the list would slam closed under the finger
+  // of anyone choosing a second supplier. Same fix as the cupboard.
+  const n = mySuppliers.length;
+  supPillApi = wireChkPill($('#supPill'), $('#supWrap'),
+    { show: n ? `Where I order (${n})` : 'Choose where you order', hide: 'Hide the list' });
+  const supToggle = $('#supPill').onclick;
+  $('#supPill').onclick = () => { supToggle(); supListOpen = !$('#supWrap').classList.contains('collapsed'); };
+  if(supListOpen || !n) supPillApi?.open();
   $('#supplierLinks').innerHTML = mySuppliers.filter(s => SUPPLIER_URL[s]).map(s =>
     `<a class="sup-open attn" href="${esc(SUPPLIER_URL[s])}" target="_blank" rel="noopener noreferrer">${esc(SUPPLIER_CTA[s] || `Browse ${s} products ↗`)}</a>`).join('');
 }
