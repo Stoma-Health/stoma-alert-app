@@ -3171,9 +3171,16 @@ async function loadNurseShared(userId){
     (L.length ? `<div class="rep-h" style="margin:2px 2px 8px">Daily care (${L.length})</div>` + L.map(r => careLogRow(r, true)).join('') : '') +
     (N.length ? `<div class="rep-h" style="margin:14px 2px 8px">Notes (${N.length})</div>` + N.map(noteCard).join('') : '');
 }
+// Re-wired rather than over-written, for the reason set out on
+// setNotesPillCount: a label painted over the top of wireChkPill's own strings
+// survives exactly until the first tap.
 function setSharedPillCount(n){
-  const pill = $('#ndSharedPill'), lbl = pill?.querySelector('.chkLbl');
-  if(lbl && !pill.classList.contains('open')) lbl.textContent = n ? `Daily care & notes (${n})` : 'Daily care & notes';
+  const pill = $('#ndSharedPill'), wrap = $('#ndSharedWrap');
+  if(!pill || !wrap) return;
+  const wasOpen = !wrap.classList.contains('collapsed');
+  const api = wireChkPill(pill, wrap,
+    { show: n ? `Daily care & notes (${n})` : 'Daily care & notes', hide: 'Daily care & notes' });
+  if(wasOpen) api?.open();
 }
 
 // ---------- nurse: the care plan and the cupboard ----------
@@ -3210,8 +3217,12 @@ async function loadNursePlan(userId){
 }
 
 function setPhotoPillCount(n){
-  const lbl = $('#ndetailPhotoPill')?.querySelector('.chkLbl');
-  if(lbl && !$('#ndetailPhotoPill').classList.contains('open')) lbl.textContent = n ? `Show photo diary (${n})` : 'Show photo diary';
+  const pill = $('#ndetailPhotoPill'), wrap = $('#ndetailPhotosWrap');
+  if(!pill || !wrap) return;
+  const wasOpen = !wrap.classList.contains('collapsed');
+  const api = wireChkPill(pill, wrap,
+    { show: n ? `Show photo diary (${n})` : 'Show photo diary', hide: 'Hide photo diary' });
+  if(wasOpen) api?.open();
 }
 
 // ---------- history ----------
@@ -4120,10 +4131,19 @@ let notes = [];
 // Same trick as setPhotoPillCount: only rewrite the label while the pill is
 // closed. Writing a count into it while open would overwrite the "hide" text
 // that wireChkPill owns, and the two would then fight every time it is tapped.
+// The count has to live INSIDE the labels wireChkPill is given, not be written
+// over the top of them. Setting the text afterwards worked until the first tap:
+// every toggle re-applies show/hide from the options it was wired with, so the
+// count vanished the moment the drawer was opened and shut again. Same shape as
+// the cupboard's "Your items (5)", which is why that one never lost its number.
 function setNotesPillCount(n){
-  const pill = $('#notesPill'); if(!pill) return;
-  const lbl = pill.querySelector('.chkLbl');
-  if(lbl && !pill.classList.contains('open')) lbl.textContent = n ? `Saved notes (${n})` : 'Saved notes';
+  const pill = $('#notesPill'), wrap = $('#noteListWrap');
+  if(!pill || !wrap) return;
+  const wasOpen = !wrap.classList.contains('collapsed');
+  const api = wireChkPill(pill, wrap,
+    { show: n ? `Saved notes (${n})` : 'Saved notes', hide: 'Hide notes' });
+  // wireChkPill closes on wiring; put it back if the patient had it open.
+  if(wasOpen) api?.open();
 }
 
 function renderNotes(){
@@ -4158,12 +4178,12 @@ async function loadDiaryNotes(){
   $('#noteAddBtn').onclick = addNote;
   const { data, error } = await sb.from('diary_notes')
     .select('id,title,body,created_at,shared_with_nurse').order('created_at',{ascending:false});
-  // Wired after the fetch so the pill can carry the count on first paint,
-  // rather than saying "Saved notes" and correcting itself a moment later.
-  wireChkPill($('#notesPill'), $('#noteListWrap'), {show:'Saved notes', hide:'Saved notes'});
+  // The pill is wired by setNotesPillCount, from renderNotes, so it is only
+  // ever wired with the count already in the label.
   if(error){
     console.warn('[notes] unavailable — is migration 0019 applied?', error.message);
     $('#noteList').innerHTML = '<div class="empty" style="padding:14px 8px">Not switched on yet.</div>';
+    setNotesPillCount(0);
     return;
   }
   notes = data || [];
