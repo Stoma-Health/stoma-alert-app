@@ -16,9 +16,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
-<!-- Type trials, 25 Aug 2026. Loaded only so ?type= can be judged on a device;
-     drop the ones we do not choose rather than carrying four families. -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Manrope is the app's face as of 25 Aug 2026, so it loads for everyone.
+     The other trial faces are fetched only if ?type= asks for them: nobody
+     should download three typefaces they will never see. -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     /* Sage. Chosen 19 Aug 2026 over the original navy, which was cold enough
@@ -682,6 +683,17 @@
   .suppliers{display:flex;flex-wrap:wrap;gap:8px;}
   .sup{font-size:12px;font-weight:600;color:var(--slate);background:var(--paper);border:1.5px solid var(--line);border-radius:100px;padding:8px 13px;cursor:pointer;font-family:var(--ui);}
   .sup.on{border-color:var(--teal);background:var(--teal-soft);color:var(--teal-deep);}
+  /* Where I order — a tick list. Each row is the full width so a long supplier
+     name never reflows the grid, and the tick says "this is mine" more plainly
+     than a filled pill does. */
+  .supRow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;
+    border:0;border-top:1px solid var(--line);padding:12px 2px;cursor:pointer;font-family:var(--ui);
+    font-size:13.5px;font-weight:600;color:var(--ink);}
+  .supRow:first-child{border-top:0;}
+  .supRow .tick{flex:0 0 auto;width:21px;height:21px;border-radius:50%;border:1.5px solid var(--line);
+    display:grid;place-items:center;font-size:11px;color:transparent;}
+  .supRow[aria-pressed="true"] .tick{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .supRow .go{margin-left:auto;color:var(--mist);font-size:12px;}
   .sup:active{transform:scale(.97);}
   .opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:10px;cursor:pointer;font-family:var(--ui);}
   .opt:active{transform:scale(.995);}
@@ -803,7 +815,12 @@
   .ribbon{text-align:center;font-size:10.5px;color:var(--amber);background:var(--amber-soft);padding:5px;font-weight:700;letter-spacing:.04em;}
 </style>
 </head>
-<body>
+<!-- The look, chosen 25 Aug 2026. These are the defaults now, not trials:
+     brandpills = the logo's navy in the gradients, headings and pills
+     board      = a tinted ground per section, values as chips, more air
+     manrope    = one family throughout, the same face as the decks and sites
+     To see what this replaced: ?theme=sage&look=plain&type=bricolage -->
+<body data-theme="brandpills" data-look="board" data-type="manrope">
 <div class="app">
   <div class="ribbon">PROTOTYPE · test data only · not for real patients</div>
 
@@ -1152,12 +1169,6 @@
       <div class="kic">Product support</div>
       <div class="h">Your supplies</div>
       <div class="card">
-        <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your supplier</div>
-        <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Choose everywhere you order from. Pick as many as you use.</div>
-        <div class="suppliers" id="supplierPicker" role="group" aria-label="Choose where you order from"></div>
-        <div id="supplierLinks"></div>
-      </div>
-      <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your cupboard</div>
         <div class="ssub" style="margin-bottom:11px">List what you use and pick when you want reminding. You set the date; we do the remembering.</div>
         <!-- The "Time to order" banner sits OUTSIDE the fold. Collapsing the list
@@ -1176,6 +1187,16 @@
           <div class="ssub" style="margin:-4px 0 0">You can change the date any time. Leave it blank and the item is just listed.</div>
           <button class="btn ghost" id="cupAddBtn" style="margin-top:10px">Add to cupboard</button>
         </div>
+      </div>
+      <!-- "Where I order" sits BELOW the cupboard, per the layout Virginia
+           picked on 25 Aug 2026: what you need comes before who you get it
+           from. A tick list rather than pills — the list only grows, and rows
+           carry a supplier's name at any length without reflowing. -->
+      <div class="card">
+        <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Where I order</div>
+        <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Tick everywhere you order from. Pick as many as you use.</div>
+        <div id="supplierPicker" role="group" aria-label="Choose where you order from"></div>
+        <div id="supplierLinks"></div>
       </div>
       <!-- "Reorder now" removed 2026-08-24. It wrote a row to `reorders` and said
            "Reorder placed ✓", but nothing reached the supplier: they are already
@@ -4001,9 +4022,11 @@ function renderSuppliers(){
   const box = $('#supplierPicker');
   box.innerHTML = opts.map(s => {
     const on = mySuppliers.includes(s);
-    return `<button class="sup ${on?'on':''}" type="button" data-sup="${esc(s)}" aria-pressed="${on}">${esc(s)}</button>`;
+    return `<button class="supRow" type="button" data-sup="${esc(s)}" aria-pressed="${on}">
+      <span class="tick" aria-hidden="true">\u2713</span><span>${esc(s)}</span>
+      ${on && SUPPLIER_URL[s] ? '<span class="go">Open \u2197</span>' : ''}</button>`;
   }).join('');
-  box.querySelectorAll('.sup').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
+  box.querySelectorAll('.supRow').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
   $('#supplierLine').textContent = mySuppliers.length ? listNames(mySuppliers) : 'your chosen DAC supplier';
   // One link per place they order from, in the order they picked them.
   $('#supplierLinks').innerHTML = mySuppliers.filter(s => SUPPLIER_URL[s]).map(s =>
@@ -5069,13 +5092,31 @@ function friendlyError(err, what){
 {
   const q = new URLSearchParams(location.search);
   const t = q.get('theme');
+  // The three below are now the default, set on <body>. A parameter still
+  // overrides, and the "off" values exist so the previous look is reachable
+  // for comparison rather than only remembered.
   if(['warm','navy','dusk','brand','brandpills','brandink'].includes(t)) document.body.dataset.theme = t;
+  if(t === 'sage') document.body.removeAttribute('data-theme');
   const soft = q.get('soft');
   if(soft === '0') document.body.dataset.soft = '0';   // the original flat look
   const look = q.get('look');
   if(['blue','dmsans','board'].includes(look)) document.body.dataset.look = look;
+  if(look === 'plain') document.body.removeAttribute('data-look');
   const type = q.get('type');
-  if(['dmsans','jakarta','manrope','inter'].includes(type)) document.body.dataset.type = type;
+  if(['dmsans','jakarta','manrope','inter'].includes(type)){
+    document.body.dataset.type = type;
+    // Manrope and DM Sans are already in the head; the other two are not, and
+    // fetching them here keeps the cost on whoever asked for the trial.
+    const TRIAL_FONT = { jakarta:'Plus+Jakarta+Sans:wght@400;500;600;700;800',
+                         inter:'Inter:wght@400;500;600;700;800' }[type];
+    if(TRIAL_FONT){
+      const l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=' + TRIAL_FONT + '&display=swap';
+      document.head.appendChild(l);
+    }
+  }
+  if(type === 'bricolage') document.body.removeAttribute('data-type');
 }
 
 // ---------- your data: export and erasure ----------
