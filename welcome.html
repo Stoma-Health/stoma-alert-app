@@ -24,21 +24,27 @@
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<!-- Inter, to match the app. A patient meets this page first and the app
+     second; two typefaces across that handover reads as two products. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
 <style>
 /* ======================================================================
    STOMA ALERT · UK, app-led landing (Phase 1: support & engagement)
    ====================================================================== */
 :root{
-  --navy:#132658; --navy-2:#1c3d7a; --navy-3:#28539c;
-  --mint:#5cb894; --mint-2:#a9d8c2; --mint-soft:#e5f2ec; --mint-text:#2e8b68;
+  /* Retuned 25 Aug 2026 to the logo's own two colours, the same as the app:
+     navy #1d396b and green #6fbf9a, sampled from stoma-assets/logo.jpg. The
+     old navy was a shade cooler and the old mint a shade greyer, so the page
+     and the app never quite matched. */
+  --navy:#1d396b; --navy-2:#264a86; --navy-3:#325ea6;
+  --mint:#6fbf9a; --mint-2:#a9d8c2; --mint-soft:#e8f3ed; --mint-text:#2f6f5e;
   --blue:#008bf8; --blue-soft:#e6f1fa; --purple:#a4508b; --purple-soft:#f4e9f0;
   --paper:#FFFFFF; --paper-alt:#F5F8FA; --rule:#E2E8F0; --rule-strong:#CBD5E1;
   --ink:#111827; --ink-2:#374151; --ink-muted:#64748B; --ink-faint:#94A3B8;
   --yes:#047857; --no:#B91C1C; --caution:#B45309;
-  --display:"Poppins",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --body:"Poppins",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --display:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --body:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --gutter:clamp(1.25rem,4vw,2.5rem); --section-y:clamp(4rem,8vw,7rem); --max:1240px;
   --shadow-card:0 1px 2px rgba(13,33,55,.04),0 8px 24px rgba(13,33,55,.06);

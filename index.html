@@ -143,13 +143,44 @@
   body[data-look="board"] .view > .h{ margin-bottom:18px; }
   body[data-look="board"] .entry{ margin-bottom:12px; }
 
-  /* One accent per section. Cool for the clinical screens, warm for supplies,
-     because supplies is shopping and shopping should not feel like a chart. */
-  body[data-look="board"] section[data-view="supplies"] .card{ background:#fffaf2; border-color:#f2e6d3; }
-  body[data-look="board"] section[data-view="dailycare"] .card{ background:#f6fbf8; border-color:#dceee5; }
-  body[data-look="board"] section[data-view="careplan"] .card{ background:#f7f9fd; border-color:#dfe6f3; }
-  body[data-look="board"] section[data-view="history"] .card{ background:#fbf9fd; border-color:#e8e2f0; }
-  body[data-look="board"] section[data-view="learn"] .card{ background:#f7fbfd; border-color:#dceaf1; }
+  /* One accent per section, across EVERY screen — Virginia, 25 Aug 2026: "can we
+     run the colour scheme across all pages". Five grounds, not nineteen: the
+     point is that a screen tells you which KIND of place you are in, and
+     nineteen tints would just be noise wearing a system's clothes. */
+  /* sage — the everyday screens: where you are and how you are doing */
+  body[data-look="board"] section[data-view="home"] .card,
+  body[data-look="board"] section[data-view="checkin"] .card,
+  body[data-look="board"] section[data-view="dailycare"] .card,
+  body[data-look="board"] section[data-view="progress"] .card{
+    background:#f6fbf8; border-color:#dceee5;
+  }
+  /* blue — anything involving someone else: a plan, a message, a clinician */
+  body[data-look="board"] section[data-view="careplan"] .card,
+  body[data-look="board"] section[data-view="messages"] .card,
+  body[data-look="board"] section[data-view="support"] .card,
+  body[data-look="board"] section[data-view="caseload"] .card,
+  body[data-look="board"] section[data-view="ndetail"] .card,
+  body[data-look="board"] section[data-view="reports"] .card,
+  body[data-look="board"] section[data-view="nmessages"] .card{
+    background:#f7f9fd; border-color:#dfe6f3;
+  }
+  /* violet — the record: what you wrote down and what you photographed */
+  body[data-look="board"] section[data-view="history"] .card,
+  body[data-look="board"] section[data-view="capture"] .card,
+  body[data-look="board"] section[data-view="profile"] .card{
+    background:#fbf9fd; border-color:#e8e2f0;
+  }
+  /* cyan — reading and learning */
+  body[data-look="board"] section[data-view="learn"] .card,
+  body[data-look="board"] section[data-view="guide"] .card{
+    background:#f7fbfd; border-color:#dceaf1;
+  }
+  /* warm — shopping. Supplies is not a chart and should not feel like one */
+  body[data-look="board"] section[data-view="supplies"] .card,
+  body[data-look="board"] section[data-view="asupplies"] .card,
+  body[data-look="board"] section[data-view="acontent"] .card{
+    background:#fffaf2; border-color:#f2e6d3;
+  }
   body[data-look="board"] .card{ border-style:solid; }
 
   /* Values as chips. The separator is a pseudo-element by default so the plain
