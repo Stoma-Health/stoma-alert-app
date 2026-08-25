@@ -349,6 +349,14 @@
   .ivflag{font-size:10.5px;font-weight:600;color:var(--slate);background:var(--wash);border:1px solid var(--line);border-radius:100px;padding:2px 8px;}
   .ivflag.bad{color:var(--red);background:var(--red-soft);border-color:rgba(192,73,47,.2);}
   .ivflag.warn{color:var(--amber);background:var(--amber-soft);border-color:rgba(201,138,23,.2);}
+  /* Share with nurse. Deliberately quiet when off and definite when on: the
+     patient should never have to wonder which of the two states they are in. */
+  .sharepill{font-size:11px;font-weight:600;color:var(--slate);background:none;
+    border:1px solid var(--line);border-radius:100px;padding:3px 10px;cursor:pointer;
+    font-family:inherit;margin-top:8px;display:inline-flex;align-items:center;gap:5px;}
+  .sharepill:hover{border-color:var(--teal);color:var(--teal);}
+  .sharepill.on{color:#fff;background:var(--teal);border-color:var(--teal);}
+  .sharepill[disabled]{opacity:.55;cursor:default;}
   .pd-iv .g{margin-bottom:11px;} .pd-iv .g:last-child{margin-bottom:0;}
   .pd-iv .gl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mist);margin-bottom:5px;}
   .numin{width:82px;display:inline-block;margin:0 0 0 6px;padding:9px 11px;}
@@ -2755,6 +2763,77 @@ async function loadNursePhotos(key){
   renderPhotoGrid(el, data, signed, false);
   setPhotoPillCount(data.length);
 }
+// ---------- nurse: what this patient chose to share ----------
+// RLS does the deciding, not this function. It asks for the patient's care logs
+// and notes and the database returns only the rows they shared, so an unshared
+// row cannot reach the screen even if this code asked for it by mistake.
+async function loadNurseShared(userId){
+  const el = $('#ndShared'); if(!el) return;
+  if(!userId){ el.innerHTML = '<div class="empty">No patient record linked to these check-ins.</div>'; return; }
+  const [logs, notes] = await Promise.all([
+    sb.from('care_logs').select('*').eq('user_id', userId).order('created_at',{ascending:false}).limit(30),
+    sb.from('diary_notes').select('id,title,body,created_at').eq('user_id', userId).order('created_at',{ascending:false}).limit(30),
+  ]);
+  if(logs.error && notes.error){
+    console.warn('[shared] read failed — is migration 0021 applied?', logs.error.message);
+    el.innerHTML = `<div class="empty">${friendlyError(logs.error, 'shared records')}</div>`;
+    return;
+  }
+  const L = logs.data || [], N = notes.data || [];
+  setSharedPillCount(L.length + N.length);
+  if(!L.length && !N.length){
+    // Silence here is meaningful: it means nothing was shared, not that nothing
+    // exists. Saying so stops a clinician reading it as "this patient logs nothing".
+    el.innerHTML = '<div class="empty" style="padding:14px 8px">Nothing shared yet. Daily care and notes stay private until the patient shares them.</div>';
+    return;
+  }
+  const noteCard = n => `<div class="card" style="margin-bottom:8px">
+      ${n.title ? `<div class="t" style="font-weight:700">${esc(n.title)}</div>` : ''}
+      <div class="d" style="white-space:pre-wrap">${esc(n.body)}</div>
+      <div class="ssub" style="margin-top:6px">${new Date(n.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</div>
+    </div>`;
+  el.innerHTML =
+    (L.length ? `<div class="rep-h" style="margin:2px 2px 8px">Daily care (${L.length})</div>` + L.map(r => careLogRow(r, true)).join('') : '') +
+    (N.length ? `<div class="rep-h" style="margin:14px 2px 8px">Notes (${N.length})</div>` + N.map(noteCard).join('') : '');
+}
+function setSharedPillCount(n){
+  const pill = $('#ndSharedPill'), lbl = pill?.querySelector('.chkLbl');
+  if(lbl && !pill.classList.contains('open')) lbl.textContent = n ? `Daily care & notes (${n})` : 'Daily care & notes';
+}
+
+// ---------- nurse: the care plan and the cupboard ----------
+// Neither is private. A reminder is a shared plan by definition, and a cupboard
+// is stock control, so both are visible without the patient sharing them.
+async function loadNursePlan(userId){
+  const el = $('#ndPlan'); if(!el) return;
+  if(!userId){ el.innerHTML = '<div class="empty">No patient record linked to these check-ins.</div>'; return; }
+  const [tasks, stock] = await Promise.all([
+    sb.from('care_tasks').select('*').eq('user_id', userId).order('due_date',{ascending:true}).limit(30),
+    sb.from('supply_items').select('*').eq('user_id', userId).order('name',{ascending:true}).limit(30),
+  ]);
+  if(tasks.error && stock.error){
+    el.innerHTML = `<div class="empty">${friendlyError(tasks.error, 'reminders')}</div>`;
+    return;
+  }
+  const T = tasks.data || [], S = stock.data || [];
+  if(!T.length && !S.length){ el.innerHTML = '<div class="empty" style="padding:14px 8px">No reminders or cupboard items yet.</div>'; return; }
+  const dayOf = d => d ? new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+  const taskRow = t => `<div class="rr"><span class="nm">${esc(t.title || 'Reminder')}</span>
+      <span class="mt">${[t.category, t.due_date ? 'due ' + dayOf(t.due_date) : ''].filter(Boolean).join(' · ')}</span>
+      <span class="tr">${t.completed ? 'Done' : 'Open'}</span></div>`;
+  // Low is the same test the patient's own cupboard uses, so the two screens
+  // cannot disagree about which items are running out.
+  const stockRow = i => {
+    const low = i.quantity <= i.reorder_at;
+    return `<div class="rr"><span class="dot ${low?'a':'g'}"></span><span class="nm">${esc(i.name || 'Item')}</span>
+      <span class="mt">${[i.supplier ? esc(i.supplier) : '', i.remind_on ? 'reorder ' + dayOf(i.remind_on) : ''].filter(Boolean).join(' · ')}</span>
+      <span class="tr">${i.quantity} ${esc(i.unit || '')}${low?' · low':''}</span></div>`;
+  };
+  el.innerHTML =
+    (T.length ? `<div class="rep-h" style="margin:2px 2px 8px">Reminders (${T.length})</div>` + T.map(taskRow).join('') : '') +
+    (S.length ? `<div class="rep-h" style="margin:14px 2px 8px">Cupboard (${S.length})</div>` + S.map(stockRow).join('') : '');
+}
+
 function setPhotoPillCount(n){
   const lbl = $('#ndetailPhotoPill')?.querySelector('.chkLbl');
   if(lbl && !$('#ndetailPhotoPill').classList.contains('open')) lbl.textContent = n ? `Show photo diary (${n})` : 'Show photo diary';
@@ -3429,7 +3508,52 @@ function renderCareChips(){
   });
 }
 
-function careLogRow(r){
+// One control, two screens. A share pill is the patient saying "you may read
+// this one", so it reads the same and behaves the same on a care log and on a
+// note. kind is the table it belongs to.
+//
+// Nothing is shared by default, and nothing shares itself. Every row a nurse can
+// read is a row the patient tapped, and tapping again takes it back — a share
+// that cannot be withdrawn is publication, not consent.
+let sharingAvailable = true;   // false when 0021 has not been applied yet
+function sharePill(kind, id, on){
+  // undefined, not false, means the column is missing. Offering a control that
+  // cannot work is worse than offering none, so it simply does not appear.
+  if(!sharingAvailable || on === undefined) return '';
+  return `<button class="sharepill${on?' on':''}" type="button" data-share="${kind}" data-id="${id}"
+    aria-pressed="${on?'true':'false'}">${on?'✓ Shared with nurse':'Share with nurse'}</button>`;
+}
+
+function wireSharePills(scope){
+  if(!scope) return;
+  scope.querySelectorAll('.sharepill').forEach(b => b.onclick = () => toggleShare(b));
+}
+
+async function toggleShare(btn){
+  const kind = btn.dataset.share, id = btn.dataset.id;
+  const next = btn.getAttribute('aria-pressed') !== 'true';
+  paintShare(btn, next);                                   // optimistic
+  btn.disabled = true;
+  const { error } = await sb.from(kind).update({ shared_with_nurse: next }).eq('id', id);
+  btn.disabled = false;
+  if(error){
+    paintShare(btn, !next);
+    console.error('[share] failed — is migration 0021 applied?', error.message);
+    toast('That didn’t save — please try again');
+    return;
+  }
+  // Keep the in-memory copy honest, or the next render undoes what was just done.
+  if(kind === 'diary_notes'){ const n = notes.find(x => x.id === id); if(n) n.shared_with_nurse = next; }
+  toast(next ? 'Shared with your nurse' : 'No longer shared');
+}
+
+function paintShare(btn, on){
+  btn.classList.toggle('on', on);
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.textContent = on ? '✓ Shared with nurse' : 'Share with nurse';
+}
+
+function careLogRow(r, readOnly){
   const when = new Date(r.created_at).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
   const bits = [];
   if(r.output_ml    != null) bits.push(`${r.output_ml}ml out`);
@@ -3448,6 +3572,7 @@ function careLogRow(r){
     ${flags.length ? `<div class="ivflags">${flags.join('')}</div>` : ''}
     ${r.food     ? `<div class="ssub" style="margin-top:5px">Food: ${esc(r.food)}</div>` : ''}
     ${r.symptoms ? `<div class="ssub" style="margin-top:3px">${esc(r.symptoms)}</div>` : ''}
+    ${readOnly ? '' : sharePill('care_logs', r.id, !!r.shared_with_nurse)}
   </div>`;
 }
 
@@ -3468,6 +3593,7 @@ async function loadDailyCare(){
   careLogsAvailable = true;
   $('#clHist').innerHTML = data.length ? data.map(careLogRow).join('')
     : '<div class="empty" style="padding:16px 8px">Nothing recorded yet.</div>';
+  wireSharePills($('#clHist'));
   wireChkPill($('#clHistPill'), $('#clHistWrap'),
     {show:`Recent days${data.length ? ` (${data.length})` : ''}`, hide:'Recent days'});
 }
@@ -3581,6 +3707,7 @@ function renderNotes(){
           ${head}
           <div class="d" style="white-space:pre-wrap">${esc(n.body)}</div>
           <div class="ssub" style="margin-top:6px">${when}</div>
+          ${sharePill('diary_notes', n.id, !!n.shared_with_nurse)}
         </div>
         <button class="noteDel" type="button" aria-label="Delete this note" style="flex:0 0 auto;background:none;border:0;cursor:pointer;font:inherit;color:var(--mist);padding:2px 4px">&times;</button>
       </div>
@@ -3588,13 +3715,14 @@ function renderNotes(){
   }).join('');
   box.querySelectorAll('[data-note]').forEach(row =>
     row.querySelector('.noteDel').onclick = () => deleteNote(row.dataset.note));
+  wireSharePills(box);
 }
 
 async function loadDiaryNotes(){
   wireChkPill($('#noteAddPill'), $('#noteAddWrap'), {show:'Add a private note', hide:'Add a private note'});
   $('#noteAddBtn').onclick = addNote;
   const { data, error } = await sb.from('diary_notes')
-    .select('id,title,body,created_at').order('created_at',{ascending:false});
+    .select('id,title,body,created_at,shared_with_nurse').order('created_at',{ascending:false});
   // Wired after the fetch so the pill can carry the count on first paint,
   // rather than saying "Saved notes" and correcting itself a moment later.
   wireChkPill($('#notesPill'), $('#noteListWrap'), {show:'Saved notes', hide:'Saved notes'});
@@ -3617,7 +3745,7 @@ async function addNote(){
   $('#noteAddBtn').disabled = true;
   const { data, error } = await sb.from('diary_notes')
     .insert({ user_id: u.id, title: $('#noteTitle').value.trim() || null, body })
-    .select('id,title,body,created_at').single();
+    .select('id,title,body,created_at,shared_with_nurse').single();
   $('#noteAddBtn').disabled = false;
   if(error){
     console.error('[notes] save failed', error.message);
@@ -4360,6 +4488,11 @@ function openPatientDetail(key){
     <div class="rep-h" style="margin:2px 2px 8px">Photo diary</div>
     <button class="chkPill" id="ndetailPhotoPill" type="button" aria-expanded="false" aria-controls="ndetailPhotosWrap"><span class="chkLbl">Show photo diary</span><span class="chev">▾</span></button>
     <div class="chkList collapsed" id="ndetailPhotosWrap"><div class="photodiary" id="ndetailPhotos"><div class="empty">Loading…</div></div></div>
+    <div class="rep-h" style="margin:14px 2px 8px">Shared by this patient</div>
+    <button class="chkPill" id="ndSharedPill" type="button" aria-expanded="false" aria-controls="ndSharedWrap"><span class="chkLbl">Daily care &amp; notes</span><span class="chev">▾</span></button>
+    <div class="chkList collapsed" id="ndSharedWrap"><div id="ndShared"><div class="empty">Loading…</div></div></div>
+    <button class="chkPill" id="ndPlanPill" type="button" aria-expanded="false" aria-controls="ndPlanWrap" style="margin-top:2px"><span class="chkLbl">Reminders &amp; cupboard</span><span class="chev">▾</span></button>
+    <div class="chkList collapsed" id="ndPlanWrap"><div id="ndPlan"><div class="empty">Loading…</div></div></div>
     <div class="rep-h" style="margin:14px 2px 8px">History</div>
     <button class="chkPill" id="ndetailPill" type="button" aria-expanded="false" aria-controls="ndetailCal"><span class="chkLbl">Show calendar</span><span class="chev">▾</span></button>
     <div class="cal chkList collapsed" id="ndetailCal"></div>
@@ -4374,8 +4507,12 @@ function openPatientDetail(key){
   ndPillApi = wireChkPill($('#ndetailPill'), $('#ndetailCal'), {show:'Show calendar', hide:'Hide calendar'});
   wireChkPill($('#ndetailHistPill'), $('#ndetailHistoryWrap'), {show:'Check-in history', hide:'Check-in history'});
   wireChkPill($('#ndetailPhotoPill'), $('#ndetailPhotosWrap'), {show:'Show photo diary', hide:'Hide photo diary'});
+  wireChkPill($('#ndSharedPill'), $('#ndSharedWrap'), {show:'Daily care & notes', hide:'Daily care & notes'});
+  wireChkPill($('#ndPlanPill'), $('#ndPlanWrap'), {show:'Reminders & cupboard', hide:'Reminders & cupboard'});
   renderNdetailHistory();
   loadNursePhotos(key);
+  loadNurseShared(r.user_id);
+  loadNursePlan(r.user_id);
 }
 let ndetailRows = [], ndetailSel = null, ndetailCal = null, ndPillApi = null;
 function renderNdetailHistory(){

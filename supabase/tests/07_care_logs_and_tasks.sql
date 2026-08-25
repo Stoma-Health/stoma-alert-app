@@ -78,11 +78,15 @@ do $$ declare ok boolean := false; begin
 end $$;
 
 -- --------------------------------------------------------------------- nurse
+-- Changed by 0021. A nurse used to read every care log; now they read only what
+-- the patient shared. The two assertions below used to expect 2 and 1; they
+-- expect 0 until something is shared, and the sharing behaviour itself is
+-- proved in suite 09.
 select public.act_as('33333333-3333-3333-3333-333333333333');
-select pg_temp.t('nurse reads the care logs', true,
-  (select count(*) from public.care_logs)=2);
-select pg_temp.t('nurse sees the leak and the high output', true,
-  (select count(*) from public.care_logs where leak is true and output_ml>=1500)=1);
+select pg_temp.t('nurse reads no care log until one is shared', true,
+  (select count(*) from public.care_logs)=0);
+select pg_temp.t('the leak and high output stay unshared', true,
+  (select count(*) from public.care_logs where leak is true and output_ml>=1500)=0);
 do $$ declare ok boolean := false; begin
   begin update public.care_logs set output_ml=100 where output_ml=1800;
     if not found then ok := true; end if;
