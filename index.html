@@ -18,7 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
 <!-- Type trials, 25 Aug 2026. Loaded only so ?type= can be judged on a device;
      drop the ones we do not choose rather than carrying four families. -->
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     /* Sage. Chosen 19 Aug 2026 over the original navy, which was cold enough
@@ -90,12 +90,14 @@
        ?type=dmsans    the prototype's own face, one family throughout
        ?type=jakarta   Plus Jakarta Sans — friendlier, slightly rounder
        ?type=manrope   Manrope — the house style used everywhere else
+       ?type=inter     Inter — the closest match to the board's own type
 
      One family for both roles in all three, on purpose: the mock's calm comes
      partly from not switching typeface between a heading and a label. */
   body[data-type="dmsans"]{ --display:"DM Sans",sans-serif; --ui:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif; }
   body[data-type="jakarta"]{ --display:"Plus Jakarta Sans",sans-serif; --ui:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,sans-serif; }
   body[data-type="manrope"]{ --display:"Manrope",sans-serif; --ui:"Manrope",-apple-system,BlinkMacSystemFont,sans-serif; }
+  body[data-type="inter"]{ --display:"Inter",sans-serif; --ui:"Inter",-apple-system,BlinkMacSystemFont,sans-serif; }
   /* Bricolage carries its own tight tracking; a plain grotesque does not need
      as much of it and looks pinched if it inherits the same numbers. */
   body[data-type] .h{ letter-spacing:-.015em; }
@@ -5073,7 +5075,7 @@ function friendlyError(err, what){
   const look = q.get('look');
   if(['blue','dmsans','board'].includes(look)) document.body.dataset.look = look;
   const type = q.get('type');
-  if(['dmsans','jakarta','manrope'].includes(type)) document.body.dataset.type = type;
+  if(['dmsans','jakarta','manrope','inter'].includes(type)) document.body.dataset.type = type;
 }
 
 // ---------- your data: export and erasure ----------
