@@ -16,10 +16,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
-<!-- Manrope is the app's face as of 25 Aug 2026, so it loads for everyone.
-     The other trial faces are fetched only if ?type= asks for them: nobody
-     should download three typefaces they will never see. -->
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Inter is the app's face as of 25 Aug 2026, to Virginia's spec. Weights
+     400/500/600/700 only, because the ladder below never asks for more. The
+     other trial faces are fetched only if ?type= asks for them: nobody should
+     download typefaces they will never see. -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     /* Sage. Chosen 19 Aug 2026 over the original navy, which was cold enough
@@ -103,6 +104,29 @@
      as much of it and looks pinched if it inherits the same numbers. */
   body[data-type] .h{ letter-spacing:-.015em; }
   body[data-type] .hero .big{ letter-spacing:-.02em; }
+
+  /* ---- The type scale ----------------------------------------------------
+     Virginia's spec, 25 Aug 2026. Weight is the only thing carrying hierarchy
+     now that one family does every job, so it is written down rather than
+     chosen per component:
+
+       main headings      600-700     buttons             600
+       section headings   600         numbers/statistics  600-700
+       body text          400         small labels        500
+       navigation         500
+
+     Inter has a real 500, so labels and navigation can sit between body and
+     semibold instead of being bolder than they need to be. */
+  .h{ font-weight:700; }
+  .rep-h{ font-weight:600; }
+  body{ font-weight:400; }
+  .btn, .sup-open, .sharepill, .chkPill{ font-weight:600; }
+  .counts .c .n, .statuscard .big{ font-weight:700; }
+  .kic, .fl, .ssub, .bit, .ivflag{ font-weight:500; }
+  .tab{ font-weight:500; }
+  /* Small uppercase needs the extra tracking back: at 500 rather than 700 the
+     letters sit closer together and KIC-style labels start to look crowded. */
+  .kic{ letter-spacing:.13em; }
 
   /* ---- ?look=board -------------------------------------------------------
      The visual qualities of the concept board Virginia liked, without any of
@@ -820,7 +844,7 @@
      board      = a tinted ground per section, values as chips, more air
      manrope    = one family throughout, the same face as the decks and sites
      To see what this replaced: ?theme=sage&look=plain&type=bricolage -->
-<body data-theme="brandpills" data-look="board" data-type="manrope">
+<body data-theme="brandpills" data-look="board" data-type="inter">
 <div class="app">
   <div class="ribbon">PROTOTYPE · test data only · not for real patients</div>
 
@@ -5108,7 +5132,7 @@ function friendlyError(err, what){
     // Manrope and DM Sans are already in the head; the other two are not, and
     // fetching them here keeps the cost on whoever asked for the trial.
     const TRIAL_FONT = { jakarta:'Plus+Jakarta+Sans:wght@400;500;600;700;800',
-                         inter:'Inter:wght@400;500;600;700;800' }[type];
+                         manrope:'Manrope:wght@400;500;600;700;800' }[type];
     if(TRIAL_FONT){
       const l = document.createElement('link');
       l.rel = 'stylesheet';
