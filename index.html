@@ -1419,7 +1419,7 @@
       </div>
       <div class="card" style="display:flex;align-items:center;gap:14px">
         <div id="streakRing" style="flex:0 0 auto"></div>
-        <div><div style="font-size:13px;font-weight:700">Check-in streak</div><div class="ssub" id="streakText">Loading…</div></div>
+        <div><div style="font-size:13px;font-weight:700">Check-ins logged</div><div class="ssub" id="streakText">Loading…</div></div>
       </div>
     </section>
 
@@ -3597,7 +3597,10 @@ async function loadProgress(){
     (scores.length>1 ? ` · <b style="color:${diff>=0?'#4f9d7b':'var(--amber)'}">${diff>=0?'+':''}${diff}%</b> vs first` : '') + `</span>`;
   renderWeekDelta(data);          // this week vs last week
   renderDimensions(recent);       // per-dimension breakdown
-  // adherence streak: distinct days logged in the last 28
+  // Distinct days logged in the last 28. Called "Check-ins logged", not a
+  // streak: a streak is a run you can break, and telling someone recovering
+  // from surgery that they have broken something is the opposite of the job.
+  // This counts what is there, and an unbroken 28 is not the goal.
   const cutoff = Date.now() - 28*864e5, days = new Set();
   data.forEach(r => { const t = new Date(r.created_at); if(t.getTime() >= cutoff) days.add(t.toISOString().slice(0,10)); });
   const logged = days.size, pct = Math.min(100, Math.round(logged/28*100));
