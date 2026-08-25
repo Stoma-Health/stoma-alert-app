@@ -105,12 +105,57 @@
      end of every gradient and the headings, while the ground, the actions and
      the status colours stay sage. The dark panels then run green-into-navy,
      which is the logo's own move: two colours turning into each other. */
-  body[data-theme="brand"]{
-    --navy:#1d396b; --navy-soft:#e9eef7;
+  /* Three of them, because "some blue" has more than one honest answer and the
+     only way to choose is to flick between them on a real phone:
+
+       ?theme=brand       quietest. Navy headings, navy deep end of gradients.
+       ?theme=brandpills  the same, plus shading round every pill and tile.
+       ?theme=brandink    the same, plus the body copy goes navy-slate.
+
+     All three share the tokens; each adds to the one above it. */
+  body[data-theme="brand"], body[data-theme="brandpills"], body[data-theme="brandink"]{
+    --navy:#1d396b; --navy-soft:#e9eef7; --navy-line:#c6d3e8;
     --teal-deep:#1d396b;          /* deep end of every panel gradient */
   }
-  body[data-theme="brand"] .h,
-  body[data-theme="brand"] .rep-h{ color:var(--navy); }
+  body[data-theme="brand"] .h,   body[data-theme="brandpills"] .h,   body[data-theme="brandink"] .h,
+  body[data-theme="brand"] .rep-h, body[data-theme="brandpills"] .rep-h, body[data-theme="brandink"] .rep-h{
+    color:var(--navy);
+  }
+
+  /* ---- brandpills: shading round the pill boxes -------------------------
+     A tinted ground and a navy hairline rather than a heavier border, so the
+     pills sit on the page instead of being drawn on it. The shadow is barely
+     there on purpose: at 2px it reads as depth, at 6px it reads as a button
+     from 2011. */
+  body[data-theme="brandpills"] .chkPill,
+  body[data-theme="brandink"] .chkPill{
+    background:var(--navy-soft); border-color:var(--navy-line); color:var(--navy);
+    box-shadow:0 1px 2px rgba(29,57,107,.08);
+  }
+  body[data-theme="brandpills"] .chkPill .chev,
+  body[data-theme="brandink"] .chkPill .chev{ color:var(--navy); opacity:.55; }
+  body[data-theme="brandpills"] .sup,
+  body[data-theme="brandink"] .sup{
+    border-color:var(--navy-line); box-shadow:0 1px 2px rgba(29,57,107,.06);
+  }
+  body[data-theme="brandpills"] .sup.on,
+  body[data-theme="brandink"] .sup.on{
+    background:var(--navy-soft); border-color:var(--navy); color:var(--navy);
+  }
+  body[data-theme="brandpills"] .sharepill,
+  body[data-theme="brandink"] .sharepill{ border-color:var(--navy-line); color:var(--navy); }
+  body[data-theme="brandpills"] .counts .c,
+  body[data-theme="brandink"] .counts .c{
+    border-color:var(--navy-line); box-shadow:0 1px 2px rgba(29,57,107,.06);
+  }
+
+  /* ---- brandink: blue writing -------------------------------------------
+     The secondary copy goes navy-slate. Deliberately the LAST step, because
+     this is the one that starts to feel clinical again if it goes too far —
+     the body text is still readable-warm, only the supporting text cools. */
+  body[data-theme="brandink"]{
+    --slate:#3f5478; --mist:#7183a1;
+  }
   /* .kic stays green: the eyebrow and the heading below it become the logo's
      two colours stacked, which is the whole point. Status colours are never
      touched — red, amber and green are clinical signal, not decoration. */
@@ -4894,7 +4939,7 @@ function friendlyError(err, what){
 {
   const q = new URLSearchParams(location.search);
   const t = q.get('theme');
-  if(['warm','navy','dusk','brand'].includes(t)) document.body.dataset.theme = t;
+  if(['warm','navy','dusk','brand','brandpills','brandink'].includes(t)) document.body.dataset.theme = t;
   const soft = q.get('soft');
   if(soft === '0') document.body.dataset.soft = '0';   // the original flat look
   const look = q.get('look');
