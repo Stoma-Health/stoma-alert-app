@@ -150,6 +150,7 @@
   /* sage — the everyday screens: where you are and how you are doing */
   body[data-look="board"] section[data-view="home"] .card,
   body[data-look="board"] section[data-view="checkin"] .card,
+  body[data-look="board"] section[data-view="checkindone"] .card,
   body[data-look="board"] section[data-view="dailycare"] .card,
   body[data-look="board"] section[data-view="progress"] .card{
     background:#f6fbf8; border-color:#dceee5;
@@ -399,6 +400,12 @@
   .tab--action{color:var(--teal);}
   /* More: a screen, not a popover. A popover on a phone is one more thing to
      dismiss, and everything behind it is a place you were trying to get to. */
+  .donetick{width:64px;height:64px;border-radius:50%;margin:6px auto 14px;display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--teal),var(--teal-deep));box-shadow:0 10px 26px rgba(29,57,107,.24);}
+  .donetick svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:2.6;}
+  .donerow{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);font-size:13.5px;}
+  .donerow:first-child{border-top:0;}
+  .donerow .v{margin-left:auto;font-weight:700;}
   .morerow{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
     background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px;
     margin-bottom:9px;cursor:pointer;font-family:var(--ui);font-size:14px;font-weight:600;color:var(--ink);}
@@ -1558,6 +1565,16 @@
       <div id="ndetailBody"></div>
       <p class="ssub" style="text-align:center;margin-top:10px">Patient-reported scores, shown for review — not a diagnosis.</p>
     </section>
+    <!-- CHECK-IN SAVED. A check-in used to end by dropping you in the diary,
+         which is a place, not an ending. This is the ending: what was recorded,
+         then the photo, because a photo belongs to the same daily moment and
+         asking for it here is the only time the app knows you are already in it. -->
+    <section class="view" data-view="checkindone">
+      <div class="kic">Check-in saved</div>
+      <div class="h">Thank you</div>
+      <div id="doneBody"></div>
+    </section>
+
     <!-- MORE: everything the five-slot bar cannot hold. Inside the views
          container, so it scrolls and switches like every other screen. -->
     <section class="view" data-view="more">
@@ -1791,6 +1808,7 @@ function showView(name){
   if(name==='asupplies') loadAdminSupplies();
   if(name==='acontent') loadAdminContent();
   if(name==='more') renderMore();
+  if(name==='checkindone') renderCheckinDone();
 }
 
 // The five-slot bar holds Home, Diary, Check in, Supplies and More. Everything
@@ -2012,14 +2030,43 @@ $('#submitCheckin').onclick = async () => {
   }
   $('#submitCheckin').disabled = false;
   if(error){ toast('Error: '+error.message); return; }
-  toast('Check-in updated ✓');
+  toast('Check-in saved ✓');
   // The headline is the app's name for itself, not a status line. State belongs
   // on the pill, which loadHomeStats sets from the data a moment later; this
   // just stops home showing "check-in ready" during that gap.
   $('#heroPill').textContent = 'Check-in saved — thank you';
   loadHomeStats();
-  showView('history');
+  lastCheckin = { sc, iv };
+  showView('checkindone');
 };
+
+// What was just recorded, and the one thing the check-in could not capture.
+// Deliberately no verdict: "Comfort 4/5" is a fact, "you're doing well" is an
+// assessment and this app does not make those.
+let lastCheckin = null;
+function renderCheckinDone(){
+  const el = $('#doneBody'); if(!el) return;
+  const sc = lastCheckin?.sc, iv = lastCheckin?.iv || {};
+  const rows = sc ? [['Comfort',sc.comfort],['Mood',sc.mood],['Skin',sc.skin],['Output',sc.output]] : [];
+  const flags = ivFlags(iv).map(x => `<span class="ivflag warn">${esc(x.t)}</span>`).join('');
+  el.innerHTML = `
+    <div class="card">
+      <div class="donetick"><svg viewBox="0 0 24 24"><path d="M5 13l4.5 4.5L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div style="text-align:center;font-weight:600;margin-bottom:4px">Today's check-in is saved</div>
+      <div class="ssub" style="text-align:center;margin-bottom:14px">Your nurse can see your check-ins.</div>
+      ${rows.map(([l,v]) => `<div class="donerow"><span>${l}</span><span class="v">${v}/5</span></div>`).join('')}
+      ${flags ? `<div class="ivflags" style="margin-top:10px">${flags}</div>` : ''}
+    </div>
+    <div class="card">
+      <div class="rep-h">Add a photo</div>
+      <div class="ssub" style="margin-bottom:12px">A photo is the one thing the questions cannot capture, and today is the
+        easiest day to take it. It stays private unless you share it.</div>
+      <button class="btn" id="doneAddPhoto">Add a photo</button>
+      <button class="btn ghost" id="doneSkip" style="margin-top:9px">Not today</button>
+    </div>`;
+  $('#doneAddPhoto').onclick = () => showView('capture');
+  $('#doneSkip').onclick = () => showView('home');
+}
 // note-for-nurse: collapsible box (feature not yet live)
 wireChkPill($('#notePill'), $('#noteWrap'), {show:'Anything to add for your nurse?', hide:'Anything to add for your nurse?'});
 // Nurse messaging is built but not launched. Flip to true to switch it on
