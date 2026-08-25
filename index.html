@@ -3588,7 +3588,10 @@ async function loadProgress(){
   data.forEach(r => { const t = new Date(r.created_at); if(t.getTime() >= cutoff) days.add(t.toISOString().slice(0,10)); });
   const logged = days.size, pct = Math.min(100, Math.round(logged/28*100));
   $('#streakRing').innerHTML = ringSvg(pct);
-  $('#streakText').textContent = `${logged} of last 28 days logged · shared with your care team`;
+  // "shared with your care team" came off 25 Aug 2026. Sharing is now a thing
+  // the patient decides item by item, so a blanket claim on the streak card was
+  // both noise and, for daily care and notes, no longer true.
+  $('#streakText').textContent = `${logged} of last 28 days logged`;
 }
 
 // ---------- home: the summary page ----------
