@@ -1086,9 +1086,9 @@
       <div class="h">Your supplies</div>
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your supplier</div>
-        <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Choose who delivers your stoma products.</div>
-        <div class="suppliers" id="supplierPicker" role="group" aria-label="Choose your supplier"></div>
-        <a id="supplierOpen" class="sup-open attn" target="_blank" rel="noopener noreferrer" style="display:none">Open website ↗</a>
+        <div class="ssub" id="supplierHelp" style="margin-bottom:11px">Choose everywhere you order from. Pick as many as you use.</div>
+        <div class="suppliers" id="supplierPicker" role="group" aria-label="Choose where you order from"></div>
+        <div id="supplierLinks"></div>
       </div>
       <div class="card">
         <div style="font-size:12.5px;font-weight:700;margin-bottom:3px">Your cupboard</div>
@@ -3907,7 +3907,17 @@ const SUPPLIER_ADVICE = {   // optional secondary "advice & support" link for su
   'Salts Healthcare':'https://www.salts.co.uk/well-being-hub',
   'CliniMed':'https://www.clinimed.co.uk/healthcare-professionals/education-and-guides/',
 };
-let mySupplier = null;
+// Where I order. Plural on purpose: Virginia, 25 Aug 2026 — "they may use
+// multiple places". Plenty of people get pouches from one DAC and accessories
+// from another, and being asked to name one of them was asking them to lie.
+//
+// mySuppliers is the truth; mySupplier stays as the FIRST of them so the
+// cupboard banner and the options screen keep working unchanged. Stored in
+// user_metadata, which the patient owns and can change — fine for a delivery
+// preference, and note this is not a place for anything a policy trusts.
+let mySuppliers = [];
+let mySupplier = null;           // the primary, = mySuppliers[0]
+function syncPrimarySupplier(){ mySupplier = mySuppliers[0] || null; }
 function renderSuppliers(){
   // A drop-down rather than nine chips. The list only grows, and a wall of
   // supplier names was the loudest thing on a screen whose actual subject is
@@ -3919,31 +3929,49 @@ function renderSuppliers(){
   // A supplier that has since left the list still appears while it is theirs.
   // Dropping it would show them someone else's supplier, or none, and the first
   // they would know is a delivery that never came.
-  const opts = SUPPLIERS.includes(mySupplier) || !mySupplier ? SUPPLIERS : [...SUPPLIERS, mySupplier];
+  const extra = mySuppliers.filter(s => !SUPPLIERS.includes(s));
+  const opts = [...SUPPLIERS, ...extra];
   const box = $('#supplierPicker');
-  box.innerHTML = opts.map(s =>
-    `<button class="sup ${s===mySupplier?'on':''}" type="button" data-sup="${esc(s)}" aria-pressed="${s===mySupplier}">${esc(s)}</button>`).join('');
+  box.innerHTML = opts.map(s => {
+    const on = mySuppliers.includes(s);
+    return `<button class="sup ${on?'on':''}" type="button" data-sup="${esc(s)}" aria-pressed="${on}">${esc(s)}</button>`;
+  }).join('');
   box.querySelectorAll('.sup').forEach(b => b.onclick = () => chooseSupplier(b.dataset.sup));
-  $('#supplierLine').textContent = mySupplier || 'your chosen DAC supplier';
-  const a = $('#supplierOpen'), url = SUPPLIER_URL[mySupplier];
-  if(mySupplier && url){ a.href = url; a.textContent = SUPPLIER_CTA[mySupplier] || `Browse ${mySupplier} products ↗`; a.style.display = 'flex'; }
-  else { a.style.display = 'none'; a.removeAttribute('href'); }
+  $('#supplierLine').textContent = mySuppliers.length ? listNames(mySuppliers) : 'your chosen DAC supplier';
+  // One link per place they order from, in the order they picked them.
+  $('#supplierLinks').innerHTML = mySuppliers.filter(s => SUPPLIER_URL[s]).map(s =>
+    `<a class="sup-open attn" href="${esc(SUPPLIER_URL[s])}" target="_blank" rel="noopener noreferrer">${esc(SUPPLIER_CTA[s] || `Browse ${s} products ↗`)}</a>`).join('');
+}
+// "Fittleworth and CliniMed", not "Fittleworth, CliniMed" — it is read aloud by
+// screen readers and it is a sentence, not a list of columns.
+function listNames(a){
+  return a.length < 2 ? (a[0] || '') : a.slice(0,-1).join(', ') + ' and ' + a[a.length-1];
 }
 async function chooseSupplier(name){
-  mySupplier = name;
+  // Toggle. Removing the last one is allowed: "I do not know yet" is a real
+  // answer and forcing a choice would just make the answer wrong.
+  mySuppliers = mySuppliers.includes(name) ? mySuppliers.filter(s => s !== name) : [...mySuppliers, name];
+  syncPrimarySupplier();
   renderSuppliers();                                   // optimistic
   // The cupboard's "Time to order" banner names the supplier too, and it is
   // built at render time from mySupplier. Without this it kept offering the
   // previous one — the screen showed Coloplast at the top and "Order from
   // Fittleworth" a few centimetres below it.
   renderCupboard();
-  const { error } = await sb.auth.updateUser({ data:{ supplier:name } });
+  // `supplier` is still written so anything reading the old single value keeps
+  // working, and so a patient who downgrades does not lose their choice.
+  const { error } = await sb.auth.updateUser({ data:{ suppliers:mySuppliers, supplier:mySupplier } });
   if(error){ toast('Error: '+error.message); return; }
-  toast('Supplier set: ' + name);
+  toast(mySuppliers.includes(name) ? 'Added: ' + name : 'Removed: ' + name);
 }
 async function loadSupplies(){
   const { data:{ user } } = await sb.auth.getUser();
-  mySupplier = user?.user_metadata?.supplier || null;
+  // Back-compat: anyone who chose a supplier before today has `supplier` and no
+  // `suppliers`, and must not open this screen to find it forgotten.
+  const meta = user?.user_metadata || {};
+  mySuppliers = Array.isArray(meta.suppliers) ? meta.suppliers.filter(Boolean)
+              : meta.supplier ? [meta.supplier] : [];
+  syncPrimarySupplier();
   renderSuppliers();
   wireChkPill($('#cupAddPill'), $('#cupAddWrap'), {show:'Add an item', hide:'Add an item'});
   $('#cupAddBtn').onclick = addCupItem;
@@ -3965,6 +3993,41 @@ let cupboardAvailable = true;    // false until migration 0017 is applied
 // A row is now a name and a date, not a running count. See migration 0020 for
 // why: an inventory a patient has to maintain stops being true in exactly the
 // week it matters, and a date they chose does not.
+// A picture per product, from the prototype board Virginia liked. NOT product
+// photography: real photos would need a licence and a file per SKU, and would
+// go stale the day a supplier changes packaging. A shape per KIND of thing gets
+// most of the effect for none of that, and never shows the wrong pouch.
+//
+// Matching is on the name the patient typed, so it is deliberately forgiving
+// and falls back to the box rather than guessing.
+const CUP_ICONS = [
+  // Disposal first: "disposal bags" is a bin liner, and "bag" alone would
+  // otherwise claim it for the pouch rule below.
+  [/disposal|waste|sack|bin/i,
+   '<path d="M6 8h12l-1 12H7z" stroke-linejoin="round"/><path d="M4 8h16M10 5h4" stroke-linecap="round"/>'],
+  [/pouch|bag|drainable|closed|one.?piece|two.?piece/i,
+   '<path d="M8 3h8l-1 4a6 6 0 0 1 4 5.6V17a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-4.4A6 6 0 0 1 9 7z" stroke-linejoin="round"/>'],
+  [/wipe|cloth|tissue|towel/i,
+   '<path d="M5 6h14v12H5z" stroke-linejoin="round"/><path d="M8 6v12M12 6v12M16 6v12" stroke-linecap="round"/>'],
+  [/spray|remover|adhesive|cleanser|clean|wash|solution/i,
+   '<path d="M10 8h4v12a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z" stroke-linejoin="round"/><path d="M11 8V4h2v4M16 5h2M16 8h2" stroke-linecap="round"/>'],
+  // Order matters: "barrier cream" is a tube, so cream is tested before ring.
+  [/cream|paste|powder|ointment|protect/i,
+   '<path d="M7 9h10v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z" stroke-linejoin="round"/><path d="M9 9V6h6v3" stroke-linejoin="round"/>'],
+  [/ring|seal|washer|barrier|flange|wafer|base.?plate/i,
+   '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/>'],
+  [/belt|support|hernia|garment/i,
+   '<path d="M3 12h18" stroke-linecap="round"/><rect x="9" y="8.5" width="6" height="7" rx="1.4"/>'],
+  [/deodor|neutral|lubric|gel/i,
+   '<path d="M9 21V10l3-7 3 7v11z" stroke-linejoin="round"/>'],
+];
+const CUP_ICON_DEFAULT =
+  '<path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/><path d="M4 7l8 4 8-4M12 11v10" stroke-linejoin="round"/>';
+function cupIcon(name){
+  const hit = CUP_ICONS.find(([re]) => re.test(name || ''));
+  return `<svg viewBox="0 0 24 24">${hit ? hit[1] : CUP_ICON_DEFAULT}</svg>`;
+}
+
 function cupRow(it){
   const today = new Date(); today.setHours(0,0,0,0);
   const due = it.remind_on ? new Date(it.remind_on + 'T00:00:00') : null;
@@ -3975,7 +4038,7 @@ function cupRow(it){
     : 'Remind me on ' + when;
   return `<div class="cupitem" data-id="${esc(it.id)}" style="padding:11px 0;border-top:1px solid var(--line)">
     <div class="prod" style="margin:0">
-      <span class="box"><svg viewBox="0 0 24 24"><path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/><path d="M4 7l8 4 8-4M12 11v10" stroke-linejoin="round"/></svg></span>
+      <span class="box">${cupIcon(it.name)}</span>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.name)}</div>
         <div class="ssub">${esc(line)}</div>
@@ -4015,15 +4078,15 @@ function renderCupboard(){
   const todayK = (() => { const d = new Date(); d.setHours(0,0,0,0);
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
   const low = cupboard.filter(i => i.remind_on && i.remind_on <= todayK);
-  const url = SUPPLIER_URL[mySupplier];
   const banner = low.length
     ? `<div style="margin:0 0 12px;padding:11px 12px;border-radius:10px;background:var(--amber-soft);color:var(--amber)">
          <div style="font-size:12.5px;font-weight:700;margin-bottom:5px">Time to order</div>
          <div style="font-size:12.5px;font-weight:600;line-height:1.5">${low.map(i => esc(i.name)).join(' &middot; ')}</div>
          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
-           ${mySupplier && url
-             ? `<a class="btn ghost" href="${esc(url)}" target="_blank" rel="noopener noreferrer" style="width:auto;padding:6px 13px;font-size:12px;text-decoration:none">Order from ${esc(mySupplier)} \u2197</a>`
-             : `<span style="font-size:12px;font-weight:600">Choose your supplier above and we\u2019ll link you straight to them.</span>`}
+           ${mySuppliers.some(sn => SUPPLIER_URL[sn])
+             ? mySuppliers.filter(sn => SUPPLIER_URL[sn]).map(sn =>
+                 `<a class="btn ghost" href="${esc(SUPPLIER_URL[sn])}" target="_blank" rel="noopener noreferrer" style="width:auto;padding:6px 13px;font-size:12px;text-decoration:none">Order from ${esc(sn)} \u2197</a>`).join('')
+             : `<span style="font-size:12px;font-weight:600">Choose where you order above and we\u2019ll link you straight there.</span>`}
            <button class="btn ghost" id="cupCopy" style="width:auto;padding:6px 13px;font-size:12px">Copy list</button>
          </div>
        </div>`
