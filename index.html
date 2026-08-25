@@ -3687,7 +3687,7 @@ let REORDER_ITEM = 'Drainable pouch · 60mm';
 // Removed names stay in the maps below on purpose. Anyone who already chose one
 // keeps a working link, and the select adds their choice back for them rather
 // than quietly resetting it.
-let SUPPLIERS = ['Fittleworth','Coloplast Charter','Bullen','Respond','Salts Healthcare','Medilink'];
+let SUPPLIERS = ['Fittleworth','Coloplast Charter','Bullen','Respond','Salts Healthcare','Medilink','CliniMed'];
 const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering page
   'Fittleworth':'https://www.fittleworth.com/order-online/',
   'Coloplast Charter':'https://www.coloplastcharter.co.uk/products-and-samples/',
@@ -3697,6 +3697,7 @@ const SUPPLIER_URL = {   // deep-linked to each supplier's products/ordering pag
   'Respond':'https://www.respond.co.uk/prescription-service/existing-customers/',
   'Salts Healthcare':'https://www.salts.co.uk/products',
   'Medilink':'https://www.saltsmedilink.co.uk/home-delivery',
+  'CliniMed':'https://www.clinimed.co.uk/products/',
   'Other':null,
 };
 const SUPPLIER_CTA = {   // per-supplier button text override (default: "Browse <name> products ↗")
@@ -3713,6 +3714,7 @@ const SUPPLIER_ADVICE = {   // optional secondary "advice & support" link for su
   'Bullen':'https://www.bullens.com/advice-and-support/',
   'Medilink':'https://www.saltsmedilink.co.uk/support-and-advice/ostomy',
   'Salts Healthcare':'https://www.salts.co.uk/well-being-hub',
+  'CliniMed':'https://www.clinimed.co.uk/healthcare-professionals/education-and-guides/',
 };
 let mySupplier = null;
 function renderSuppliers(){
