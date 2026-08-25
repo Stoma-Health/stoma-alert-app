@@ -16,6 +16,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<!-- Type trials, 25 Aug 2026. Loaded only so ?type= can be judged on a device;
+     drop the ones we do not choose rather than carrying four families. -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     /* Sage. Chosen 19 Aug 2026 over the original navy, which was cold enough
@@ -74,6 +77,29 @@
     --green:#0e9f6e; --green-soft:#e6f6f0; --amber:#b45309; --amber-soft:#fdf3e7;
     --red:#dc2626; --red-soft:#fdeaea;
   }
+
+  /* ---- Type trials -------------------------------------------------------
+     Virginia, 25 Aug 2026: "the fonts need to change as well."
+
+     Today is Bricolage Grotesque over Hanken Grotesk. Bricolage is a display
+     face with real character — and character is exactly what reads as
+     "designed by someone with an opinion" rather than "an app". The concept
+     board she likes uses a plain geometric sans for everything, which is why
+     it looks like a product.
+
+       ?type=dmsans    the prototype's own face, one family throughout
+       ?type=jakarta   Plus Jakarta Sans — friendlier, slightly rounder
+       ?type=manrope   Manrope — the house style used everywhere else
+
+     One family for both roles in all three, on purpose: the mock's calm comes
+     partly from not switching typeface between a heading and a label. */
+  body[data-type="dmsans"]{ --display:"DM Sans",sans-serif; --ui:"DM Sans",-apple-system,BlinkMacSystemFont,sans-serif; }
+  body[data-type="jakarta"]{ --display:"Plus Jakarta Sans",sans-serif; --ui:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,sans-serif; }
+  body[data-type="manrope"]{ --display:"Manrope",sans-serif; --ui:"Manrope",-apple-system,BlinkMacSystemFont,sans-serif; }
+  /* Bricolage carries its own tight tracking; a plain grotesque does not need
+     as much of it and looks pinched if it inherits the same numbers. */
+  body[data-type] .h{ letter-spacing:-.015em; }
+  body[data-type] .hero .big{ letter-spacing:-.02em; }
 
   /* ---- ?look=board -------------------------------------------------------
      The visual qualities of the concept board Virginia liked, without any of
@@ -5046,6 +5072,8 @@ function friendlyError(err, what){
   if(soft === '0') document.body.dataset.soft = '0';   // the original flat look
   const look = q.get('look');
   if(['blue','dmsans','board'].includes(look)) document.body.dataset.look = look;
+  const type = q.get('type');
+  if(['dmsans','jakarta','manrope'].includes(type)) document.body.dataset.type = type;
 }
 
 // ---------- your data: export and erasure ----------
