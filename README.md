@@ -5,7 +5,6 @@ no clinical/compliance layer.
 
 - `index.html` — the working app (login + check-ins + nurse caseload), talks to Supabase
   directly from the browser. No build step.
-- `preview.html` — the original non-functional concept mock-up (kept for reference).
 - `supabase/migrations/0001_init.sql` — database schema + security rules.
 - `manifest.webmanifest`, `sw.js`, `icons/` — PWA bits (installable, offline shell).
 
