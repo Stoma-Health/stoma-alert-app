@@ -75,6 +75,45 @@
     --red:#dc2626; --red-soft:#fdeaea;
   }
 
+  /* ---- ?look=board -------------------------------------------------------
+     The visual qualities of the concept board Virginia liked, without any of
+     its invented content. Three things were doing the work in that mock-up and
+     none of them is a feature:
+
+       a tinted ground per section, so screens stop blurring into one another
+       values as chips rather than a sentence, so they can be scanned
+       more air between blocks, so it reads calmer while fitting less
+
+     Done entirely in CSS keyed off each section's own data-view, so no markup
+     moved and nothing is riskier than a stylesheet. */
+  body[data-look="board"] .card{ margin-bottom:16px; }
+  body[data-look="board"] .view > .h{ margin-bottom:18px; }
+  body[data-look="board"] .entry{ margin-bottom:12px; }
+
+  /* One accent per section. Cool for the clinical screens, warm for supplies,
+     because supplies is shopping and shopping should not feel like a chart. */
+  body[data-look="board"] section[data-view="supplies"] .card{ background:#fffaf2; border-color:#f2e6d3; }
+  body[data-look="board"] section[data-view="dailycare"] .card{ background:#f6fbf8; border-color:#dceee5; }
+  body[data-look="board"] section[data-view="careplan"] .card{ background:#f7f9fd; border-color:#dfe6f3; }
+  body[data-look="board"] section[data-view="history"] .card{ background:#fbf9fd; border-color:#e8e2f0; }
+  body[data-look="board"] section[data-view="learn"] .card{ background:#f7fbfd; border-color:#dceaf1; }
+  body[data-look="board"] .card{ border-style:solid; }
+
+  /* Values as chips. The separator is a pseudo-element by default so the plain
+     look keeps its "900ml out · 2 changes" sentence and only the board look
+     breaks them apart. */
+  .bit + .bit::before{ content:' · '; color:var(--mist); font-weight:400; }
+  /* The chips wrap, so the date has to sit at the top of the row rather than
+     be centred against a block that is now two lines tall. */
+  body[data-look="board"] .entry .top{ align-items:flex-start; }
+  body[data-look="board"] .entry .nm{ display:flex; flex-wrap:wrap; gap:5px; flex:1; min-width:0; }
+  body[data-look="board"] .entry .when{ white-space:nowrap; padding-top:2px; }
+  body[data-look="board"] .bit{
+    font-size:11px; font-weight:600; color:var(--slate); background:var(--wash);
+    border:1px solid var(--line); border-radius:100px; padding:2px 9px;
+  }
+  body[data-look="board"] .bit + .bit::before{ content:none; }
+
   /* ---- Theme trials -------------------------------------------------------
      Sage is now the default. Add ?theme=navy (the original), ?theme=warm or
      ?theme=dusk to the URL to see the whole app
@@ -3631,7 +3670,7 @@ function careLogRow(r, readOnly){
   if(r.skin_status === 'Broken') flags.push('<span class="ivflag bad">Broken skin</span>');
   else if(r.skin_status === 'Red') flags.push('<span class="ivflag warn">Red skin</span>');
   return `<div class="entry"><div class="top">
-      <span class="nm">${esc(bits.join(' · ') || 'Recorded')}</span>
+      <span class="nm">${bits.length ? bits.map(b => `<span class="bit">${esc(b)}</span>`).join('') : 'Recorded'}</span>
       <span class="when">${when}</span></div>
     ${flags.length ? `<div class="ivflags">${flags.join('')}</div>` : ''}
     ${r.food     ? `<div class="ssub" style="margin-top:5px">Food: ${esc(r.food)}</div>` : ''}
@@ -5006,7 +5045,7 @@ function friendlyError(err, what){
   const soft = q.get('soft');
   if(soft === '0') document.body.dataset.soft = '0';   // the original flat look
   const look = q.get('look');
-  if(['blue','dmsans'].includes(look)) document.body.dataset.look = look;
+  if(['blue','dmsans','board'].includes(look)) document.body.dataset.look = look;
 }
 
 // ---------- your data: export and erasure ----------
