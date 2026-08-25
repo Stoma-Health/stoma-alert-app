@@ -455,6 +455,22 @@
   .duepill{display:none;margin-left:7px;padding:2px 8px;border-radius:999px;font-size:11px;
     font-weight:700;letter-spacing:.02em;background:#fff;color:var(--amber);vertical-align:middle;}
   .duepill.on{display:inline-block;}
+  /* Due and overdue on the hero. Amber means today, red means it has gone past
+     — the same two colours the rest of the app already uses for "look at this"
+     and "this one matters". Nothing appears at all when nothing is waiting,
+     which is what makes it worth looking at when it does. */
+  .herodue{display:flex;flex-direction:column;gap:8px;margin-top:16px;position:relative;z-index:1;}
+  .duerow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;font:inherit;
+    color:#fff;cursor:pointer;padding:11px 13px;border-radius:13px;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);}
+  .duerow:hover{background:rgba(255,255,255,.16);}
+  .duerow svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.9;flex:0 0 auto;}
+  .duerow .t{font-size:13.5px;font-weight:600;}
+  .duerow .c{margin-left:auto;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;
+    background:#fff;color:var(--amber);white-space:nowrap;}
+  .duerow.over{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.38);}
+  .duerow.over .c{color:var(--red);}
+  .duerow .go{opacity:.7;font-weight:700;}
   /* Same idea on a paper card rather than the sage hero. */
   .lowpill{display:none;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:11px;
     font-weight:700;letter-spacing:.02em;background:var(--amber-soft);color:var(--amber);vertical-align:middle;}
@@ -978,11 +994,13 @@
           <span class="hpill" id="heroDay" style="display:none;margin-left:6px"></span>
           <div class="big" id="homeStatus">Your care,<em>clearly together.</em></div>
           <div class="smt" id="homeSub">A 60-second check-in keeps you in the loop.</div>
-          <div class="hero-cta">
-            <button class="btn hbtn" id="startCheckin">Start today's check-in
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <button class="hlink" data-go="careplan">Open my Reminders <span class="duepill" id="careDue"></span> &rarr;</button>
-          </div>
+          <!-- The check-in button left this space on 25 Aug 2026: the bar at the
+               bottom now has a raised Check in button on every screen, so a
+               second one here was the same instruction twice. What goes here
+               instead is the only thing on this app with a DEADLINE — anything
+               due or overdue. Nothing is invented: each row is a count of rows
+               with a date the patient set themselves. -->
+          <div class="herodue" id="heroDue"></div>
           <!-- Said plainly rather than buried in the privacy notice. All three are
                true of this app today; if one stops being true it comes off. -->
           <div class="hero-trust">
@@ -1831,7 +1849,10 @@ function renderMore(){
     </button>`).join('');
   box.querySelectorAll('[data-more]').forEach(b => b.onclick = () => showView(b.dataset.more));
 }
-$('#startCheckin').onclick = () => showView('checkin');
+// The hero's check-in button went on 25 Aug 2026 — the bar has one on every
+// screen now. This id survives in case something else ever wants to point at
+// the check-in from the home screen.
+$('#startCheckin')?.addEventListener('click', () => showView('checkin'));
 document.querySelectorAll('#nurseTabs .tab').forEach(t => t.onclick = () => showView(t.dataset.nview));
 document.querySelectorAll('#adminTabs .tab').forEach(t => t.onclick = () => showView(t.dataset.nview));
 $('#ndetailBack').onclick = () => showView('caseload');
@@ -3605,11 +3626,6 @@ async function loadHomeStats(){
   const setTxtIf = (id, v) => { const e = $('#'+id); if(e) e.textContent = v; };
   setTxtIf('heroPill',  doneToday ? "Today's check-in is done" : 'Your check-in is ready');
   setTxtIf('heroState', doneToday ? 'Up to date' : 'Check-in due');
-  // The button has to agree with the pill. Offering "start today's check-in" to
-  // someone who has already done today's is how an app loses their trust in the
-  // small things, and then in the large ones.
-  const cta = $('#startCheckin');
-  if(cta) cta.childNodes[0].nodeValue = doneToday ? "Update today's check-in " : "Start today's check-in ";
 
   // The check-in is not a step here. It has the pill, the state line and the
   // button at the top of the hero already, and listing it a fourth time as
@@ -3663,6 +3679,7 @@ async function loadHomeStats(){
     }
   }
 
+  loadHeroDue();
   loadCareDueBadge();
   loadCupboardLowBadge();
 
@@ -3747,8 +3764,53 @@ function explainRating(label, r){
 // Errors are swallowed to leave the badge hidden rather than shown wrong. A
 // count that cannot be trusted is worse here than no count, because the whole
 // point of it is that it only appears when something really is waiting.
+// What has a deadline, on the home screen, in the space the check-in button
+// used to take. Two rows at most and neither appears unless it has something to
+// say — a panel that is always there stops being read.
+//
+// Due today is amber, gone past is red. They are counted SEPARATELY here, unlike
+// the old badge which lumped them together: on a full-width row there is space
+// to tell someone the difference, and "2 overdue" is a different feeling from
+// "2 due today".
+//
+// Errors leave the row out rather than showing a number that might be wrong.
+// The absence of this panel has to mean "nothing waiting", or it means nothing.
+async function loadHeroDue(){
+  const el = $('#heroDue'); if(!el) return;
+  const d = new Date(); d.setHours(0,0,0,0);
+  const ymd = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+            + '-' + String(d.getDate()).padStart(2,'0');
+  const q = (table, col, op) => sb.from(table).select('id',{count:'exact',head:true})
+    .not(col,'is',null)[op](col, ymd);
+  const [taskOver, taskToday, supOver, supToday] = await Promise.all([
+    sb.from('care_tasks').select('id',{count:'exact',head:true})
+      .eq('completed',false).not('due_date','is',null).lt('due_date', ymd),
+    sb.from('care_tasks').select('id',{count:'exact',head:true})
+      .eq('completed',false).eq('due_date', ymd),
+    q('supply_items','remind_on','lt'),
+    q('supply_items','remind_on','eq'),
+  ]);
+  const rows = [];
+  const add = (view, label, icon, over, today, err) => {
+    if(err) return;                                  // silent, not wrong
+    const o = over || 0, t = today || 0;
+    if(!o && !t) return;
+    const txt = o ? `${o} overdue${t ? ` · ${t} due today` : ''}` : `${t} due today`;
+    rows.push(`<button class="duerow${o ? ' over' : ''}" data-go="${view}">
+        <svg viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>
+        <span class="t">${label}</span><span class="c">${txt}</span><span class="go">\u203a</span>
+      </button>`);
+  };
+  add('careplan','Reminders','<path d="M5 4h14v16H5z" stroke-linejoin="round"/><path d="M9 9h6M9 13h6M9 17h3" stroke-linecap="round"/>',
+      taskOver.count, taskToday.count, taskOver.error || taskToday.error);
+  add('supplies','Supplies','<path d="M4 7l8-4 8 4-8 4z" stroke-linejoin="round"/><path d="M4 7v10l8 4 8-4V7" stroke-linejoin="round"/>',
+      supOver.count, supToday.count, supOver.error || supToday.error);
+  el.innerHTML = rows.join('');
+  el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => showView(b.dataset.go));
+}
+
 async function loadCareDueBadge(){
-  const el = $('#careDue'); if(!el) return;
+  const el = $('#careDue'); if(!el) return;   // hero badge retired 25 Aug 2026
   el.classList.remove('on');
   const today = new Date(); today.setHours(0,0,0,0);
   const ymd = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0')
@@ -3944,14 +4006,19 @@ let tasks = [];
 function taskRow(t){
   const due  = t.due_date ? new Date(t.due_date + 'T00:00:00') : null;
   const today = new Date(); today.setHours(0,0,0,0);
-  const overdue = due && !t.completed && due < today;
+  // Two states, not one. Amber is "today", red is "this has gone past" —
+  // the same pair the cupboard uses, so a colour means the same thing on
+  // whichever screen a patient meets it.
+  const overdue  = due && !t.completed && due <  today;
+  const dueToday = due && !t.completed && +due === +today;
   const soon = due ? due.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
   return `<div class="entry" data-task="${esc(t.id)}" style="align-items:flex-start">
     <div class="top" style="width:100%">
       <button class="tickbox${t.completed ? ' on' : ''}" aria-pressed="${t.completed}"
         aria-label="${t.completed ? 'Mark not done' : 'Mark done'}: ${esc(t.title)}">${t.completed ? '✓' : ''}</button>
       <span class="nm" style="${t.completed ? 'text-decoration:line-through;opacity:.55' : ''}">${esc(t.title)}</span>
-      ${due ? `<span class="when"${overdue ? ' style="color:var(--amber);font-weight:700"' : ''}>${overdue ? 'was ' : ''}${soon}</span>` : ''}
+      ${due ? `<span class="when"${overdue ? ' style="color:var(--red);font-weight:700"' : dueToday ? ' style="color:var(--amber);font-weight:700"' : ''}>${overdue ? 'was ' : ''}${soon}</span>` : ''}
+      ${overdue ? '<span class="pill r">Overdue</span>' : dueToday ? '<span class="pill a">Due today</span>' : ''}
     </div>
     ${t.detail ? `<div class="ssub" style="margin-top:4px">${esc(t.detail)}</div>` : ''}
   </div>`;
@@ -4277,10 +4344,13 @@ function cupIcon(name){
 function cupRow(it){
   const today = new Date(); today.setHours(0,0,0,0);
   const due = it.remind_on ? new Date(it.remind_on + 'T00:00:00') : null;
-  const overdue = due && due <= today;
+  // Amber today, red once it has gone past — matching the reminders screen.
+  const dueToday = due && due.getTime() === today.getTime();
+  const overdue  = due && due < today;
   const when = due ? due.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : null;
   const line = !due ? 'No reminder set'
-    : overdue ? (due.getTime() === today.getTime() ? 'Reorder today' : 'Was due ' + when)
+    : dueToday ? 'Reorder today'
+    : overdue ? 'Was due ' + when
     : 'Remind me on ' + when;
   return `<div class="cupitem" data-id="${esc(it.id)}" style="padding:11px 0;border-top:1px solid var(--line)">
     <div class="prod" style="margin:0">
@@ -4289,7 +4359,7 @@ function cupRow(it){
         <div style="font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.name)}</div>
         <div class="ssub">${esc(line)}</div>
       </div>
-      ${overdue ? '<span class="pill a">Due</span>' : ''}
+      ${overdue ? '<span class="pill r">Overdue</span>' : dueToday ? '<span class="pill a">Due today</span>' : ''}
     </div>
     <div style="display:flex;gap:7px;margin-top:9px;align-items:center;flex-wrap:wrap">
       <label class="fl" style="margin:0;display:flex;align-items:center;gap:7px">
