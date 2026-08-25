@@ -827,6 +827,16 @@
     background:var(--teal-soft);color:var(--teal-deep);border:1.5px solid var(--teal);border-radius:13px;
     padding:13px;font-weight:700;font-size:14px;text-decoration:none;font-family:var(--ui);cursor:pointer;}
   .sup-open:active{transform:scale(.99);}
+  /* Pills, not three stacked buttons. One supplier looked deliberate; three
+     looked like a menu, and the stack grew every time another was ticked. The
+     label drops to the supplier's name because the verb was the same on all of
+     them - the arrow already says it opens their site. */
+  .suplinks{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+  .suplink{display:inline-flex;align-items:center;gap:5px;background:var(--teal-soft);
+    color:var(--teal-deep);border:1.5px solid var(--teal);border-radius:100px;
+    padding:7px 13px;font-family:var(--ui);font-size:12.5px;font-weight:600;
+    text-decoration:none;cursor:pointer;}
+  .suplink:active{transform:scale(.97);}
   @keyframes supPulse{0%,100%{box-shadow:0 0 0 0 rgba(10,138,143,0);} 50%{box-shadow:0 0 0 6px rgba(10,138,143,.16);}}
   .sup-open.attn{animation:supPulse 1.5s ease-in-out 2;}
 
@@ -4317,8 +4327,13 @@ function renderSuppliers(){
   // small lie that makes someone stop trusting the rest.
   const addSel = $('#cupSupplier');
   if(addSel){ const keep = addSel.value; addSel.innerHTML = supplierOptions(keep); }
-  $('#supplierLinks').innerHTML = mySuppliers.filter(s => SUPPLIER_URL[s]).map(s =>
-    `<a class="sup-open attn" href="${esc(SUPPLIER_URL[s])}" target="_blank" rel="noopener noreferrer">${esc(SUPPLIER_CTA[s] || `Browse ${s} products ↗`)}</a>`).join('');
+  // aria-label keeps the full sentence for anyone who cannot see the arrow.
+  const links = mySuppliers.filter(s => SUPPLIER_URL[s]);
+  $('#supplierLinks').innerHTML = links.length
+    ? `<div class="suplinks">${links.map(s =>
+        `<a class="suplink" href="${esc(SUPPLIER_URL[s])}" target="_blank" rel="noopener noreferrer"
+            aria-label="${esc(SUPPLIER_CTA[s] || `Browse ${s} products`)} (opens in a new tab)">${esc(s)} \u2197</a>`).join('')}</div>`
+    : '';
 }
 // "Fittleworth and CliniMed", not "Fittleworth, CliniMed" — it is read aloud by
 // screen readers and it is a sentence, not a list of columns.
